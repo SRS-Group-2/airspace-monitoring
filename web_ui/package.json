@@ -1,0 +1,12 @@
+{
+  "name": "web_ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "dependencies": {
+    "express": "^4.17.3"
+  },
+  "scripts": {
+    "start": "node src/main.js"
+  }
+}

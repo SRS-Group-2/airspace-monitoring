@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Flight Radar</title>
+        <script src="index.js"></script> 
+    </head>
+    <body>
+        <div id="flights">
+            
+        </div>
+        <div id="cumulative_data">
+            <div id="current">
+                <select id="current_timeframe">
+                    <option value="1h">1h</option>
+                    <option value="6h">6h</option>
+                    <option value="24h">24h</option>
+                </select>
+                <p id="current_distance"></p>
+                <p id="current_co2"></p>
+            </div>
+            <div id="historic">
+                <form id="historic_data_form">
+                    <div id="historic_begin_section">
+                        <label for="historic_begin_date">Begin date</label>
+                        <input type="date" id="historic_begin_date" name="begin_date" required>
+                    </div>
+                    <div id="historic_end_section">
+                        <label for="historic_end_date">End date</label>
+                        <input type="date" id="historic_end_date" name="end_date" required>
+                    </div>
+                    <select id="historic_resolution">
+                        <option value="1h">1h</option>
+                        <option value="1d" selected>1d</option>
+                    </select>
+                    <input id="historic_data_submit" type="submit" value="Ok">
+                </form>
+                <p id="historic_distance"></p>
+                <p id="historic_co2"></p>
+            </div>
+        </div>
+    </body>
+</html>
