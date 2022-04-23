@@ -20,34 +20,33 @@ app.get('/co2/:timeframe((1|6|24)h)', (req, res) => {
 })
 
 app.get('/distance/history', (req, res) => {
-  console.log(req)
-  var begin = req.params.begin
-  var end = req.params.end
-  var resolution = req.params.resolution
+  var begin = parseInt(req.query.begin)
+  var end = parseInt(req.query.end)
+  var resolution = req.query.resolution
   var result = {}
   if (resolution === "1h") {
-    var keys1h = range((end - begin) / 3600000, begin / 3600000)  
-    result = keys1h.reduce((obj, item) => { return {...obj, item: item} })
+    var keys1h = range((end - begin) / 3600000, begin / 3600000)
+    result = keys1h.reduce((obj, item) => { obj[item] = item; return obj; }, {})
   } else {
     var keys1d = range((end - begin) / 86400000, begin / 86400000)  
-    result = keys1d.reduce((obj, item) => { return {...obj, item: item} })
+    result = keys1d.reduce((obj, item) => { obj[item] = item; return obj; }, {})
   }
-  res.send(result)
+  res.json(result)
 })
 
 app.get('/co2/history', (req, res) => {
-  var begin = req.params.begin
-  var end = req.params.end
-  var resolution = req.params.resolution
+  var begin = parseInt(req.query.begin)
+  var end = parseInt(req.query.end)
+  var resolution = req.query.resolution
   var result = {}
   if (resolution === "1h") {
-    var keys1h = range((end - begin) / 3600000, begin / 3600000)  
-    result = keys1h.reduce((obj, item) => { return {...obj, item: item} })
+    var keys1h = range((end - begin) / 3600000, begin / 3600000)
+    result = keys1h.reduce((obj, item) => { obj[item] = item; return obj; }, {})
   } else {
     var keys1d = range((end - begin) / 86400000, begin / 86400000)  
-    result = keys1d.reduce((obj, item) => { return {...obj, item: item} })
+    result = keys1d.reduce((obj, item) => { obj[item] = item; return obj; }, {})
   }
-  res.send(result)
+  res.json(result)
 })
 
 app.listen(port, () => {

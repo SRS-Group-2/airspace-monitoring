@@ -22,7 +22,6 @@ function request_value_with_params(url, value_callback, params) {
     newUrl = newUrl + keys[key] + "=" + params[keys[key]] + "&"
   }
   newUrl = newUrl.slice(0, -1)
-  console.log(newUrl)
   request_value(newUrl, value_callback)
 }
 
@@ -106,9 +105,9 @@ window.onload = _ => {
   const historic_data_submit_button = document.getElementById("historic_data_submit")
   const historic_distance_field = document.getElementById("historic_distance")
   const historic_co2_field = document.getElementById("historic_co2")
-  const used_fields = Array.from(document.querySelectorAll("input[type=date], input[type=time]"))
   historic_data_submit_button.onclick = ev => {
     ev.preventDefault()
+    const used_fields = Array.from(document.querySelectorAll("input[type=date], input[type=time]"))
     if (used_fields.every(e => e.value !== "")) {
       if (document.getElementById("form_error") !== null) {
         document.getElementById("form_error").remove()
@@ -118,8 +117,8 @@ window.onload = _ => {
         "end": get_end_timestamp(),
         "resolution": historic_resolution_selector.value
       }
-      request_value_with_params(base_distance_route + "/history", v => historic_distance_field.value = v, params)
-      request_value_with_params(base_co2_route + "/history", v => historic_co2_field.value = v, params)
+      request_value_with_params(base_distance_route + "/history", v => historic_distance_field.innerHTML = v, params)
+      request_value_with_params(base_co2_route + "/history", v => historic_co2_field.innerHTML = v, params)
     } else {
       const error_paragraph = document.createElement("p")
       error_paragraph.id = "form_error"
