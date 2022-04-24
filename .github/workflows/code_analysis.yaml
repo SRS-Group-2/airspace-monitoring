@@ -1,5 +1,8 @@
 name: Code analysis
 on: 
+  pull_request:
+    branches:
+      - 'main'
   push:
     branches:
       - 'main'
@@ -17,3 +20,22 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
       - run: echo "Job ended."
+  semgrep:
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - uses: actions/checkout@v3
+      - run: semgrep scan --sarif --output=semgrep.sarif
+        env:
+          SEMGREP_RULES: >- # more at semgrep.dev/r
+            p/security-audit
+            p/secrets
+            p/ci
+            p/javascript
+            p/owasp-top-ten
+            p/clientside-js
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: semgrep.sarif
