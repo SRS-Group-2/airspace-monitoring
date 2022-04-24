@@ -62,7 +62,32 @@ function get_timestamp(date_selector, time_selector) {
   return date_selector.valueAsNumber + time
 }
 
+function set_selectable_italian_flights() {
+  const flight_selector = document.getElementById("flight")
+  request_value(base_aircrafts_route, vs => {
+    flight_selector.innerHTML = ""
+    JSON.parse(vs).map(v => {
+      var opt = document.createElement("option")
+      opt.value = v
+      opt.innerHTML = v
+      flight_selector.append(opt)
+    })
+  })
+}
+
 window.onload = _ => {
+  /* set up flight selector */
+  const flight_selector = document.getElementById("flight")
+  set_selectable_italian_flights()
+  flight_selector.onclick = _ev => {
+    set_selectable_italian_flights()
+  }
+  flight_selector.onchange = _ev => {
+    request_value(base_aircrafts_route + "/" + flight_selector.value + "/info", v => {
+      document.getElementById("info").innerHTML = v
+      document.getElementById("coordinates").innerHTML = "Coordinates of " + flight_selector.value
+    })
+  }
   /* set up current distance, co2 */
   const current_timeframe_selector = document.getElementById("current_timeframe")
   const current_distance_field = document.getElementById("current_distance")

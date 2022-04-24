@@ -9,6 +9,14 @@ function range(size, startAt = 0) {
 
 app.use(express.static('public'))
 
+app.get('/aircrafts', (_req, res) => {
+  res.send(["icao01", "icao02", "icao03", "icao04"])
+})
+
+app.get('/aircrafts/:icao24/info', (req, res) => {
+  res.send("info about " + req.params.icao24)
+})
+
 app.get('/distance/:timeframe((1|6|24)h)', (req, res) => {
   var timeframe = req.params.timeframe
   res.send("distance for last " + timeframe)
