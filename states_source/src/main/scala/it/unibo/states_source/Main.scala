@@ -30,7 +30,7 @@ object Main {
     val source = env.addSource(sourceFunction)
 
     val fileSink: FileSink[MinimalState] = 
-      FileSink.forRowFormat(new Path("/usr/local/flink/output.txt"), 
+      FileSink.forRowFormat(new Path("/usr/local/flink/output"), 
                             new SimpleStringEncoder[MinimalState]("UTF-8"))
               .withRollingPolicy(DefaultRollingPolicy.builder()
                                                      .withRolloverInterval(TimeUnit.MINUTES.toMillis(1))
@@ -42,7 +42,7 @@ object Main {
     source.map(sv => new MinimalState(sv.getIcao24(), 
                                       sv.getLatitude(), 
                                       sv.getLongitude(), 
-                                      sv.isOnGround(), 
+                                      // sv.isOnGround(), 
                                       LocalDateTime.now().toString()))
           .sinkTo(fileSink)
 
