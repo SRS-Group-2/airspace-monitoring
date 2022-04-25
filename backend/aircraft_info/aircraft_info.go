@@ -49,7 +49,7 @@ func main() {
 	router := gin.New()
 
 	router.SetTrustedProxies(nil)
-	router.GET("/aircraft/info/:icao24", getInfo)
+	router.GET("/aircraft/:icao24/info", getInfo)
 
 	router.Run("localhost:8080")
 }
