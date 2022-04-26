@@ -1,0 +1,51 @@
+name: Deploy web ui
+on: 
+  push:
+    branches:
+      - 'web_ui_deploy'
+jobs:
+  semgrep:
+    name: Code analysis
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - uses: actions/checkout@v3
+      - run: semgrep scan --sarif --output=semgrep.sarif
+        env:
+          SEMGREP_RULES: >- # more at semgrep.dev/r
+            p/security-audit
+            p/secrets
+            p/ci
+            p/javascript
+            p/owasp-top-ten
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: semgrep.sarif
+  build_and_push:
+    name: Build and push Docker image to Google registry
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      - name: Build image
+        run: |-
+          docker build -t gcr.io/$TEST_PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA .
+      # Configure docker to use the gcloud command-line tool as a credential helper
+      - run: |
+          gcloud auth configure-docker -q
+      # Push image to Google Container Registry
+      - name: Build
+        run: |-
+          docker push gcr.io/$TEST_PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA
+  # check:
+  #   name: Scan Docker image
+
+  # deploy:
+  #   name: Deploy service on Google Cloud
