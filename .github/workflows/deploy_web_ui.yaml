@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - 'web_ui_deploy'
+env:
+  SERVICE_NAME: web_ui
 jobs:
   semgrep:
     name: Code analysis
@@ -28,6 +30,7 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
+      - run: cd $GITHUB_WORKSPACE/web_ui
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
         with:
@@ -36,14 +39,14 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v0'
       - name: Build image
         run: |-
-          docker build -t gcr.io/$TEST_PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA .
+          docker build -t europe-west6-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/$SERVICE_NAME:$GITHUB_SHA .
       # Configure docker to use the gcloud command-line tool as a credential helper
       - run: |
-          gcloud auth configure-docker -q
+          gcloud auth configure-docker europe-west6-docker.pkg.dev
       # Push image to Google Container Registry
       - name: Build
         run: |-
-          docker push gcr.io/$TEST_PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA
+          docker push europe-west6-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/$SERVICE_NAME:$GITHUB_SHA
   # check:
   #   name: Scan Docker image
 
