@@ -59,6 +59,10 @@ app.get('/co2/history', (req, res) => {
   res.json(result)
 })
 
+app.get("/test", (_req, res) => {
+  res.send("Happy use of our service!")
+})
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
