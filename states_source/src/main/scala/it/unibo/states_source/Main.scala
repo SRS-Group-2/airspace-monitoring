@@ -29,9 +29,9 @@ object Main {
     // val sourceFunction = new OpenSkySourceFunction(36.619987291, 47.1153931748, 6.7499552751, 18.4802470232)
     val source = env.addSource(sourceFunction)
 
-    val fileSink: FileSink[MinimalState] = 
+    val fileSink: FileSink[Vectors] = 
       FileSink.forRowFormat(new Path("/usr/local/flink/output"), 
-                            new SimpleStringEncoder[MinimalState]("UTF-8"))
+                            new SimpleStringEncoder[Vectors]("UTF-8"))
               .withRollingPolicy(DefaultRollingPolicy.builder()
                                                      .withRolloverInterval(TimeUnit.MINUTES.toMillis(1))
                                                      .withInactivityInterval(TimeUnit.MINUTES.toMillis(1))
@@ -39,10 +39,12 @@ object Main {
                                                      .build())
 	            .build()  
 
-    source.map(sv => new MinimalState(sv.getIcao24(), 
-                                      sv.getLatitude(), 
-                                      sv.getLongitude(), 
-                                      // sv.isOnGround(), 
+    source.map(lsv => new Vectors(
+                                      lsv.map(sv => new MinimalState(sv.getIcao24(), 
+                                                                     sv.getLatitude(), 
+                                                                     sv.getLongitude(), 
+                                                                    /* sv.isOnGround(), 
+                                                                     LocalDateTime.now().toString()*/)),
                                       LocalDateTime.now().toString()))
           .sinkTo(fileSink)
 
