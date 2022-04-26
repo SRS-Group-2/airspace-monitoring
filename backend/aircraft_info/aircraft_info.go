@@ -44,14 +44,12 @@ func main() {
 
 	queryStmt = stmt
 
-	gin.SetMode(gin.ReleaseMode)
-
 	router := gin.New()
 
 	router.SetTrustedProxies(nil)
 	router.GET("/aircraft/:icao24/info", getInfo)
 
-	router.Run("localhost:8080")
+	router.Run()
 }
 
 func getInfo(c *gin.Context) {
