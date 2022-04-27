@@ -20,7 +20,7 @@ jobs:
         id: check_files
         run: |
           DIRS=""
-          if [[ "${{ github.event.before }}" == "" ]]; then
+          if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
             echo Calculating git diff between HEAD and HEAD^
             git diff --name-only HEAD^ HEAD > files.txt
           else
