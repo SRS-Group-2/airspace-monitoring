@@ -14,13 +14,19 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - run: echo ${{ github.event_name }} happened on ${GITHUB_REF#refs/heads/}
       - name: Check which files were changed
         id: check_files
         run: |
           DIRS=""
-          git diff --name-only HEAD^ HEAD > files.txt
+          if [[ "${{ github.event.before }}" == "" ]]; then
+            echo Calculating git diff between HEAD and HEAD^
+            git diff --name-only HEAD^ HEAD > files.txt
+          else
+            echo Calculating git diff between HEAD and ${{ github.event.before }}
+            git diff --name-only ${{ github.event.before }} HEAD > files.txt
+          fi
           while IFS= read -r file
           do
             # echo checking $file
@@ -48,6 +54,7 @@ jobs:
     name: Build and push Docker image to Google registry
     needs: identify_changed_services
     runs-on: ubuntu-latest
+    if: ${{ needs.identify_changed_services.outputs.directories != '[]' && needs.identify_changed_services.outputs.directories != '' }}
     strategy:
       matrix: 
         service: ${{ fromJson(needs.identify_changed_services.outputs.directories) }}
@@ -106,7 +113,7 @@ jobs:
           docker push us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA
   deploy:
     name: Deploy service on Google Cloud
-    needs: build_and_scan_and_push
+    needs: build_scan_push
     runs-on: ubuntu-latest
     strategy:
       matrix: 
