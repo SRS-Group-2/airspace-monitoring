@@ -3,37 +3,48 @@ on:
   push:
     branches:
       - 'main'
+      - 'test_deploy'
 jobs:
   identify_changed_services:
     name: Identify the services that were updated
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.check_files.outputs.changed_dirs }}
+      directories: ${{ steps.check_files.outputs.changed_dirs }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
           fetch-depth: 2
+      - run: echo ${{ github.event_name }} happened on ${GITHUB_REF#refs/heads/}
       - name: Check which files were changed
         id: check_files
         run: |
+          NON_BUILDABLE_DIRS=(".github")
           DIRS=""
           git diff --name-only HEAD^ HEAD > files.txt
           while IFS= read -r file
           do
-            DIRS=`echo $DIRS,{\"directory\": \"${file%%/*}\"}`
+            if [[ ! " ${NON_BUILDABLE_DIRS[*]} " =~ " ${file%%/*} " ]]; then
+              if [[ "${file%%/*}" == *"/"* ]]; then
+                DIRS=`echo $DIRS,\"${file%%/*}\"`
+              else
+                echo Found changed file ${file%%/*} outside of directories
+              fi
+            else 
+              echo Found changed but non buildable directory: ${file%%/*}
+            fi
           done < files.txt
           DIRS=${DIRS#*,}
-          echo ::set-output name=changed_dirs::{\"include\": [$DIRS]}
-  # build_scan_push:
-  #   name: Build and push Docker image to Google registry
-  #   needs: identify_changed_services
-  #   runs-on: ubuntu-latest
-  #   # strategy:
-  #   #   matrix: ${{ fromJson(needs.identify_changed_services.outputs.matrix) }}
-  #   steps:
-  #     - run: echo ${{ needs.identify_changed_services.outputs.matrix }}
-      # - run: echo OUT ${{ matrix.directory }}
+          echo ::set-output name=changed_dirs::[$DIRS]
+  build_scan_push:
+    name: Build and push Docker image to Google registry
+    needs: identify_changed_services
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: 
+        directory: ${{ fromJson(needs.identify_changed_services.outputs.directories) }}
+    steps:
+      - run: echo Working on ${{ matrix.directory }} directory
   #     - name: Check out the repo
   #       uses: actions/checkout@v3
   #     - name: Build image
