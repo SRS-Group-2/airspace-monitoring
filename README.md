@@ -11,3 +11,5 @@ Once this repository has been cloned, run `pre-commit install` in the directory.
 
 ### Test of Github Actions Workflows
 A useful tool to locally test workflows is [`act`](https://github.com/nektos/act).
+
+`act` shows different behaviours than Github Actions when using matrixes and checks if matrixes are empty and for the values of `${{ github.event.before }}` for new branches.
