@@ -19,19 +19,18 @@ jobs:
       - name: Check which files were changed
         id: check_files
         run: |
-          NON_BUILDABLE_DIRS=(".github")
           DIRS=""
           git diff --name-only HEAD^ HEAD > files.txt
           while IFS= read -r file
           do
-            if [[ ! " ${NON_BUILDABLE_DIRS[*]} " =~ " ${file%%/*} " ]]; then
-              if [[ "${file%%/*}" == *"/"* ]]; then
-                DIRS=`echo $DIRS,\"${file%%/*}\"`
+            if [[ -n "$(ls -A "${file%/*}/Dockerfile" 2> /dev/null)" ]]; then
+                DIRS=`echo $DIRS,\"${file%/*}\"`
+            else
+              if [[ "${file%/*}" == *"/"* ]]; then
+                echo Found directory ${file%/*} without Dockerfile
               else
-                echo Found changed file ${file%%/*} outside of directories
+                echo Found changed file ${file%/*} outside of directories
               fi
-            else 
-              echo Found changed but non buildable directory: ${file%%/*}
             fi
           done < files.txt
           DIRS=${DIRS#*,}
