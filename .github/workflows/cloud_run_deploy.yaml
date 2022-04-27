@@ -1,0 +1,104 @@
+name: Deploy on Cloud Run the changed services
+on: 
+  push:
+    branches:
+      - 'main'
+jobs:
+  identify_changed_services:
+    name: Identify the services that were updated
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.check_files.outputs.changed_dirs }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: Check which files were changed
+        id: check_files
+        run: |
+          DIRS=""
+          git diff --name-only HEAD^ HEAD > files.txt
+          while IFS= read -r file
+          do
+            DIRS=`echo $DIRS,{\"directory\": \"${file%%/*}\"}`
+          done < files.txt
+          DIRS=${DIRS#*,}
+          echo ::set-output name=changed_dirs::{\"include\": [$DIRS]}
+  # build_scan_push:
+  #   name: Build and push Docker image to Google registry
+  #   needs: identify_changed_services
+  #   runs-on: ubuntu-latest
+  #   # strategy:
+  #   #   matrix: ${{ fromJson(needs.identify_changed_services.outputs.matrix) }}
+  #   steps:
+  #     - run: echo ${{ needs.identify_changed_services.outputs.matrix }}
+      # - run: echo OUT ${{ matrix.directory }}
+  #     - name: Check out the repo
+  #       uses: actions/checkout@v3
+  #     - name: Build image
+  #       run: |-
+  #         docker build -t us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/$SERVICE_NAME:$GITHUB_SHA $GITHUB_WORKSPACE/web_ui
+  #     - name: Scan image
+  #       uses: azure/container-scan@v0
+  #       id: scan
+  #       continue-on-error: true
+  #       with:
+  #         image-name: us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ env.SERVICE_NAME }}:${{ github.sha }}
+  #     - name: Output JSON result of scan if scan failed
+  #       id: scan_result
+  #       run: echo ::set-output name=result::$(cat ${{ steps.scan.outputs.scan-report-path }})
+  #     - name: Create issue if scan failed
+  #       if: steps.scan.outcome != 'success' && steps.scan_result.outcome == 'success'
+  #       id: create_issue
+  #       uses: imjohnbo/issue-bot@v3 # used in GitHub Docs
+  #       with:
+  #         labels: ci
+  #         pinned: false
+  #         close-previous: false
+  #         title: Container scan failed
+  #         body: |-
+  #           Please, copy the JSON string and use `echo '<json_strin>' | jq .` to prettify it
+  #           ```json
+  #             ${{ steps.scan_result.outputs.result }}
+  #           ```
+  #     - name: Stop if scan failed
+  #       if: steps.scan.outcome != 'success'
+  #       run: exit 1
+  #     - id: 'auth'
+  #       uses: 'google-github-actions/auth@v0'
+  #       if: steps.scan.outcome == 'success'
+  #       with:
+  #         credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+  #     - name: 'Set up Cloud SDK'
+  #       if: steps.auth.outcome == 'success'
+  #       id: 'cloud_setup'
+  #       uses: 'google-github-actions/setup-gcloud@v0'
+  #     # Configure docker to use the gcloud command-line tool as a credential helper
+  #     - name: Configure docker to use gcloud
+  #       id: 'docker_cloud_setup'
+  #       if: steps.cloud_setup.outcome == 'success'
+  #       run: |
+  #         gcloud auth configure-docker us-central1-docker.pkg.dev
+  #     # Push image to Google Container Registry
+  #     - name: Push
+  #       if: steps.docker_cloud_setup.outcome == 'success'
+  #       run: |-
+  #         docker push us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/$SERVICE_NAME:$GITHUB_SHA
+  # deploy:
+  #   name: Deploy service on Google Cloud
+  #   needs: build_and_scan_and_push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - id: 'auth'
+  #       uses: 'google-github-actions/auth@v0'
+  #       with:
+  #         credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+  #     - id: 'deploy'
+  #       uses: 'google-github-actions/deploy-cloudrun@v0'
+  #       with:
+  #         service: ${{ env.SERVICE_NAME}}
+  #         image: us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ env.SERVICE_NAME }}:${{ github.sha }}
+  #         region: 'us-central1'
+  #     - name: 'Use output'
+  #       run: 'curl "${{ steps.deploy.outputs.url }}"'
