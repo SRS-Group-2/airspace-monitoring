@@ -16,7 +16,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with: 
-          languages: javascript
+          languages: javascript, go
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
       - run: echo "Job ended."
@@ -34,6 +34,7 @@ jobs:
             p/ci
             p/javascript
             p/scala
+            p/go
             p/owasp-top-ten
             p/clientside-js
       - name: Upload SARIF file
