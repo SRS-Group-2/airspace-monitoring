@@ -9,6 +9,30 @@ The current setup requires the use of [`pre-commit`](https://pre-commit.com/).
 
 Once this repository has been cloned, run `pre-commit install` in the directory. The first commit after the installation of the hooks requires the [Golang](https://go.dev) compiler to be installed.
 
+### Code scan
+Code scanning is done using CodeQL and [Semgrep](https://semgrep.dev/).
+
+Semgrep can be installed with `pip install semgrep` (alternatively, [docker can be used](https://semgrep.dev/docs/getting-started/)), scanning is done with 
+```
+semgrep \
+  --config p/security-audit \
+  --config p/secrets \
+  --config p/ci \
+  --config p/javascript \
+  --config p/scala \
+  --config p/golang \
+  --config p/owasp-top-ten \
+  --config p/clientside-js \
+  --metrics=off
+```
+
+For CodeQL, a guide for installation is [here](https://codeql.github.com/docs/codeql-cli/getting-started-with-the-codeql-cli/). 
+To run the checks:
+```
+codeql database create ./codeql-database --language=go,javascript --db-cluster
+codeql database analyze ./codeql-database --format=csv --output=./codeql.csv
+```
+
 ### Container scan
 Currently, scanning containers on the CI pipeline uses [Trivy](https://github.com/aquasecurity/trivy) and [Dockle](https://github.com/goodwithtech/dockle), throught the [official Azure action](https://github.com/Azure/container-scan).
 
