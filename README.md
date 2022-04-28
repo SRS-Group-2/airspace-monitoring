@@ -29,9 +29,12 @@ semgrep \
 For CodeQL, a guide for installation is [here](https://codeql.github.com/docs/codeql-cli/getting-started-with-the-codeql-cli/). 
 To run the checks:
 ```
-codeql database create ./codeql-database --language=go,javascript --db-cluster
-codeql database analyze ./codeql-database --format=csv --output=./codeql.csv
+codeql database create ./codeql-database --language=<language-you-are-analyzing> --db-cluster
+codeql database analyze ./codeql-database/<language-you-are-analyzing> --format=csv --output=./codeql.csv <queries>
 ```
+Local scan with CodeQL requires a GITHUB_TOKEN environment variable to be configured.
+
+Remember to not commit the CodeQL databases!
 
 ### Container scan
 Currently, scanning containers on the CI pipeline uses [Trivy](https://github.com/aquasecurity/trivy) and [Dockle](https://github.com/goodwithtech/dockle), throught the [official Azure action](https://github.com/Azure/container-scan).
