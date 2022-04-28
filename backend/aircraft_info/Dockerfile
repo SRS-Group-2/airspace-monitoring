@@ -22,7 +22,7 @@ FROM gcr.io/distroless/base-debian11
 
 WORKDIR /
 
-COPY resources /resources
+COPY resources/aircraft_info.db /resources/
 COPY --from=build /app.exe /app.exe
 
 ENV GIN_MODE release
