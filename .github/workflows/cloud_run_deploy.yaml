@@ -56,6 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.identify_changed_services.outputs.directories != '[]' && needs.identify_changed_services.outputs.directories != '' }}
     strategy:
+      fail-fast: false
       matrix: 
         service: ${{ fromJson(needs.identify_changed_services.outputs.directories) }}
     steps:
@@ -116,6 +117,7 @@ jobs:
     needs: build_scan_push
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix: 
         service: ${{ fromJson(needs.identify_changed_services.outputs.directories) }}
     steps:
@@ -126,7 +128,7 @@ jobs:
       - id: 'deploy'
         uses: 'google-github-actions/deploy-cloudrun@v0'
         with:
-          service: ${{ env.SERVICE_NAME}}
+          service: ${{ matrix.service.name }}
           image: us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}
           region: 'us-central1'
       - name: 'Use output'
