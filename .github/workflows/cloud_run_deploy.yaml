@@ -56,8 +56,10 @@ jobs:
             IFS="," read -r -a DIRS <<< "$(echo "${DIRS[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
             echo Found directories: ${DIRS[@]}
             for DIR in "${DIRS[@]}"; do
-              TMP=${DIR%/*}
-              OBJECTS=`echo $OBJECTS,{\"directory\": \"${DIR}\", \"name\": \"${TMP##*/}\"}`
+              if [[ "${DIR}" != "" ]]; then
+                TMP=${DIR%/*}
+                OBJECTS=`echo $OBJECTS,{\"directory\": \"${DIR}\", \"name\": \"${TMP##*/}\"}`
+              fi
             done
             OBJECTS=${OBJECTS#*,}
           fi
