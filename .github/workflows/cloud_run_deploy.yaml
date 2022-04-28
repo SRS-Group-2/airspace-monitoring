@@ -20,6 +20,7 @@ jobs:
         id: check_files
         run: |
           DIRS=""
+          OBJECTS=""
           if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
             echo Calculating git diff between HEAD and HEAD^
             git diff --name-only HEAD^ HEAD > files.txt
@@ -41,15 +42,23 @@ jobs:
                 # echo Checking $BASE_DIR
                 if [[ -n "$(ls -A "${BASE_DIR}Dockerfile" 2> /dev/null)" ]]; then
                   # echo $BASE_DIR is buildable
-                  DIRS=`echo $DIRS,{\"directory\": \"${BASE_DIR}\", \"name\": \"${DIRECTORY}\"}`
+                  DIRS=`echo $DIRS,$BASE_DIR`
+                  # OBJECTS=`echo $OBJECTS,{\"directory\": \"${BASE_DIR}\", \"name\": \"${DIRECTORY}\"}`
                 fi
               done
             else
                 echo Found changed file ${file%/*} outside of directories
             fi
           done < files.txt
-          DIRS=${DIRS#*,}
-          echo ::set-output name=changed_dirs::[$DIRS]
+          if [[ "${DIRS}" != "" ]]; then
+            IFS="," read -r -a DIRS <<< "$(echo "${DIRS[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+            for DIR in "${DIRS[@]}"; do
+              TMP=${DIR%/*}
+              OBJECTS=`echo $OBJECTS,{\"directory\": \"${DIR}\", \"name\": \"${TMP##*/}\"}`
+            done
+            OBJECTS=${OBJECTS#*,}
+          fi
+          echo ::set-output name=changed_dirs::[$OBJECTS]
   build_scan_push:
     name: Build and push Docker image to Google registry
     needs: identify_changed_services
