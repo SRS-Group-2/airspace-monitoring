@@ -53,7 +53,7 @@ jobs:
             fi
           done < files.txt
           if [[ "${DIRS}" != "" ]]; then
-            IFS="," read -r -a DIRS <<< "$(echo "${DIRS[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+            IFS="," read -r -a DIRS <<< "$(echo "${DIRS[@]}" | tr ',' '\n' | sort -u | tr '\n' ',')"
             echo Found directories: ${DIRS[@]}
             for DIR in "${DIRS[@]}"; do
               if [[ "${DIR}" != "" ]]; then
