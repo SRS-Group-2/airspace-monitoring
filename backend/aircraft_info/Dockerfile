@@ -2,7 +2,7 @@
 ##
 ## Build
 ##
-FROM golang:bullseye AS build
+FROM golang:latest AS build
 
 WORKDIR /build
 
