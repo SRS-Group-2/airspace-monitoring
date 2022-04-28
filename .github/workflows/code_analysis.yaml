@@ -3,9 +3,11 @@ on:
   pull_request:
     branches:
       - 'main'
+      - 'test_deploy'
   push:
     branches:
-      - 'main'
+      - 'develop'
+      - 'test_develop'
 jobs:
   codeql:
     runs-on: ubuntu-latest
