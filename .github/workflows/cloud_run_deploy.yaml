@@ -38,12 +38,14 @@ jobs:
               # check subdirectories
               BASE_DIR=""
               for DIRECTORY in "${ARRAY[@]}"; do
-                BASE_DIR=${BASE_DIR}${DIRECTORY}/
-                # echo Checking $BASE_DIR
-                if [[ -n "$(ls -A "${BASE_DIR}Dockerfile" 2> /dev/null)" ]]; then
-                  # echo $BASE_DIR is buildable
-                  DIRS=`echo $DIRS,$BASE_DIR`
-                  # OBJECTS=`echo $OBJECTS,{\"directory\": \"${BASE_DIR}\", \"name\": \"${DIRECTORY}\"}`
+                if [[ "${DIRECTORY}" != ".devcontainer" ]]; then
+                  BASE_DIR=${BASE_DIR}${DIRECTORY}/
+                  # echo Checking $BASE_DIR
+                  if [[ -n "$(ls -A "${BASE_DIR}Dockerfile" 2> /dev/null)" ]]; then
+                    # echo $BASE_DIR is buildable
+                    DIRS=`echo $DIRS,$BASE_DIR`
+                    # OBJECTS=`echo $OBJECTS,{\"directory\": \"${BASE_DIR}\", \"name\": \"${DIRECTORY}\"}`
+                  fi
                 fi
               done
             else
@@ -52,6 +54,7 @@ jobs:
           done < files.txt
           if [[ "${DIRS}" != "" ]]; then
             IFS="," read -r -a DIRS <<< "$(echo "${DIRS[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')"
+            echo Found directories: ${DIRS[@]}
             for DIR in "${DIRS[@]}"; do
               TMP=${DIR%/*}
               OBJECTS=`echo $OBJECTS,{\"directory\": \"${DIR}\", \"name\": \"${TMP##*/}\"}`
