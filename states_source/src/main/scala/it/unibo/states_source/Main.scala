@@ -14,6 +14,10 @@ import org.apache.flink.core.fs.Path
 import org.apache.flink.connector.file.sink.FileSink
 import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.DefaultRollingPolicy
 import org.apache.flink.api.common.serialization.SimpleStringEncoder
+import org.apache.flink.api.common.serialization.SerializationSchema
+import org.apache.flink.streaming.api.functions.sink.SinkFunction
+import org.apache.flink.streaming.connectors.gcp.pubsub.PubSubSink
+
 
 import org.opensky.api.OpenSkyApi
 
@@ -28,7 +32,8 @@ object Main {
 
     // val sourceFunction = new OpenSkySourceFunction(36.619987291, 47.1153931748, 6.7499552751, 18.4802470232)
     val source = env.addSource(sourceFunction)
-
+/*
+  //Case with file as sink
     val fileSink: FileSink[Vectors] = 
       FileSink.forRowFormat(new Path("/usr/local/flink/output"), 
                             new SimpleStringEncoder[Vectors]("UTF-8"))
@@ -39,7 +44,7 @@ object Main {
                                                      .build())
 	            .build()  
 
-    source.map(lsv => new Vectors(
+      source.map(lsv => new Vectors(
                                       lsv.map(sv => new MinimalState(sv.getIcao24(), 
                                                                      sv.getLatitude(), 
                                                                      sv.getLongitude(), 
@@ -47,8 +52,30 @@ object Main {
                                                                      LocalDateTime.now().toString()*/)),
                                       LocalDateTime.now().toString()))
           .sinkTo(fileSink)
+*/
+
+// Case with pubsub as sink
+    val serializationSchema: SerializationSchema[Vectors]  = new CustomJSONSerializer();
+    val pubsubSink: SinkFunction[Vectors] = PubSubSink.newBuilder()
+                                              .withSerializationSchema(serializationSchema)
+                                              //Use this with the real pubsub, comment with the emulator
+                                            //.withCredentials("pathToCredentials")  
+                                              .withProjectName("projectname")
+                                              .withTopicName("topicname")
+                                              //Use this with the emulator, comment with the real pubsub
+                                              .withHostAndPortForEmulator("host.docker.internal:8085")
+                                              .build()
+    source.map(lsv => new Vectors(
+                                      lsv.map(sv => new MinimalState(sv.getIcao24(), 
+                                                                     sv.getLatitude(), 
+                                                                     sv.getLongitude(), 
+                                                                    /* sv.isOnGround(), 
+                                                                     LocalDateTime.now().toString()*/)),
+                                      LocalDateTime.now().toString()))
+          .addSink(pubsubSink)
 
     env.execute("OpenSkyStreamApp") // needed to avoid the No Job Found error
+
   }
 
 }
