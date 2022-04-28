@@ -47,7 +47,12 @@ trivy image image_name:label
 ```
 and
 ```
-TODO
+VERSION=$(
+ curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
+ grep '"tag_name":' | \
+ sed -E 's/.*"v([^"]+)".*/\1/' \
+) && docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+  goodwithtech/dockle:v${VERSION} [YOUR_IMAGE_NAME]
 ```
 
 ### Test of Github Actions Workflows
