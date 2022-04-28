@@ -1,0 +1,133 @@
+name: Deploy on Cloud Run the changed services
+on: 
+  push:
+    branches:
+      - 'main'
+      - 'test_deploy'
+jobs:
+  identify_changed_services:
+    name: Identify the services that were updated
+    runs-on: ubuntu-latest
+    outputs:
+      directories: ${{ steps.check_files.outputs.changed_dirs }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: echo ${{ github.event_name }} happened on ${GITHUB_REF#refs/heads/}
+      - name: Check which files were changed
+        id: check_files
+        run: |
+          DIRS=""
+          if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
+            echo Calculating git diff between HEAD and HEAD^
+            git diff --name-only HEAD^ HEAD > files.txt
+          else
+            echo Calculating git diff between HEAD and ${{ github.event.before }}
+            git diff --name-only ${{ github.event.before }} HEAD > files.txt
+          fi
+          while IFS= read -r file
+          do
+            # echo checking $file
+            if [[ "${file%/*}" == *"/"* ]]; then
+              # Working on a directory
+              # find all subdirectories
+              IFS='/' read -r -a ARRAY <<< "${file%/*}"
+              # check subdirectories
+              BASE_DIR=""
+              for DIRECTORY in "${ARRAY[@]}"; do
+                BASE_DIR=${BASE_DIR}${DIRECTORY}/
+                # echo Checking $BASE_DIR
+                if [[ -n "$(ls -A "${BASE_DIR}Dockerfile" 2> /dev/null)" ]]; then
+                  # echo $BASE_DIR is buildable
+                  DIRS=`echo $DIRS,{\"directory\": \"${BASE_DIR}\", \"name\": \"${DIRECTORY}\"}`
+                fi
+              done
+            else
+                echo Found changed file ${file%/*} outside of directories
+            fi
+          done < files.txt
+          DIRS=${DIRS#*,}
+          echo ::set-output name=changed_dirs::[$DIRS]
+  build_scan_push:
+    name: Build and push Docker image to Google registry
+    needs: identify_changed_services
+    runs-on: ubuntu-latest
+    if: ${{ needs.identify_changed_services.outputs.directories != '[]' && needs.identify_changed_services.outputs.directories != '' }}
+    strategy:
+      matrix: 
+        service: ${{ fromJson(needs.identify_changed_services.outputs.directories) }}
+    steps:
+      - run: echo Working on ${{ matrix.service.directory }} directory, for ${{ matrix.service.name }} service
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - name: Build image
+        run: |-
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA $GITHUB_WORKSPACE/${{ matrix.service.directory }}
+      - name: Scan image
+        uses: azure/container-scan@v0
+        id: scan
+        continue-on-error: true
+        with:
+          image-name: us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}
+      - name: Output JSON result of scan if scan failed
+        id: scan_result
+        run: echo ::set-output name=result::$(cat ${{ steps.scan.outputs.scan-report-path }})
+      - name: Create issue if scan failed
+        if: steps.scan.outcome != 'success' && steps.scan_result.outcome == 'success'
+        id: create_issue
+        uses: imjohnbo/issue-bot@v3 # used in GitHub Docs
+        with:
+          labels: ci
+          pinned: false
+          close-previous: false
+          title: Container scan failed
+          body: |-
+            Please, copy the JSON string and use `echo '<json_string>' | jq .` to prettify it
+            ```json
+              ${{ steps.scan_result.outputs.result }}
+            ```
+      - name: Stop if scan failed
+        if: steps.scan.outcome != 'success'
+        run: exit 1
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        if: steps.scan.outcome == 'success'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+      - name: 'Set up Cloud SDK'
+        if: steps.auth.outcome == 'success'
+        id: 'cloud_setup'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      # Configure docker to use the gcloud command-line tool as a credential helper
+      - name: Configure docker to use gcloud
+        id: 'docker_cloud_setup'
+        if: steps.cloud_setup.outcome == 'success'
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+      # Push image to Google Container Registry
+      - name: Push
+        if: steps.docker_cloud_setup.outcome == 'success'
+        run: |-
+          docker push us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA
+  deploy:
+    name: Deploy service on Google Cloud
+    needs: build_scan_push
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: 
+        service: ${{ fromJson(needs.identify_changed_services.outputs.directories) }}
+    steps:
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+      - id: 'deploy'
+        uses: 'google-github-actions/deploy-cloudrun@v0'
+        with:
+          service: ${{ env.SERVICE_NAME}}
+          image: us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}
+          region: 'us-central1'
+      - name: 'Use output'
+        run: 'curl "${{ steps.deploy.outputs.url }}"'

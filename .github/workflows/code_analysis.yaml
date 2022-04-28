@@ -3,20 +3,28 @@ on:
   pull_request:
     branches:
       - 'main'
+      - 'test_deploy'
   push:
     branches:
+      - 'develop'
+      - 'test_develop'
       - 'main'
+      - 'test_deploy'
 jobs:
   codeql:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript', 'go']
     steps:
       - run: echo "A ${{ github.event_name }} event happened, starting workflow."
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
-        with: 
-          languages: javascript
+        with:
+          languages: ${{ matrix.language }}
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
       - run: echo "Job ended."
@@ -34,6 +42,7 @@ jobs:
             p/ci
             p/javascript
             p/scala
+            p/golang
             p/owasp-top-ten
             p/clientside-js
       - name: Upload SARIF file

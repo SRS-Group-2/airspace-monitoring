@@ -23,3 +23,7 @@ and
 TODO
 ```
 
+### Test of Github Actions Workflows
+A useful tool to locally test workflows is [`act`](https://github.com/nektos/act).
+
+`act` shows different behaviours than Github Actions when using matrixes and checks if matrixes are empty and for the values of `${{ github.event.before }}` for new branches.
