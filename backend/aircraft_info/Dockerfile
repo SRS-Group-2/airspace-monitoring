@@ -18,7 +18,7 @@ RUN GOOS=linux go build -a -o /app.exe
 ##
 ## Deploy
 ##
-FROM gcr.io/distroless/base-debian11
+FROM gcr.io/distroless/base:latest
 
 WORKDIR /
 
