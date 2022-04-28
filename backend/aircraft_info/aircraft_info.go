@@ -10,11 +10,11 @@ import (
 )
 
 type Aircraft struct {
-	Icao24           string `json:"icao24"`
-	Manufacturername string `json:"manufacturername"`
-	Model            string `json:"model"`
-	Registration     string `json:"registration"`
-	SerialNumber     string `json:"serialnumber"`
+	Icao24       string `json:"icao24"`
+	Manufacturer string `json:"manufacturer"`
+	Model        string `json:"model"`
+	Registration string `json:"registration"`
+	SerialNumber string `json:"serialnumber"`
 }
 
 type Param struct {
@@ -67,7 +67,7 @@ func getInfo(c *gin.Context) {
 
 	for rows.Next() {
 		err = rows.Scan(&aircraft.Icao24,
-			&aircraft.Manufacturername,
+			&aircraft.Manufacturer,
 			&aircraft.Model,
 			&aircraft.Registration,
 			&aircraft.SerialNumber)
