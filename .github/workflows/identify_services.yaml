@@ -1,0 +1,67 @@
+name: Identify changed services
+on:
+  workflow_call:
+    outputs:
+      directories: 
+        description: The array of directories containing services (Dockerfiles) that changed
+        value: ${{ jobs.identify_changed_services.outputs.directories }}
+jobs:
+  identify_changed_services:
+    name: Identify the services that were updated
+    runs-on: ubuntu-latest
+    outputs:
+      directories: ${{ steps.check_files.outputs.changed_dirs }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: echo ${{ github.event_name }} happened on ${GITHUB_REF#refs/heads/}
+      - name: Check which files were changed
+        id: check_files
+        run: |
+          DIRS=""
+          OBJECTS=""
+          if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
+            echo Calculating git diff between HEAD and HEAD^
+            git diff --name-only HEAD^ HEAD > files.txt
+          else
+            echo Calculating git diff between HEAD and ${{ github.event.before }}
+            git diff --name-only ${{ github.event.before }} HEAD > files.txt
+          fi
+          while IFS= read -r file
+          do
+            # echo checking $file
+            if [[ "${file%/*}" == *"/"* ]]; then
+              # Working on a directory
+              # find all subdirectories
+              IFS='/' read -r -a ARRAY <<< "${file%/*}"
+              # check subdirectories
+              BASE_DIR=""
+              for DIRECTORY in "${ARRAY[@]}"; do
+                if [[ "${DIRECTORY}" != ".devcontainer" ]]; then
+                  BASE_DIR=${BASE_DIR}${DIRECTORY}/
+                  # echo Checking $BASE_DIR
+                  if [[ -n "$(ls -A "${BASE_DIR}Dockerfile" 2> /dev/null)" ]]; then
+                    # echo $BASE_DIR is buildable
+                    DIRS=`echo $DIRS,$BASE_DIR`
+                    # OBJECTS=`echo $OBJECTS,{\"directory\": \"${BASE_DIR}\", \"name\": \"${DIRECTORY}\"}`
+                  fi
+                fi
+              done
+            else
+                echo Found changed file ${file%/*} outside of directories
+            fi
+          done < files.txt
+          if [[ "${DIRS}" != "" ]]; then
+            IFS="," read -r -a DIRS <<< "$(echo "${DIRS[@]}" | tr ',' '\n' | sort -u | tr '\n' ',')"
+            echo Found directories: ${DIRS[@]}
+            for DIR in "${DIRS[@]}"; do
+              if [[ "${DIR}" != "" ]]; then
+                TMP=${DIR%/*}
+                OBJECTS=`echo $OBJECTS,{\"directory\": \"${DIR}\", \"name\": \"${TMP##*/}\"}`
+              fi
+            done
+            OBJECTS=${OBJECTS#*,}
+          fi
+          echo ::set-output name=changed_dirs::[$OBJECTS]
