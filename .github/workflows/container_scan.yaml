@@ -1,4 +1,4 @@
-name: Deploy on Cloud Run the changed services
+name: Build and scan the container images of the changed services
 on: 
   pull_request:
     branches:
