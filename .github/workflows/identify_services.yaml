@@ -12,10 +12,6 @@ jobs:
     outputs:
       directories: ${{ steps.check_files.outputs.changed_dirs }}
     steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
@@ -36,8 +32,8 @@ jobs:
             fi
           fi
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo Calculating git diff between HEAD and ${{ github.event.pull_request.head.sha }}
-            git diff --name-only HEAD ${{ github.event.pull_request.head.sha }} > files.txt
+            echo Calculating git diff between ${{ github.event.pull_request.base.sha }} and ${{ github.event.pull_request.head.sha }}
+            git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > files.txt
           fi
           while IFS= read -r file
           do
