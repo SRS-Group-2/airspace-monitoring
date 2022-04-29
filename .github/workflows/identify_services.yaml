@@ -12,11 +12,10 @@ jobs:
     outputs:
       directories: ${{ steps.check_files.outputs.changed_dirs }}
     steps:
-      - name: testing
-        run: |
-          echo event pr head ${{ github.event.pull_request.head.sha }}
-          echo pr merge commit ${{ github.sha }}
-          echo event before ${{ github.event.before }}
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
@@ -27,12 +26,18 @@ jobs:
         run: |
           DIRS=""
           OBJECTS=""
-          if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
-            echo Calculating git diff between HEAD and HEAD^
-            git diff --name-only HEAD^ HEAD > files.txt
-          else
-            echo Calculating git diff between HEAD and ${{ github.event.before }}
-            git diff --name-only ${{ github.event.before }} HEAD > files.txt
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
+              echo Calculating git diff between HEAD and HEAD^
+              git diff --name-only HEAD^ HEAD > files.txt
+            else
+              echo Calculating git diff between HEAD and ${{ github.event.before }}
+              git diff --name-only ${{ github.event.before }} HEAD > files.txt
+            fi
+          fi
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo Calculating git diff between HEAD and ${{ github.event.pull_request.head.sha }}
+            git diff --name-only HEAD ${{ github.event.pull_request.head.sha }} > files.txt
           fi
           while IFS= read -r file
           do
