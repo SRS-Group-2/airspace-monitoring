@@ -1,0 +1,31 @@
+name: Deploy on Cloud Run the changed services
+on: 
+  pull_request:
+    branches:
+      - 'main'
+      - 'test_deploy'
+jobs:
+  identify_changed_services:
+    uses: ./.github/workflows/identify_services.yaml
+
+  build_scan_push:
+    name: Build and scan a Docker image
+    needs: identify_changed_services
+    runs-on: ubuntu-latest
+    if: ${{ needs.identify_changed_services.outputs.directories != '[]' && needs.identify_changed_services.outputs.directories != '' }}
+    strategy:
+      fail-fast: false
+      matrix: 
+        service: ${{ fromJson(needs.identify_changed_services.outputs.directories) }}
+    steps:
+      - run: echo Working on ${{ matrix.service.directory }} directory, for ${{ matrix.service.name }} service
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - name: Build image
+        run: |-
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA $GITHUB_WORKSPACE/${{ matrix.service.directory }}
+      - name: Scan image
+        id: scan
+        uses: azure/container-scan@v0
+        with:
+          image-name: us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}
