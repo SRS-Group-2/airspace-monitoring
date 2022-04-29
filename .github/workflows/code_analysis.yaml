@@ -28,6 +28,7 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
       - run: echo "Job ended."
+
   semgrep:
     runs-on: ubuntu-latest
     container:
@@ -49,6 +50,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: semgrep.sarif
+
   # findsecbugs:
   #   runs-on: ubuntu-latest
   #   steps:
