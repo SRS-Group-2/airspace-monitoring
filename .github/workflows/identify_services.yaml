@@ -12,6 +12,11 @@ jobs:
     outputs:
       directories: ${{ steps.check_files.outputs.changed_dirs }}
     steps:
+      - name: testing
+        run: |
+          echo event pr head ${{ github.event.pull_request.head.sha }}
+          echo pr merge commit ${{ github.sha }}
+          echo event before ${{ github.event.before }}
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
