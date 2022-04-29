@@ -54,8 +54,7 @@ func main() {
 
 func getInfo(c *gin.Context) {
 	var icao24 = c.Param("icao24")
-	if len(icao24) == 6 {
-	} else {
+	if len(icao24) != 6 {
 		c.IndentedJSON(http.StatusNotAcceptable, gin.H{"message": "invalid icao24"})
 		return
 	}
