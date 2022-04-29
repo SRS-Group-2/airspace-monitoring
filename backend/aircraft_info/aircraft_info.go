@@ -47,7 +47,7 @@ func main() {
 	router := gin.New()
 
 	router.SetTrustedProxies(nil)
-	router.GET("/aircraft/:icao24/info", getInfo)
+	router.GET("/airspace/aircraft/:icao24/info", getInfo)
 
 	router.Run()
 }
