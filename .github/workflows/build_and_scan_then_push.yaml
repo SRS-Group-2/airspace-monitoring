@@ -45,7 +45,7 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           security-checks: 'vuln,config'
-          severity: 'CRITICAL,HIGH, MEDIUM,LOW'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
       - uses: 'google-github-actions/auth@v0'
         id: 'auth'
         if: ${{ inputs.push == 'true' }}
