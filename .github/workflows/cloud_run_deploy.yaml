@@ -17,7 +17,7 @@ jobs:
       services: ${{ needs.identify_changed_services.outputs.directories }}
       push: true
     secrets:
-      TEST_PROJECT_ID: master-polly-15 # $${{ secrets.TEST_PROJECT_ID }}
+      PROJECT: ${{ secrets.PROJECT_ID }}
       GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
 
   deploy:
@@ -37,7 +37,7 @@ jobs:
         uses: 'google-github-actions/deploy-cloudrun@v0'
         with:
           service: ${{ matrix.service.name }}
-          image: us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}
+          image: us-central1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}
           region: 'us-central1'
       - name: 'Use output'
         run: 'curl "${{ steps.deploy.outputs.url }}"'
