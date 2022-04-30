@@ -1,10 +1,3 @@
 scopeconfig:
   - scope: go
   - scope: node
-
-fileignoreconfig:
-- filename: .github/workflows/cloud_run_deploy.yaml
-  checksum: 8d3c453c2f15b745e7f9aab79fb4b13120742090bf9bb99f9efd014dc0aa658a
-- filename: .github/workflows/build_and_scan_then_push.yaml
-  checksum: 423bcf9dc612e04b18f4bba80c3ff7ea0760f7de8bb3630d4e1dc7b49b5544a8
-version: ""
