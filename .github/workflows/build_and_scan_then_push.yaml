@@ -1,0 +1,68 @@
+name: Build and scan container image (then push)
+on:
+  workflow_call:
+    inputs:
+      # must be a list of directories and service names, like '[ { "directory": "dir1", "name": "service1"} ]'
+      services:
+        required: true
+        type: string
+      push:
+        required: true
+        type: boolean
+    secrets:
+      TEST_PROJECT_ID:
+        required: true
+      GCP_CREDENTIALS:
+        required: false
+jobs:
+  build_scan_push:
+    name: Build and scan a Docker image, then push it
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: 
+        service: ${{ fromJson(inputs.services) }}
+    steps:
+      - run: echo Working on ${{ matrix.service.directory }} directory, for ${{ matrix.service.name }} service
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - name: Build image
+        run: |-
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA $GITHUB_WORKSPACE/${{ matrix.service.directory }}
+      # - name: Scan image
+      #   id: scan
+      #   uses: azure/container-scan@v0
+      #   with:
+      #     image-name: us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}
+      - name: Scan image for vulnerabilities
+        id: scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'image'
+          image-ref: 'us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          security-checks: 'vuln,config'
+          severity: 'CRITICAL,HIGH, MEDIUM,LOW'
+      - uses: 'google-github-actions/auth@v0'
+        id: 'auth'
+        if: ${{ inputs.push == 'true' && secrets.GCP_CREDENTIALS }}
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+      - name: 'Set up Cloud SDK'
+        if: ${{ inputs.push == 'true' }}
+        id: 'cloud_setup'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      # Configure docker to use the gcloud command-line tool as a credential helper
+      - name: Configure docker to use gcloud
+        if: ${{ inputs.push == 'true' }}
+        id: 'docker_cloud_setup'
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+      # Push image to Google Container Registry
+      - name: Push
+        if: ${{ inputs.push == 'true' }}
+        run: |-
+          docker push us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA

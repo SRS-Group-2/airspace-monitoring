@@ -9,42 +9,16 @@ jobs:
     uses: ./.github/workflows/identify_services.yaml
 
   build_scan_push:
-    name: Build and push Docker image to Google registry
+    name: Build and scan container
     needs: identify_changed_services
-    runs-on: ubuntu-latest
     if: ${{ needs.identify_changed_services.outputs.directories != '[]' && needs.identify_changed_services.outputs.directories != '' }}
-    strategy:
-      fail-fast: false
-      matrix: 
-        service: ${{ fromJson(needs.identify_changed_services.outputs.directories) }}
-    steps:
-      - run: echo Working on ${{ matrix.service.directory }} directory, for ${{ matrix.service.name }} service
-      - name: Check out the repo
-        uses: actions/checkout@v3
-      - name: Build image
-        run: |-
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA $GITHUB_WORKSPACE/${{ matrix.service.directory }}
-      - name: Scan image
-        id: scan
-        uses: azure/container-scan@v0
-        with:
-          image-name: us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}
-      - uses: 'google-github-actions/auth@v0'
-        id: 'auth'
-        with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
-      - name: 'Set up Cloud SDK'
-        id: 'cloud_setup'
-        uses: 'google-github-actions/setup-gcloud@v0'
-      # Configure docker to use the gcloud command-line tool as a credential helper
-      - name: Configure docker to use gcloud
-        id: 'docker_cloud_setup'
-        run: |
-          gcloud auth configure-docker us-central1-docker.pkg.dev
-      # Push image to Google Container Registry
-      - name: Push
-        run: |-
-          docker push us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA
+    uses: ./.github/workflows/build_and_scan_then_push.yaml
+    with:
+      services: ${{ needs.identify_changed_services.outputs.directories }}
+      push: true
+    secrets:
+      TEST_PROJECT_ID: $${{ secrets.TEST_PROJECT_ID }}
+      GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
 
   deploy:
     name: Deploy service on Google Cloud
