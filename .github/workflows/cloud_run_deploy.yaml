@@ -17,7 +17,7 @@ jobs:
       services: ${{ needs.identify_changed_services.outputs.directories }}
       push: true
     secrets:
-      TEST_PROJECT_ID: $${{ secrets.TEST_PROJECT_ID }}
+      TEST_PROJECT_ID: master-polly-15 # $${{ secrets.TEST_PROJECT_ID }}
       GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
 
   deploy:
