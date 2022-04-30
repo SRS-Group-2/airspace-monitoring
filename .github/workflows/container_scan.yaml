@@ -17,4 +17,4 @@ jobs:
       services: ${{ needs.identify_changed_services.outputs.directories }}
       push: false
     secrets:
-      TEST_PROJECT_ID: $${{ secrets.TEST_PROJECT_ID }}
+      PROJECT: $${{ secrets.PROJECT_ID }}
