@@ -4,6 +4,10 @@ on:
     branches:
       - 'main'
       - 'test_deploy'
+  push:
+    branches:
+      - 'develop'
+      - 'test_develop'
 jobs:
   identify_changed_services:
     uses: ./.github/workflows/identify_services.yaml
