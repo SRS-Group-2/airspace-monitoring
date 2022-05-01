@@ -73,10 +73,22 @@ jobs:
     - uses: actions/checkout@v3
     - run: mvn -q -f ".${{ matrix.pom }}/pom.xml" package
     # get Maven project info
+    - id: get_artifact_id
+      uses: Mudlet/xmlstarlet-action@7deec762169d540692f9247c9fb641fa37d39e2e
+      with:
+        args: sel -N 'x=$NAMESPACE' -t -v "/x:project/x:artifactId" states_source/pom.xml
+    - id: get_version
+      uses: Mudlet/xmlstarlet-action@7deec762169d540692f9247c9fb641fa37d39e2e
+      with:
+        args: sel -N 'x=$NAMESPACE' -t -v "/x:project/x:version" states_source/pom.xml
+    - id: get_final_name
+      uses: Mudlet/xmlstarlet-action@7deec762169d540692f9247c9fb641fa37d39e2e
+      with:
+        args: sel -N 'x=$NAMESPACE' -t -v "//x:build/x:finalName" states_source/pom.xml
     - run: | 
-        ARTIFACT_ID=`xmlstarlet sel -N 'x=$NAMESPACE' -t -v "/x:project/x:artifactId" states_source/pom.xml`
-        VERSION=`xmlstarlet sel -N 'x=$NAMESPACE' -t -v "/x:project/x:version" states_source/pom.xml`
-        FINAL_NAME=`xmlstarlet sel -N 'x=$NAMESPACE' -t -v "//x:build/x:finalName" states_source/pom.xml`
+        ARTIFACT_ID=${{ steps.get_artifact_id.outputs.xmlstarlet_result }}
+        VERSION=${{ steps.get_version.outputs.xmlstarlet_result }}
+        FINAL_NAME=${{ steps.get_final_name.outputs.xmlstarlet_result }}
         if [[ "${FINAL_NAME}" == "" ]]; then
           FINAL_NAME=${ARTIFACT_ID}-${VERSION}
         fi
