@@ -68,10 +68,10 @@ jobs:
     steps:
     # we use OpenSky API, so we need to compile the dependency to package our files
     - run: git clone https://github.com/openskynetwork/opensky-api.git
-    - run: mvn -f ./opensky-api/java/pom.xml install
+    - run: mvn -q -f ./opensky-api/java/pom.xml install
     # compile jar to allow for Scala Lang analysis
     - uses: actions/checkout@v3
-    - run: mvn -f ".${{ matrix.pom }}/pom.xml" package
+    - run: mvn -1 -f ".${{ matrix.pom }}/pom.xml" package
     # get Maven project info
     - run: | 
         ARTIFACT_ID=`xmlstarlet sel -N 'x=$NAMESPACE' -t -v "/x:project/x:artifactId" states_source/pom.xml`
