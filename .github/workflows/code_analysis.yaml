@@ -65,6 +65,11 @@ jobs:
       matrix:
         pom:  ${{ fromJson(needs.identify_maven.outputs.directories) }}
     steps:
+      # we use OpenSky API, so we need to compile the dependency to package our files
+      - name: Clone OpenSky API repo
+        run: git clone https://github.com/openskynetwork/opensky-api.git
+      - name: Install OpenSky API
+        run: mvn -q -f ./opensky-api/java/pom.xml install
       - uses: actions/checkout@v3
       - name: Check if Spotbugs plugin is configured in Maven project
         id: plugin_presence
