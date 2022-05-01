@@ -64,6 +64,10 @@ jobs:
       matrix:
         pom: ${{ fromJson(needs.identify_java_scala.outputs.directories) }}
     steps:
+    # we use OpenSky API, so we need to compile the dependency to package our files
+    - run: git clone https://github.com/openskynetwork/opensky-api.git
+    - run: mvn -f ./opensky-api/java/pom.xml install
+    # code scan
     - uses: actions/checkout@v3
     - run: mvn -f ".${{ matrix.pom }}/pom.xml" package
     - run: wget https://github.com/find-sec-bugs/find-sec-bugs/releases/download/version-${FINDSECBUGS_VERSION}/findsecbugs-cli-${FINDSECBUGS_VERSION}.zip
