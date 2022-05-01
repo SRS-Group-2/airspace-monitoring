@@ -71,7 +71,7 @@ jobs:
     - run: mvn -q -f ./opensky-api/java/pom.xml install
     # compile jar to allow for Scala Lang analysis
     - uses: actions/checkout@v3
-    - run: mvn -1 -f ".${{ matrix.pom }}/pom.xml" package
+    - run: mvn -q -f ".${{ matrix.pom }}/pom.xml" package
     # get Maven project info
     - run: | 
         ARTIFACT_ID=`xmlstarlet sel -N 'x=$NAMESPACE' -t -v "/x:project/x:artifactId" states_source/pom.xml`
