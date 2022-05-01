@@ -12,6 +12,8 @@ on:
       - 'test_deploy'
 env:
   FINDSECBUGS_VERSION: 1.12.0
+  NAMESPACE: http://maven.apache.org/POM/4.0.0
+
 jobs:
   codeql:
     runs-on: ubuntu-latest
@@ -67,14 +69,23 @@ jobs:
     # we use OpenSky API, so we need to compile the dependency to package our files
     - run: git clone https://github.com/openskynetwork/opensky-api.git
     - run: mvn -f ./opensky-api/java/pom.xml install
-    # code scan
+    # compile jar to allow for Scala Lang analysis
     - uses: actions/checkout@v3
     - run: mvn -f ".${{ matrix.pom }}/pom.xml" package
+    # get Maven project info
+    - run: | 
+        ARTIFACT_ID=`xmlstarlet sel -N 'x=$NAMESPACE' -t -v "/x:project/x:artifactId" states_source/pom.xml`
+        VERSION=`xmlstarlet sel -N 'x=$NAMESPACE' -t -v "/x:project/x:version" states_source/pom.xml`
+        FINAL_NAME=`xmlstarlet sel -N 'x=$NAMESPACE' -t -v "//x:build/x:finalName" states_source/pom.xml`
+        if [[ "${FINAL_NAME}" == "" ]]; then
+          FINAL_NAME=${ARTIFACT_ID}-${VERSION}
+        fi
+    # code scan
     - run: wget https://github.com/find-sec-bugs/find-sec-bugs/releases/download/version-${FINDSECBUGS_VERSION}/findsecbugs-cli-${FINDSECBUGS_VERSION}.zip
     - run: unzip findsecbugs-cli-${FINDSECBUGS_VERSION}
     - run: chmod u+x ./findsecbugs.sh
     - name: Run FindSecBugs checks
-      run: ./findsecbugs.sh -sarif -output "./out.sarif" $GITHUB_WORKSPACE${{ matrix.pom }}/target/*.jar
+      run: ./findsecbugs.sh -sarif -output "./out.sarif" $GITHUB_WORKSPACE${{ matrix.pom }}/target/${FINAL_NAME}.jar
     - name: Upload SARIF file
       uses: github/codeql-action/upload-sarif@v2
       with:
