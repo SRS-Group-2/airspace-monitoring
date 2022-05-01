@@ -62,7 +62,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pom: ${{ fromJson(needs.identify_java_scala.outputs.poms) }}
+        pom: ${{ fromJson(needs.identify_java_scala.outputs.directories) }}
     steps:
     - uses: actions/checkout@v3
     - run: mvn -f ".${{ matrix.pom }}/pom.xml" package
