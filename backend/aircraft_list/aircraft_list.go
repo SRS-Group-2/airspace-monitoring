@@ -2,28 +2,60 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/gin-gonic/gin"
 )
 
+const env_credFile = "GOOGLE_APPLICATION_CREDENTIALS"
+
+const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
+const env_topicID = "GOOGLE_PUBSUB_TOPIC_ID"
+const env_subID = "GOOGLE_PUBSUB_SUBSCRIBER_ID"
+
+const env_port = "PORT"
+const env_ginmode = "GIN_MODE"
+
+type AircraftList struct {
+	sync.RWMutex
+	val string
+}
+
+func (l *AircraftList) Read() string {
+	l.RLock()
+	defer l.RUnlock()
+	return l.val
+}
+
+func (l *AircraftList) Write(newVal string) {
+	l.Lock()
+	defer l.Unlock()
+	l.val = newVal
+}
+
+var aircraftList AircraftList
+
+const startVal string = `
+{
+	"timestamp":0,
+	"list":[]
+}`
+
 func main() {
 
-	var projectID = "fake-pubsub-123"
-	var subID = "aircraft_list_sub"
-	var topicID = "states-topic"
+	aircraftList.Write(startVal)
 
-	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, projectID)
-	checkErr(err)
-	defer client.Close()
+	var credFile = mustGetenv(env_credFile)
+	var projectID = mustGetenv(env_projectID)
+	var topicID = mustGetenv(env_topicID)
+	var subID = mustGetenv(env_subID)
 
-	topic := client.Topic(mustGetenv(topicID))
+	GcpInitialize(credFile, projectID)
 
-	createSubscription(ctx, client, subID, topic)
+	go pubsubHandler(topicID, subID)
 
 	router := gin.New()
 
@@ -35,22 +67,7 @@ func main() {
 
 func getList(c *gin.Context) {
 
-	c.IndentedJSON(http.StatusOK, "Yee")
-}
-
-func createSubscription(ctx context.Context, client *pubsub.Client, subID string, topic *pubsub.Topic) error {
-	// topic of type https://godoc.org/cloud.google.com/go/pubsub#Topic
-
-	sub, err := client.CreateSubscription(ctx, subID,
-		pubsub.SubscriptionConfig{Topic: topic})
-	checkErr(err)
-	log.Println("Created subscription: \n", sub)
-	return nil
-}
-
-func pubsubMessageHandler(ctx context.Context, msg *pubsub.Message) {
-	//TODO: Update the internal list
-	msg.Ack()
+	c.String(http.StatusOK, aircraftList.Read())
 }
 
 func checkErr(err error) {
@@ -62,7 +79,33 @@ func checkErr(err error) {
 func mustGetenv(k string) string {
 	v := os.Getenv(k)
 	if v == "" {
-		log.Fatalf("%s environment variable not set.", k)
+		panic("Environment variable not set: " + k)
 	}
 	return v
+}
+
+func pubsubHandler(topicID string, subscriptionID string) {
+
+	topic, err := GcpGetTopic(topicID)
+	checkErr(err)
+
+	sub, err := GcpGetSubscription(subscriptionID, topic)
+	checkErr(err)
+
+	err = sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
+		messageHandler(subscriptionID, ctx, msg)
+	})
+	checkErr(err)
+}
+
+func messageHandler(subscriptionID string, ctx context.Context, msg *pubsub.Message) {
+	defer func() {
+		if r := recover(); r != nil {
+			msg.Ack()
+		}
+	}()
+
+	msg.Ack()
+
+	aircraftList.Write(string(msg.Data))
 }
