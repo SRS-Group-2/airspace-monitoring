@@ -1,4 +1,4 @@
-name: Identify Java and Scala services
+name: Identify Maven services
 on:
   workflow_call:
     outputs:
@@ -7,7 +7,7 @@ on:
         value: ${{ jobs.identify_java_scala.outputs.directories }}
 jobs:
   identify_java_scala:
-    name: Identify Java and Scala services
+    name: Identify Maven services
     runs-on: ubuntu-latest
     outputs:
       directories: ${{ steps.check_dirs.outputs.java_scala_dirs }}
