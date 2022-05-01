@@ -327,6 +327,7 @@ under the License.
 					</dependency>
 				</dependencies>
 				<configuration>
+					<sarifOutput>${sarifOutput}<sarifOutput>
 					<includeFilterFile>spotbugs-security-include.xml</includeFilterFile>
 					<excludeFilterFile>spotbugs-security-exclude.xml</excludeFilterFile>
 					<plugins>
