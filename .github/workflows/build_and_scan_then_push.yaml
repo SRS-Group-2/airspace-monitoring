@@ -34,6 +34,19 @@ jobs:
       #   uses: azure/container-scan@v0
       #   with:
       #     image-name: us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}
+      - name: Scan image for good practices
+        id: scan_dockle
+        run: |
+          VERSION=$(
+            curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | \
+            grep '"tag_name":' | \
+            sed -E 's/.*"v([^"]+)".*/\1/' \
+          ) && docker run --rm -v /var/run/docker.sock:/var/run/docker.sock goodwithtech/dockle:v${VERSION} -f sarif \
+              us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }} > out.sarif
+      - name: Upload Dockle SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: out.sarif
       - name: Scan image for vulnerabilities
         id: scan
         uses: aquasecurity/trivy-action@master
