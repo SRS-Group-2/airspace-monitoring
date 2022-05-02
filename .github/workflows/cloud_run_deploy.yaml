@@ -15,7 +15,7 @@ jobs:
     uses: ./.github/workflows/build_and_scan_then_push.yaml
     with:
       services: ${{ needs.identify_changed_services.outputs.directories }}
-      push: true
+      push: 'true'
     secrets:
       PROJECT: ${{ secrets.PROJECT_ID }}
       GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
