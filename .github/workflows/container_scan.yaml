@@ -19,6 +19,6 @@ jobs:
     uses: ./.github/workflows/build_and_scan_then_push.yaml
     with:
       services: ${{ needs.identify_changed_services.outputs.directories }}
-      push: false
+      push: 'false'
     secrets:
       PROJECT: ${{ secrets.PROJECT_ID }}
