@@ -13,8 +13,8 @@ import (
 const env_credFile = "GOOGLE_APPLICATION_CREDENTIALS"
 
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
-const env_topicID = "GOOGLE_PUBSUB_TOPIC_ID"
-const env_subID = "GOOGLE_PUBSUB_SUBSCRIBER_ID"
+const env_topicID = "GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID"
+const env_subID = "GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
