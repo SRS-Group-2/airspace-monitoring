@@ -60,6 +60,7 @@ jobs:
   maven_spotbugs:
     runs-on: ubuntu-latest
     needs: identify_maven
+    if: ${{ needs.identify_maven.outputs.directories != '[]' && needs.identify_maven.outputs.directories != '' }}
     strategy:
       fail-fast: false
       matrix:
