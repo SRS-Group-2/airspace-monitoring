@@ -6,6 +6,12 @@ terraform {
       version = "3.5.0"
     }
   }
+
+  # where to save states
+  backend "gcs" {
+    bucket = "choir-tf-state"
+    prefix = "terraform/state"
+  }
 }
 
 # define cloud provider
