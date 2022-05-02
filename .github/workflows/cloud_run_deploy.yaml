@@ -1,4 +1,4 @@
-name: Deploy on Cloud Run the changed services
+name: Deploy the services defined by Terraform
 on: 
   push:
     branches:
@@ -23,21 +23,7 @@ jobs:
   deploy:
     name: Deploy service on Google Cloud
     needs: build_scan_push
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix: 
-        service: ${{ fromJson(needs.identify_changed_services.outputs.directories) }}
-    steps:
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v0'
-        with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
-      - id: 'deploy'
-        uses: 'google-github-actions/deploy-cloudrun@v0'
-        with:
-          service: ${{ matrix.service.name }}
-          image: us-central1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}
-          region: 'us-central1'
-      - name: 'Use output'
-        run: 'curl "${{ steps.deploy.outputs.url }}"'
+    uses: ./.github/workflows/terraform.yaml
+    secrets: 
+      PROJECT: ${{ secrets.PROJECT_ID }}
+      TERRAFORM_GCP_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
