@@ -58,7 +58,7 @@ resource "google_cloud_run_service" "aircraft_list" {
           value = var.aircraft_list_topic
         }
         env {
-          name  = "GOOGLE_CREDENTIALS"
+          name  = "GOOGLE_APPLICATION_CREDENTIALS"
           value = var.google_list_credentials
         }
         env {
