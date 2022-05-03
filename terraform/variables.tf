@@ -3,6 +3,11 @@ variable "project_id" {
   description = "The Google Cloud Project Id"
 }
 
+variable "project_id_hash" {
+  type        = string
+  description = "The hash of the project id"
+}
+
 variable "region" {
   type        = string
   description = "The region where to deploy"
@@ -41,4 +46,9 @@ variable "aircraft_list_subscriber_id" {
 variable "google_list_credentials" {
   type        = string
   description = "The credentials for the aircraft list service"
+}
+
+variable "flink_version" {
+  type        = string
+  description = "Version of the Flink instances being deployed"
 }
