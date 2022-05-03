@@ -1,0 +1,70 @@
+name: 'Terraform CI'
+on:
+  workflow_call:
+    secrets:
+      PROJECT:
+        required: true
+      TERRAFORM_GCP_CREDENTIALS:
+        required: true
+      AIRCRAFT_LIST_GCP_CREDENTIALS:
+        required: true
+env:
+  REGION: 'us-central1' # TODO
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.1.9
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: terraform -chdir=terraform init
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
+    # Checks that all Terraform configuration files adhere to a canonical format
+    - name: Terraform Format
+      run: terraform -chdir=terraform fmt -check
+    # Generates an execution plan for Terraform
+    - name: Terraform Plan
+      run: |
+        terraform -chdir=terraform plan \
+          -var 'project_id=${{ secrets.PROJECT }}' \
+          -var "region=${REGION}" \
+          -var "aircraft_list_topic=${GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID}" \
+          -var "vectors_topic=${GOOGLE_PUBSUB_VECTORS_TOPIC_ID}" \
+          -var "history_1_topic=${GOOGLE_PUBSUB_HISTORY_1_TOPIC_ID}" \
+          -var "history_6_topic=${GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID}" \
+          -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}" \
+          -var 'google_list_credentials=${{ secrets.AIRCRAFT_LIST_GCP_CREDENTIALS }}' \
+          -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}"
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
+    # On push to main, build or change infrastructure according to Terraform configuration files
+    # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+    - name: Terraform Apply
+      if: github.event_name == 'push'
+      run: |
+        terraform -chdir=terraform apply -auto-approve \
+          -var 'project_id=${{ secrets.PROJECT }}' \
+          -var "region=${REGION}" \
+          -var "aircraft_list_topic=${GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID}" \
+          -var "vectors_topic=${GOOGLE_PUBSUB_VECTORS_TOPIC_ID}" \
+          -var "history_1_topic=${GOOGLE_PUBSUB_HISTORY_1_TOPIC_ID}" \
+          -var "history_6_topic=${GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID}" \
+          -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}" \
+          -var 'google_list_credentials=${{ secrets.AIRCRAFT_LIST_GCP_CREDENTIALS }}' \
+          -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}"
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}

@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ['javascript', 'go']
+        language: ['go'] # ['javascript', 'go']
     steps:
       - run: echo "A ${{ github.event_name }} event happened, starting workflow."
       - name: Check out repository code

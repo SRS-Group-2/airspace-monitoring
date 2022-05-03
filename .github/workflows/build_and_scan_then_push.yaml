@@ -8,7 +8,7 @@ on:
         type: string
       push:
         required: true
-        type: boolean
+        type: string
     secrets:
       PROJECT:
         required: true
@@ -29,7 +29,10 @@ jobs:
       - run: echo us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA $GITHUB_WORKSPACE/${{ matrix.service.directory }}
       - name: Build image
         run: |-
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA $GITHUB_WORKSPACE/${{ matrix.service.directory }}
+          docker build \
+            -t us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA \
+            -t us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:latest \
+            $GITHUB_WORKSPACE/${{ matrix.service.directory }}
       # - name: Scan image
       #   id: scan
       #   uses: azure/container-scan@v0
@@ -75,4 +78,4 @@ jobs:
       - name: Push
         if: ${{ inputs.push == 'true' }}
         run: |-
-          docker push us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA
+          docker push us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }} --all-tags
