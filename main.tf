@@ -42,6 +42,12 @@ resource "google_cloud_run_service" "aircraft_info" {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/aircraft_info:latest"
       }
     }
+    metadata {
+      annotations = {
+        "autoscaling.knative.dev/maxScale" = "15"
+        "autoscaling.knative.dev/minScale" = "0"
+      }
+    }
   }
 
   # direct all traffic toward latest revision
@@ -50,12 +56,6 @@ resource "google_cloud_run_service" "aircraft_info" {
     latest_revision = true
   }
 
-  metadata {
-    annotations = {
-      "autoscaling.knative.dev/maxScale" = "15"
-      "autoscaling.knative.dev/minScale" = "0"
-    }
-  }
 }
 
 resource "google_cloud_run_service_iam_policy" "noauth_aircraft_info" {
@@ -77,19 +77,19 @@ resource "google_cloud_run_service" "aircraft_list" {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/aircraft_list:latest"
       }
     }
+
+    metadata {
+      annotations = {
+        "autoscaling.knative.dev/maxScale" = "2"
+        "autoscaling.knative.dev/minScale" = "0"
+      }
+    }
   }
 
   # direct all traffic toward latest revision
   traffic {
     percent         = 100
     latest_revision = true
-  }
-
-  metadata {
-    annotations = {
-      "autoscaling.knative.dev/maxScale" = "2"
-      "autoscaling.knative.dev/minScale" = "0"
-    }
   }
 }
 
