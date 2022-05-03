@@ -12,10 +12,10 @@ import (
 var PubsubClient *pubsub.Client
 
 // Initialize initializes GCP client service using the environment.
-func GcpInitialize(credFile, projectName string) error {
+func GcpInitialize(credJson string, projectName string) error {
 	var err error
 	ctx := context.Background()
-	credentialOpt := option.WithCredentialsFile(credFile)
+	credentialOpt := option.WithCredentialsJSON([]byte(credJson))
 
 	PubsubClient, err = pubsub.NewClient(ctx, projectName, credentialOpt)
 	return err

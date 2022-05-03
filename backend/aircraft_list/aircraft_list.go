@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const env_credFile = "GOOGLE_APPLICATION_CREDENTIALS"
+const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const env_topicID = "GOOGLE_PUBSUB_TOPIC_ID"
@@ -48,12 +48,13 @@ func main() {
 
 	aircraftList.Write(startVal)
 
-	var credFile = mustGetenv(env_credFile)
+	var credJson = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
 	var topicID = mustGetenv(env_topicID)
 	var subID = mustGetenv(env_subID)
 
-	GcpInitialize(credFile, projectID)
+	err := GcpInitialize(credJson, projectID)
+	checkErr(err)
 
 	go pubsubHandler(topicID, subID)
 
