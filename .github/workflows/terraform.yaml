@@ -10,6 +10,12 @@ on:
         required: true
 env:
   REGION: 'us-central1' # TODO
+  GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID: aircraftsTopic
+  GOOGLE_PUBSUB_VECTORS_TOPIC_ID: vectorsTopic
+  GOOGLE_PUBSUB_HISTORY_1_TOPIC_ID: history1Topic
+  GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID: history6Topic
+  GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID: history24Topic
+  GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID: list_sub
 
 jobs:
   terraform:
