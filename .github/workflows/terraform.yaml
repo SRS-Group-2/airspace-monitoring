@@ -6,6 +6,8 @@ on:
         required: true
       TERRAFORM_GCP_CREDENTIALS:
         required: true
+      AIRCRAFT_LIST_GCP_CREDENTIALS:
+        required: true
 env:
   REGION: 'us-central1' # TODO
 
@@ -44,7 +46,9 @@ jobs:
           -var "vectors_topic=${GOOGLE_PUBSUB_VECTORS_TOPIC_ID}" \
           -var "history_1_topic=${GOOGLE_PUBSUB_HISTORY_1_TOPIC_ID}" \
           -var "history_6_topic=${GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID}" \
-          -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}"
+          -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}" \
+          -var 'google_list_credentials=${{ secrets.AIRCRAFT_LIST_GCP_CREDENTIALS }}' \
+          -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}"
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
     # On push to main, build or change infrastructure according to Terraform configuration files
@@ -59,6 +63,8 @@ jobs:
           -var "vectors_topic=${GOOGLE_PUBSUB_VECTORS_TOPIC_ID}" \
           -var "history_1_topic=${GOOGLE_PUBSUB_HISTORY_1_TOPIC_ID}" \
           -var "history_6_topic=${GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID}" \
-          -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}"
+          -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}" \
+          -var 'google_list_credentials=${{ secrets.AIRCRAFT_LIST_GCP_CREDENTIALS }}' \
+          -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}"
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}

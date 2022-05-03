@@ -24,5 +24,17 @@ resource "google_pubsub_topic" "pubsub_24h" {
   name    = var.history_24_topic
 }
 
-# Subscriptions will be created by containers when necessary. 
-# As per Google policy, they are deleted after 31 days of inactivity
+resource "google_pubsub_subscription" "pubsub_sub_list" {
+  name  = var.aircraft_list_subscriber_id
+  topic = google_pubsub_topic.pubsub_list.name
+
+  # 20 minutes
+  message_retention_duration = "1200s"
+  retain_acked_messages      = true
+
+  ack_deadline_seconds = 20
+
+  expiration_policy {
+    ttl = "300000.5s"
+  }
+}
