@@ -44,37 +44,37 @@ resource "google_cloud_run_service_iam_policy" "noauth_aircraft_info" {
   policy_data = data.google_iam_policy.noauth.policy_data
 }
 
-# Aircraft List service
-resource "google_cloud_run_service" "aircraft_list" {
-  name     = "aircraft-list"
-  location = var.region
+# # Aircraft List service
+# resource "google_cloud_run_service" "aircraft_list" {
+#   name     = "aircraft-list"
+#   location = var.region
 
-  template {
-    spec {
-      containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/aircraft_list:latest"
-      }
-    }
+#   template {
+#     spec {
+#       containers {
+#         image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/aircraft_list:latest"
+#       }
+#     }
 
-    metadata {
-      annotations = {
-        "autoscaling.knative.dev/maxScale" = "2"
-        "autoscaling.knative.dev/minScale" = "0"
-      }
-    }
-  }
+#     metadata {
+#       annotations = {
+#         "autoscaling.knative.dev/maxScale" = "2"
+#         "autoscaling.knative.dev/minScale" = "0"
+#       }
+#     }
+#   }
 
-  # direct all traffic toward latest revision
-  traffic {
-    percent         = 100
-    latest_revision = true
-  }
-}
+#   # direct all traffic toward latest revision
+#   traffic {
+#     percent         = 100
+#     latest_revision = true
+#   }
+# }
 
-resource "google_cloud_run_service_iam_policy" "noauth_aircraft_list" {
-  location = google_cloud_run_service.aircraft_list.location
-  project  = google_cloud_run_service.aircraft_list.project
-  service  = google_cloud_run_service.aircraft_list.name
+# resource "google_cloud_run_service_iam_policy" "noauth_aircraft_list" {
+#   location = google_cloud_run_service.aircraft_list.location
+#   project  = google_cloud_run_service.aircraft_list.project
+#   service  = google_cloud_run_service.aircraft_list.name
 
-  policy_data = data.google_iam_policy.noauth.policy_data
-}
+#   policy_data = data.google_iam_policy.noauth.policy_data
+# }

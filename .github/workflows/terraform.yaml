@@ -36,13 +36,29 @@ jobs:
       run: terraform -chdir=terraform fmt -check
     # Generates an execution plan for Terraform
     - name: Terraform Plan
-      run: terraform -chdir=terraform plan -var 'project_id=${{ secrets.PROJECT }}' -var "region=${REGION}"
+      run: |
+        terraform -chdir=terraform plan \
+          -var 'project_id=${{ secrets.PROJECT }}' \
+          -var "region=${REGION}" \
+          -var "aircraft_list_topic=${GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID}" \
+          -var "vectors_topic=${GOOGLE_PUBSUB_VECTORS_TOPIC_ID}" \
+          -var "history_1_topic=${GOOGLE_PUBSUB_HISTORY_1_TOPIC_ID}" \
+          -var "history_6_topic=${GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID}" \
+          -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}"
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
     # On push to main, build or change infrastructure according to Terraform configuration files
     # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Terraform Apply
       if: github.event_name == 'push'
-      run: terraform -chdir=terraform apply -auto-approve -var 'project_id=${{ secrets.PROJECT }}' -var "region=${REGION}"
+      run: |
+        terraform -chdir=terraform apply -auto-approve \
+          -var 'project_id=${{ secrets.PROJECT }}' \
+          -var "region=${REGION}" \
+          -var "aircraft_list_topic=${GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID}" \
+          -var "vectors_topic=${GOOGLE_PUBSUB_VECTORS_TOPIC_ID}" \
+          -var "history_1_topic=${GOOGLE_PUBSUB_HISTORY_1_TOPIC_ID}" \
+          -var "history_6_topic=${GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID}" \
+          -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}"
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
