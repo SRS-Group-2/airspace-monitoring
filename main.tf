@@ -33,7 +33,7 @@ data "google_iam_policy" "noauth" {
 
 # Aircraft Info service
 resource "google_cloud_run_service" "aircraft_info" {
-  name     = "aircraft_info"
+  name     = "aircraft-info"
   location = var.region
 
   template {
@@ -68,7 +68,7 @@ resource "google_cloud_run_service_iam_policy" "noauth_aircraft_info" {
 
 # Aircraft List service
 resource "google_cloud_run_service" "aircraft_list" {
-  name     = "aircraft_list"
+  name     = "aircraft-list"
   location = var.region
 
   template {
