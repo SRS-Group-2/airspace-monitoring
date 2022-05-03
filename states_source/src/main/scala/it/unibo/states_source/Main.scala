@@ -23,58 +23,40 @@ import org.opensky.api.OpenSkyApi
 
 object Main {
   def main(args: Array[String]): Unit = {
-    val sourceFunction = new OpenSkySourceFunction(36.619987291, 47.1153931748, 6.7499552751, 18.4802470232)
+    val sourceFunction = new OpenSkySourceFunction(System.getenv("COORDINATES"))
 
     val params = ParameterTool.fromArgs(args)
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.getConfig.setGlobalJobParameters(params)
-    // TODO: make bounding box coordinates more clear
-
-    // val sourceFunction = new OpenSkySourceFunction(36.619987291, 47.1153931748, 6.7499552751, 18.4802470232)
-    val source = env.addSource(sourceFunction)
-/*
-  //Case with file as sink
-    val fileSink: FileSink[Vectors] = 
-      FileSink.forRowFormat(new Path("/usr/local/flink/output"), 
-                            new SimpleStringEncoder[Vectors]("UTF-8"))
-              .withRollingPolicy(DefaultRollingPolicy.builder()
-                                                     .withRolloverInterval(TimeUnit.MINUTES.toMillis(1))
-                                                     .withInactivityInterval(TimeUnit.MINUTES.toMillis(1))
-                                                     .withMaxPartSize(1024 * 1024 * 1024)
-                                                     .build())
-	            .build()  
-
-      source.map(lsv => new Vectors(
-                                      lsv.map(sv => new MinimalState(sv.getIcao24(), 
-                                                                     sv.getLatitude(), 
-                                                                     sv.getLongitude(), 
-                                                                    /* sv.isOnGround(), 
-                                                                     LocalDateTime.now().toString()*/)),
-                                      LocalDateTime.now().toString()))
-          .sinkTo(fileSink)
-*/
-
-// Case with pubsub as sink
-    val serializationSchema: SerializationSchema[Vectors]  = new CustomJSONSerializer();
-    val pubsubSink: SinkFunction[Vectors] = PubSubSink.newBuilder()
-                                              .withSerializationSchema(serializationSchema)
-                                              //Use this with the real pubsub, comment with the emulator
-                                            //.withCredentials("pathToCredentials")  
-                                              .withProjectName("projectname")
-                                              .withTopicName("topicname")
-                                              //Use this with the emulator, comment with the real pubsub
-                                              .withHostAndPortForEmulator("host.docker.internal:8085")
+    val sourceVectors = env.addSource(sourceFunction)
+    val sourceAircrafts = env.addSource(sourceFunction)
+    val vectorsSerializationSchema: SerializationSchema[Vectors]  = new JSONVectorsSerializer();
+    val aircraftsSerializationSchema: SerializationSchema[Aircrafts]  = new JSONAircraftsSerializer();
+    val vectorsPubsubSink: SinkFunction[Vectors] = PubSubSink.newBuilder()
+                                              .withSerializationSchema(vectorsSerializationSchema)
+                                              .withCredentials(System.getenv("GOOGLE_APPLICATION_CREDENTIALS"))  
+                                              .withProjectName(System.getenv("GOOGLE_CLOUD_PROJECT_ID"))
+                                              .withTopicName(System.getenv("GOOGLE_PUBSUB_VECTORS_TOPIC_ID"))
                                               .build()
-    source.map(lsv => new Vectors(
+    sourceVectors.map(lsv => new Vectors(
                                       lsv.map(sv => new MinimalState(sv.getIcao24(), 
                                                                      sv.getLatitude(), 
-                                                                     sv.getLongitude(), 
-                                                                    /* sv.isOnGround(), 
-                                                                     LocalDateTime.now().toString()*/)),
-                                      LocalDateTime.now().toString()))
-          .addSink(pubsubSink)
+                                                                     sv.getLongitude())),
+                                      (System.currentTimeMillis() / 1000L).toString()))
+                      .addSink(vectorsPubsubSink)
 
-    env.execute("OpenSkyStreamApp") // needed to avoid the No Job Found error
+    val aircraftsPubsubSink: SinkFunction[Aircrafts] = PubSubSink.newBuilder()
+                                                      .withSerializationSchema(aircraftsSerializationSchema)
+                                                      .withCredentials("GOOGLE_APPLICATION_CREDENTIALS")  
+                                                      .withProjectName(System.getenv("GOOGLE_CLOUD_PROJECT_ID"))
+                                                      .withTopicName(System.getenv("GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID"))
+                                                      .build()
+    sourceAircrafts.map(lsv => new Aircrafts(
+                                      (System.currentTimeMillis() / 1000L).toString(),
+                                      lsv.map(sv => sv.getIcao24())))
+                        .addSink(aircraftsPubsubSink)
+
+    env.execute("OpenSkyStreamApp") 
 
   }
 

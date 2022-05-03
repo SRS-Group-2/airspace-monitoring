@@ -18,6 +18,11 @@ class OpenSkySourceFunction(private val coordinates: Option[(Double, Double, Dou
     this(None)
   }
 
+  def this(coor: String) {
+    this(Some(((coor.split(",")(0).toDouble),(coor.split(",")(1).toDouble),(coor.split(",")(2).toDouble),(coor.split(",")(3).toDouble))))
+
+  }
+
   def this(a: Double, b: Double, c: Double, d: Double) {
     this(Some((a, b, c, d)))
   }

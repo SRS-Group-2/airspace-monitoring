@@ -9,11 +9,13 @@ services:
     volumes:
       - ./target:/opt/flink/usrlib
       - ./:/usr/local/flink
+    env_file:
+      - .env
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
-        parallelism.default: 1        
+        parallelism.default: 1       
 
   taskmanager:
     image: flink:1.14.4-scala_2.12
@@ -24,9 +26,11 @@ services:
     volumes:
       - ./target:/opt/flink/usrlib
       - ./:/usr/local/flink
+    env_file:
+      - .env
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 2
-        parallelism.default: 1 
+        parallelism.default: 1
