@@ -55,7 +55,7 @@ func main() {
 func getInfo(c *gin.Context) {
 	var icao24 = c.Param("icao24")
 	if len(icao24) != 6 {
-		c.IndentedJSON(http.StatusNotAcceptable, gin.H{"message": "invalid icao24"})
+		c.String(http.StatusNotAcceptable, "invalid icao24")
 		return
 	}
 
@@ -74,11 +74,11 @@ func getInfo(c *gin.Context) {
 	}
 
 	if aircraft.Icao24 == "" {
-		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "icao24 not found"})
+		c.JSON(http.StatusNotFound, "icao24 not found")
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, aircraft)
+	c.JSON(http.StatusOK, aircraft)
 }
 
 func checkErr(err error) {
