@@ -19,10 +19,6 @@ const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
 
-type historyValues struct {
-	Document string
-}
-
 type TimeResolution struct {
 	oneHour string
 	oneDay  string
@@ -35,11 +31,11 @@ var timeResolution = TimeResolution{
 
 func main() {
 
-	var credFile = mustGetenv(env_credJson)
+	var credString = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
 
 	//DB
-	client := FirestoreInit(credFile, projectID)
+	client := FirestoreInit([]byte(credString), projectID)
 
 	router := gin.New()
 	router.SetTrustedProxies(nil)

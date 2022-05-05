@@ -7,10 +7,10 @@ import (
 	"google.golang.org/api/option"
 )
 
-func FirestoreInit(credJson string, projectID string) *firestore.Client {
+func FirestoreInit(credJson []byte, projectID string) *firestore.Client {
 	// Use a service account
 	ctx := context.Background()
-	opt := option.WithCredentialsFile(credJson)
+	opt := option.WithCredentialsJSON(credJson)
 	client, err := firestore.NewClient(ctx, projectID, opt)
 	checkErr(err)
 
