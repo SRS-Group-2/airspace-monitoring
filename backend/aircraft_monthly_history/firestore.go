@@ -11,7 +11,7 @@ func FirestoreInit(credJson string, projectID string) *firestore.Client {
 	// Use a service account
 	ctx := context.Background()
 	opt := option.WithCredentialsFile(credJson)
-	client, err := firestore.NewClient(ctx, "projectID", opt)
+	client, err := firestore.NewClient(ctx, projectID, opt)
 	checkErr(err)
 
 	return client
