@@ -20,6 +20,10 @@ const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
 
+type historyValues struct {
+	Document string
+}
+
 type TimeResolution struct {
 	oneHour string
 	oneDay  string
@@ -29,8 +33,6 @@ var timeResolution = TimeResolution{
 	oneHour: "hour",
 	oneDay:  "day",
 }
-
-var maxDuration = time.Hour * 24 * 30
 
 func main() {
 
@@ -47,8 +49,8 @@ func main() {
 	// resolution: hour, day
 	//?type=co2
 	router.GET("airspace/history", func(c *gin.Context) {
-		toDefault := time.Now()
-		fromDefault := time.Now().Add(-maxDuration)
+		toDefault := time.Now().UTC()
+		fromDefault := time.Now().UTC().AddDate(0, 0, -30)
 		resolutionDefault := "day"
 
 		fromStr := c.Query("from")
@@ -65,29 +67,44 @@ func main() {
 
 		switch resolution {
 		case "hour":
-			fromUtc := from.UTC().Format("YYYY-MM-DD-HH")
-			toUtc := to.UTC().Format("YYYY-MM-DD-HH")
-			docIter = client.Collection("airspace/30-history/1h-history").Where("startTime", ">=", fromUtc).Where("startTime", "<=", toUtc).Documents(ctx)
+			fromUtc := from.UTC().Format("2006-01-02-15-04")
+			toUtc := to.UTC().Format("2006-01-02-15-04")
+			fmt.Println("From: ", fromUtc, " To: ", toUtc, " res: ", resolution)
+			docIter = client.Collection("airspace/30d-history/1h-bucket").
+				Where("startTime", ">=", fromUtc).
+				Where("startTime", "<=", toUtc).
+				OrderBy("startTime", firestore.Desc).
+				Documents(ctx)
 		case "day":
 			fallthrough
 		default:
-			fromUtc := from.UTC().Format("YYYY-MM-DD")
-			toUtc := to.UTC().Format("YYYY-MM-DD")
-			docIter = client.Collection("airspace/30-history/1d-history").Where("startTime", ">=", fromUtc).Where("startTime", "<=", toUtc).Documents(ctx)
+			fromUtc := from.UTC().Format("2006-01-02")
+			toUtc := to.UTC().Format("2006-01-02")
+			fmt.Println("From: ", fromUtc, " To: ", toUtc, " res: ", resolution)
+
+			docIter = client.Collection("airspace/30d-history/1d-bucket").
+				Where("startTime", ">=", fromUtc).
+				Where("startTime", "<=", toUtc).
+				OrderBy("startTime", firestore.Desc).
+				Documents(ctx)
 		}
 
-		for {
+		json := make([]map[string]interface{}, 0)
+		// Iterate over documents and create response
+		for i := 0; true; i++ {
 			doc, err := docIter.Next()
 			if err == iterator.Done {
+				fmt.Println("Breaking loot at iteration: ", i)
 				break
 			}
 			if err != nil {
-				c.String(http.StatusInternalServerError, "There was an unexpected error while iterating")
+				c.String(http.StatusInternalServerError, err.Error())
 				return
 			}
-			fmt.Println(doc.Data())
+			var docMap = map[string]interface{}{doc.Ref.ID: doc.Data()}
+			json = append(json, docMap)
 		}
-		c.IndentedJSON(http.StatusOK, "hello")
+		c.IndentedJSON(http.StatusOK, json)
 	})
 
 	router.Run()
@@ -109,7 +126,7 @@ func parseDate(param string, defaultVal time.Time) time.Time {
 		return defaultVal
 	}
 
-	return time.Unix(result, 0)
+	return time.Unix(result, 0).UTC()
 }
 
 func mustGetenv(k string) string {
