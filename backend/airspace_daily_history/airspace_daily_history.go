@@ -82,9 +82,11 @@ func main() {
 	var credString = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
 
-	//DB
-	client := FirestoreInit([]byte(credString), projectID)
-	defer client.Close()
+	go func() {
+		//DB
+		client := FirestoreInit([]byte(credString), projectID)
+		defer client.Close()
+	}()
 
 	router := gin.New()
 	router.SetTrustedProxies(nil)
@@ -93,29 +95,20 @@ func main() {
 	// interval: 1h, 6h, 24h
 	router.GET("/airspace/history/realtime/:interval", func(c *gin.Context) {
 		interval := c.Param("interval")
-		state := historyState.Read()
 
 		switch interval {
 		case "24h":
-			response :=
-				c.String(http.StatusOK)
+			c.JSON(http.StatusOK, oneDayState.Read())
 		case "6h":
-			response := state.CO2t_6h
-			c.String(http.StatusOK)
+			c.JSON(http.StatusOK, sixHoursState.Read())
 		case "1h":
 			fallthrough
 		default:
-			c.String(http.StatusOK)
+			c.JSON(http.StatusOK, oneHourState.Read())
 		}
-
 	})
 
 	router.Run()
-}
-
-func getList(c *gin.Context) {
-
-	c.String(http.StatusOK, "hello")
 }
 
 func checkErr(err error) {
