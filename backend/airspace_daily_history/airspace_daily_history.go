@@ -9,8 +9,6 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/gin-gonic/gin"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
@@ -82,11 +80,9 @@ func main() {
 	var credString = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
 
-	go func() {
-		//DB
-		client := FirestoreInit([]byte(credString), projectID)
-		defer client.Close()
-	}()
+	go firestoreUpdates(credString, projectID, "1h-history", oneHourState)
+	go firestoreUpdates(credString, projectID, "6h-history", sixHoursState)
+	go firestoreUpdates(credString, projectID, "24h-history", oneDayState)
 
 	router := gin.New()
 	router.SetTrustedProxies(nil)
@@ -125,21 +121,21 @@ func mustGetenv(k string) string {
 	return v
 }
 
-func firestoreUpdates() {
+func firestoreUpdates(credString string, projectID string, documentID string, historyState HistoryState) {
 
-	it := client.Collection(collection).Doc("SF").Snapshots(ctx)
+	client := FirestoreInit([]byte(credString), projectID)
+	defer client.Close()
+
+	ctx := context.Background()
+	snapIter := client.Collection("airspace").Doc(documentID).Snapshots(ctx)
+
 	for {
-		snap, err := it.Next()
-		// DeadlineExceeded will be returned when ctx is cancelled.
-		if status.Code(err) == codes.DeadlineExceeded {
-			return nil
-		}
-		if err != nil {
-			return fmt.Errorf("Snapshots.Next: %v", err)
-		}
+		// Wait for new snapshots of the document
+		snap, err := snapIter.Next()
+		checkErr(err)
+
 		if !snap.Exists() {
-			fmt.Fprintf(w, "Document no longer exists\n")
-			return nil
+			panic("Document no longer exists.")
 		}
 		fmt.Fprintf(w, "Received document snapshot: %v\n", snap.Data())
 	}
