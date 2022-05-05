@@ -52,3 +52,23 @@ variable "flink_version" {
   type        = string
   description = "Version of the Flink instances being deployed"
 }
+
+variable "kube_network" {
+  type        = string
+  description = "Name of the VPC network"
+}
+
+variable "kube_subnetwork" {
+  type        = string
+  description = "Name of the VPC subnetwork"
+}
+
+variable "kube_pods_range" {
+  type        = string
+  description = "Name of ip range of pods in kube subnetwork"
+}
+
+variable "kube_services_range" {
+  type        = string
+  description = "Name of ip range of services in kube subnetwork"
+}
