@@ -23,6 +23,7 @@ semgrep \
   --config p/golang \
   --config p/owasp-top-ten \
   --config p/clientside-js \
+  --config p/terraform \
   --metrics=off
 ```
 
