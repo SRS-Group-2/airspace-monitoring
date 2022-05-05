@@ -43,6 +43,11 @@ variable "google_list_credentials" {
   description = "The credentials for the aircraft list service"
 }
 
+variable "kube_cluster" {
+  type        = string
+  description = "Name of the kubernetes cluster being deployed"
+}
+
 variable "kube_network" {
   type        = string
   description = "Name of the VPC network"
