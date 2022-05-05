@@ -67,3 +67,8 @@ variable "kube_services_range" {
   type        = string
   description = "Name of ip range of services in kube subnetwork"
 }
+
+variable "flink_version" {
+  type        = string
+  description = "Label of Flink container image"
+}
