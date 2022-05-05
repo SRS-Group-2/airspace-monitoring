@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -47,7 +46,6 @@ func main() {
 
 	// eg. airspace/history?from=UNIXTS&to=UNIXTS&resolution=
 	// resolution: hour, day
-	//?type=co2
 	router.GET("airspace/history", func(c *gin.Context) {
 		toDefault := time.Now().UTC()
 		fromDefault := time.Now().UTC().AddDate(0, 0, -30)
@@ -66,21 +64,23 @@ func main() {
 		var docIter *firestore.DocumentIterator
 
 		switch resolution {
+
 		case "hour":
-			fromUtc := from.UTC().Format("2006-01-02-15-04")
-			toUtc := to.UTC().Format("2006-01-02-15-04")
-			fmt.Println("From: ", fromUtc, " To: ", toUtc, " res: ", resolution)
+			fromUtc := from.UTC().Format("2006-01-02-15")
+			toUtc := to.UTC().Format("2006-01-02-15")
+
 			docIter = client.Collection("airspace/30d-history/1h-bucket").
 				Where("startTime", ">=", fromUtc).
 				Where("startTime", "<=", toUtc).
 				OrderBy("startTime", firestore.Desc).
 				Documents(ctx)
+
 		case "day":
 			fallthrough
+
 		default:
 			fromUtc := from.UTC().Format("2006-01-02")
 			toUtc := to.UTC().Format("2006-01-02")
-			fmt.Println("From: ", fromUtc, " To: ", toUtc, " res: ", resolution)
 
 			docIter = client.Collection("airspace/30d-history/1d-bucket").
 				Where("startTime", ">=", fromUtc).
@@ -89,24 +89,25 @@ func main() {
 				Documents(ctx)
 		}
 
-		json := make([]map[string]interface{}, 0)
+		var json = make(map[string]interface{})
+
 		// Iterate over documents and create response
 		for i := 0; true; i++ {
 			doc, err := docIter.Next()
+
 			if err == iterator.Done {
-				fmt.Println("Breaking loot at iteration: ", i)
 				break
 			}
+
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
 				return
 			}
-			var docMap = map[string]interface{}{doc.Ref.ID: doc.Data()}
-			json = append(json, docMap)
+
+			json[doc.Ref.ID] = doc.Data()
 		}
 		c.IndentedJSON(http.StatusOK, json)
 	})
-
 	router.Run()
 }
 
