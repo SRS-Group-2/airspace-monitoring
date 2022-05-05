@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/google"
       version = "4.20.0"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.11.0"
+    }
   }
 
   # where to save states
