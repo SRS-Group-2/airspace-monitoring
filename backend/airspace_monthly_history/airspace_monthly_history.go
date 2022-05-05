@@ -93,7 +93,7 @@ func main() {
 
 			json[doc.Ref.ID] = doc.Data()
 		}
-		c.IndentedJSON(http.StatusOK, json)
+		c.JSON(http.StatusOK, json)
 	})
 	router.Run()
 }
