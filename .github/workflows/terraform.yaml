@@ -16,6 +16,10 @@ env:
   GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID: history6Topic
   GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID: history24Topic
   GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID: list_sub
+  KUBE_NETWORK: vpc-01
+  KUBE_SUBNETWORK: sub-vpc-01
+  KUBE_PODS_RANGE: us-central1-01-gke-01-pods
+  KUBE_SERVICES_RANGE: us-central1-01-gke-01-services
 
 jobs:
   terraform:
@@ -54,7 +58,11 @@ jobs:
           -var "history_6_topic=${GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID}" \
           -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}" \
           -var 'google_list_credentials=${{ secrets.AIRCRAFT_LIST_GCP_CREDENTIALS }}' \
-          -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}"
+          -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}" \
+          -var "kube_network=${KUBE_NETWORK}" \
+          -var "kube_subnetwork=${KUBE_SUBNETWORK}" \
+          -var "kube_pods_range=${KUBE_PODS_RANGE}" \
+          -var "kube_services_range=${KUBE_SERVICES_RANGE}"
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
     # On push to main, build or change infrastructure according to Terraform configuration files
@@ -71,6 +79,10 @@ jobs:
           -var "history_6_topic=${GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID}" \
           -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}" \
           -var 'google_list_credentials=${{ secrets.AIRCRAFT_LIST_GCP_CREDENTIALS }}' \
-          -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}"
+          -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}" \
+          -var "kube_network=${KUBE_NETWORK}" \
+          -var "kube_subnetwork=${KUBE_SUBNETWORK}" \
+          -var "kube_pods_range=${KUBE_PODS_RANGE}" \
+          -var "kube_services_range=${KUBE_SERVICES_RANGE}"
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
