@@ -19,16 +19,6 @@ const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
 
-type TimeResolution struct {
-	oneHour string
-	oneDay  string
-}
-
-var timeResolution = TimeResolution{
-	oneHour: "hour",
-	oneDay:  "day",
-}
-
 func main() {
 
 	var credString = mustGetenv(env_credJson)
