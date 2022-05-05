@@ -26,6 +26,7 @@ func main() {
 
 	//DB
 	client := FirestoreInit([]byte(credString), projectID)
+	defer client.Close()
 
 	router := gin.New()
 	router.SetTrustedProxies(nil)
