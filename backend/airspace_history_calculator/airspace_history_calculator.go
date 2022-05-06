@@ -130,7 +130,6 @@ func main() {
 			oneHourState.IncCO2(data["CO2t"].(int64))
 			oneHourState.IncDistance(data["distanceKm"].(int64))
 			oneHourState.WriteTimestamp(timestamp)
-
 		}
 		if inRange(timestamp, begin, 6*time.Hour) {
 			sixHoursState.IncCO2(data["CO2t"].(int64))
@@ -145,38 +144,24 @@ func main() {
 	}
 
 	// Update the database entries for 1h, 6h 24h sums with initial values
-	client.Collection("airspace").Doc("24h-history").Update(ctx, []firestore.Update{
-		{Path: "CO2t", Value: oneDayState.ReadCO2()},
-		{Path: "distanceKm", Value: oneDayState.ReadDistance()},
-		{Path: "timestamp", Value: oneDayState.ReadTimestamp()},
-	})
-	client.Collection("airspace").Doc("6h-history").Update(ctx, []firestore.Update{
-		{Path: "CO2t", Value: sixHoursState.ReadCO2()},
-		{Path: "distanceKm", Value: sixHoursState.ReadDistance()},
-		{Path: "timestamp", Value: sixHoursState.ReadTimestamp()},
-	})
-	client.Collection("airspace").Doc("1h-history").Update(ctx, []firestore.Update{
-		{Path: "CO2t", Value: oneHourState.ReadCO2()},
-		{Path: "distanceKm", Value: oneHourState.ReadDistance()},
-		{Path: "timestamp", Value: oneHourState.ReadTimestamp()},
-	})
+	saveStateToDb(client)
 
 	// Now we start listenign to changes on the 5m-history document
 	snapIter := client.Collection("airspace").Doc("5m-history").Snapshots(ctx)
 
-	new5mins, err := snapIter.Next()
+	fistValue, err := snapIter.Next()
 	checkErr(err)
 
-	if !new5mins.Exists() {
-		panic("Document no longer exists.")
+	if !fistValue.Exists() {
+		panic("5m update document no longer exists.")
 	}
 
-	data := new5mins.Data()
+	data := fistValue.Data()
 	timestamp := data["startTime"].(string)
-	sample, err := time.Parse("2006-01-02-15", timestamp)
+	startTime, err := time.Parse("2006-01-02-15", timestamp)
 	if err == nil {
-		if sample.After(begin) {
-			//TODO here
+		if startTime.After(begin) {
+			updateState(client, data, startTime)
 		}
 	}
 
@@ -192,6 +177,32 @@ func main() {
 		new5Values := new5mins.Data()
 
 	}
+}
+
+func updateState(client *firestore.Client, addData map[string]interface{}, startTime time.Time) {
+
+}
+
+func saveStateToDb(client *firestore.Client) {
+	ctx := context.Background()
+
+	client.Collection("airspace").Doc("24h-history").Update(ctx, []firestore.Update{
+		{Path: "CO2t", Value: oneDayState.ReadCO2()},
+		{Path: "distanceKm", Value: oneDayState.ReadDistance()},
+		{Path: "timestamp", Value: oneDayState.ReadTimestamp()},
+	})
+
+	client.Collection("airspace").Doc("6h-history").Update(ctx, []firestore.Update{
+		{Path: "CO2t", Value: sixHoursState.ReadCO2()},
+		{Path: "distanceKm", Value: sixHoursState.ReadDistance()},
+		{Path: "timestamp", Value: sixHoursState.ReadTimestamp()},
+	})
+
+	client.Collection("airspace").Doc("1h-history").Update(ctx, []firestore.Update{
+		{Path: "CO2t", Value: oneHourState.ReadCO2()},
+		{Path: "distanceKm", Value: oneHourState.ReadDistance()},
+		{Path: "timestamp", Value: oneHourState.ReadTimestamp()},
+	})
 }
 
 func backgroundUpdateState(credString string, projectId string, historyState *HistoryState) {
