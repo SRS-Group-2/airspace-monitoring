@@ -60,3 +60,17 @@ VERSION=$(
 A useful tool to locally test workflows is [`act`](https://github.com/nektos/act).
 
 `act` shows different behaviours than Github Actions when using matrixes and checks if matrixes are empty and for the values of `${{ github.event.before }}` for new branches.
+
+### Terraform
+```
+gcloud init
+terraform -chdir=terraform validate
+terraform -chdir=terraform plan
+terraform -chdir=terraform apply
+terraform -chdir=terraform destroy
+```
+
+To configure `kubectl` (see https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#apt_1):
+```
+gcloud container clusters get-credentials gke-1 --zone "us-central1"
+```
