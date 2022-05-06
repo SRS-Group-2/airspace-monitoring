@@ -41,4 +41,12 @@ module "gke" {
       initial_node_count = 3
     },
   ]
+
+  node_pools_oauth_scopes = {
+    all = []
+
+    default-node-pool = [
+      "https://www.googleapis.com/auth/cloud-platform",
+    ]
+  }
 }
