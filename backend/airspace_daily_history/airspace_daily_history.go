@@ -2,12 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"net/http"
 	"os"
 	"sync"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,52 +36,40 @@ var interval = Interval{
 
 type HistoryState struct {
 	sync.RWMutex
-	val HistoryValues
+	val string
 }
 
-func (l *HistoryState) Read() HistoryValues {
+func (l *HistoryState) Read() string {
 	l.RLock()
 	defer l.RUnlock()
 	return l.val
 }
 
-func (l *HistoryState) Write(newVal HistoryValues) {
+func (l *HistoryState) Write(newVal string) {
 	l.Lock()
 	defer l.Unlock()
 	l.val = newVal
 }
 
 var oneHourState = HistoryState{
-	val: HistoryValues{
-		CO2:       0,
-		Distance:  0,
-		Timestamp: "0000-00-00-00-00",
-	},
+	val: "{}",
 }
 
 var sixHoursState = HistoryState{
-	val: HistoryValues{
-		CO2:       0,
-		Distance:  0,
-		Timestamp: "0000-00-00-00-00",
-	},
+	val: "{}",
 }
 var oneDayState = HistoryState{
-	val: HistoryValues{
-		CO2:       0,
-		Distance:  0,
-		Timestamp: "0000-00-00-00-00",
-	},
+	val: "{}",
 }
 
 func main() {
 
-	var credString = mustGetenv(env_credJson)
+	var credJson = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
 
-	go firestoreUpdates(credString, projectID, "1h-history", oneHourState)
-	go firestoreUpdates(credString, projectID, "6h-history", sixHoursState)
-	go firestoreUpdates(credString, projectID, "24h-history", oneDayState)
+	go backgroundUpdateState(credJson, projectID, "1h-history", &oneHourState)
+	go backgroundUpdateState(credJson, projectID, "6h-history", &sixHoursState)
+	go backgroundUpdateState(credJson, projectID, "24h-history", &oneDayState)
 
 	router := gin.New()
 	router.SetTrustedProxies(nil)
@@ -94,17 +81,41 @@ func main() {
 
 		switch interval {
 		case "24h":
-			c.JSON(http.StatusOK, oneDayState.Read())
+			c.String(http.StatusOK, oneDayState.Read())
 		case "6h":
-			c.JSON(http.StatusOK, sixHoursState.Read())
+			c.String(http.StatusOK, sixHoursState.Read())
 		case "1h":
 			fallthrough
 		default:
-			c.JSON(http.StatusOK, oneHourState.Read())
+			c.String(http.StatusOK, oneHourState.Read())
 		}
 	})
 
 	router.Run()
+}
+
+func backgroundUpdateState(credString string, projectId string, documentID string, historyState *HistoryState) {
+
+	client := FirestoreInit([]byte(credString), projectId)
+	defer client.Close()
+
+	ctx := context.Background()
+	snapIter := client.Collection("airspace").Doc(documentID).Snapshots(ctx)
+
+	for {
+		// Wait for new snapshots of the document
+		snap, err := snapIter.Next()
+		checkErr(err)
+
+		if !snap.Exists() {
+			panic("Document no longer exists.")
+		}
+
+		jsonData, err := json.Marshal(snap.Data())
+		checkErr(err)
+
+		historyState.Write(string(jsonData))
+	}
 }
 
 func checkErr(err error) {
@@ -119,50 +130,4 @@ func mustGetenv(k string) string {
 		panic("Environment variable not set: " + k)
 	}
 	return v
-}
-
-func firestoreUpdates(credString string, projectID string, documentID string, historyState HistoryState) {
-
-	client := FirestoreInit([]byte(credString), projectID)
-	defer client.Close()
-
-	ctx := context.Background()
-	snapIter := client.Collection("airspace").Doc(documentID).Snapshots(ctx)
-
-	for {
-		// Wait for new snapshots of the document
-		snap, err := snapIter.Next()
-		checkErr(err)
-
-		if !snap.Exists() {
-			panic("Document no longer exists.")
-		}
-		fmt.Fprintf(w, "Received document snapshot: %v\n", snap.Data())
-	}
-}
-
-func pubsubHandler(topicID string, subscriptionID string) {
-
-	topic, err := GcpGetTopic(topicID)
-	checkErr(err)
-
-	sub, err := GcpGetSubscription(subscriptionID, topic)
-	checkErr(err)
-
-	err = sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
-		messageHandler(subscriptionID, ctx, msg)
-	})
-	checkErr(err)
-}
-
-func messageHandler(subscriptionID string, ctx context.Context, msg *pubsub.Message) {
-	defer func() {
-		if r := recover(); r != nil {
-			msg.Ack()
-		}
-	}()
-
-	msg.Ack()
-
-	aircraftList.Write(string(msg.Data))
 }
