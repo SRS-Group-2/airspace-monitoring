@@ -16,24 +16,6 @@ const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
 
-type HistoryValues struct {
-	CO2       int64
-	Distance  int64
-	Timestamp string
-}
-
-type Interval struct {
-	oneHour  string
-	sixHours string
-	oneDay   string
-}
-
-var interval = Interval{
-	oneHour:  "1h",
-	sixHours: "6h",
-	oneDay:   "24h",
-}
-
 type HistoryState struct {
 	sync.RWMutex
 	val string
@@ -74,8 +56,7 @@ func main() {
 	router := gin.New()
 	router.SetTrustedProxies(nil)
 
-	// eg. airspace/history/realtime/:interval
-	// interval: 1h, 6h, 24h
+	// Interval: 1h, 6h, 24h
 	router.GET("/airspace/history/realtime/:interval", func(c *gin.Context) {
 		interval := c.Param("interval")
 
