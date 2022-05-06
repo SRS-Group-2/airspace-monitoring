@@ -43,10 +43,24 @@ module "gke" {
   ]
 
   node_pools_oauth_scopes = {
-    all = []
+    all = [
+      "https://www.googleapis.com/auth/devstorage.read_only", # to read from artifact registry
+    ]
 
     default-node-pool = [
       "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/devstorage.read_only", # to read from artifact registry
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+      "https://www.googleapis.com/auth/service.management.readonly",
+      "https://www.googleapis.com/auth/servicecontrol",
+      "https://www.googleapis.com/auth/trace.append",
     ]
   }
+}
+
+resource "google_project_iam_member" "allow_image_pull" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${module.gke.service_account}"
 }
