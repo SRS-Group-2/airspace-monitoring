@@ -64,6 +64,7 @@ A useful tool to locally test workflows is [`act`](https://github.com/nektos/act
 ### Terraform
 ```
 gcloud init
+terraform -chdir=terraform fmt
 terraform -chdir=terraform validate
 terraform -chdir=terraform plan
 terraform -chdir=terraform apply

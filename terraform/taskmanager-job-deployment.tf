@@ -44,7 +44,7 @@ resource "kubernetes_deployment" "flink_taskmanager" {
 
         container {
           name  = "taskmanager"
-          image = "us-central1-docker.pkg.dev/master-choir-347215/docker-repo/flink_quickstart:latest"
+          image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/flink_quickstart:latest"
           args  = ["taskmanager"]
 
           port {

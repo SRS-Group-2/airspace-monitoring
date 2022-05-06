@@ -1,9 +1,20 @@
-resource "kubernetes_job" "flink_jobmanager" {
+# using deployment instead of Job because we don't expect it to end (it's a continuous job for us)
+resource "kubernetes_deployment" "flink_jobmanager" {
   metadata {
     name = "flink-jobmanager"
   }
 
   spec {
+    replicas = 1
+
+    selector {
+      match_labels = {
+        app = "flink"
+
+        component = "jobmanager"
+      }
+    }
+
     template {
       metadata {
         labels = {
@@ -34,7 +45,7 @@ resource "kubernetes_job" "flink_jobmanager" {
 
         container {
           name  = "jobmanager"
-          image = "us-central1-docker.pkg.dev/master-choir-347215/docker-repo/flink_quickstart:latest"
+          image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/flink_quickstart:latest"
           args  = ["standalone-job", "--job-classname", "org.myorg.quickstart.WordCount"]
 
           port {
@@ -70,8 +81,6 @@ resource "kubernetes_job" "flink_jobmanager" {
             run_as_user = 9999
           }
         }
-
-        restart_policy = "OnFailure"
       }
     }
   }
