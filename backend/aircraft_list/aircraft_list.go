@@ -2,19 +2,16 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"os"
 	"sync"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/gin-gonic/gin"
 )
 
 const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
-
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
-const env_topicID = "GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID"
-const env_subID = "GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
@@ -36,27 +33,20 @@ func (l *AircraftList) Write(newVal string) {
 	l.val = newVal
 }
 
-var aircraftList AircraftList
-
-const startVal string = `
+var aircraftList = AircraftList{
+	val: `
 {
 	"timestamp":0,
 	"list":[]
-}`
+}`,
+}
 
 func main() {
 
-	aircraftList.Write(startVal)
-
 	var credJson = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
-	var topicID = mustGetenv(env_topicID)
-	var subID = mustGetenv(env_subID)
 
-	err := GcpInitialize(credJson, projectID)
-	checkErr(err)
-
-	go pubsubHandler(topicID, subID)
+	go backgroundUpdateState(credJson, projectID, "aircraft-list", &aircraftList)
 
 	router := gin.New()
 
@@ -85,28 +75,26 @@ func mustGetenv(k string) string {
 	return v
 }
 
-func pubsubHandler(topicID string, subscriptionID string) {
+func backgroundUpdateState(credString string, projectId string, documentID string, state *AircraftList) {
 
-	topic, err := GcpGetTopic(topicID)
-	checkErr(err)
+	client := FirestoreInit([]byte(credString), projectId)
+	defer client.Close()
 
-	sub, err := GcpGetSubscription(subscriptionID, topic)
-	checkErr(err)
+	ctx := context.Background()
+	snapIter := client.Collection("airspace").Doc(documentID).Snapshots(ctx)
 
-	err = sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
-		messageHandler(subscriptionID, ctx, msg)
-	})
-	checkErr(err)
-}
+	for {
+		// Wait for new snapshots of the document
+		snap, err := snapIter.Next()
+		checkErr(err)
 
-func messageHandler(subscriptionID string, ctx context.Context, msg *pubsub.Message) {
-	defer func() {
-		if r := recover(); r != nil {
-			msg.Ack()
+		if !snap.Exists() {
+			panic("Document no longer exists.")
 		}
-	}()
 
-	msg.Ack()
+		jsonData, err := json.Marshal(snap.Data())
+		checkErr(err)
 
-	aircraftList.Write(string(msg.Data))
+		state.Write(string(jsonData))
+	}
 }
