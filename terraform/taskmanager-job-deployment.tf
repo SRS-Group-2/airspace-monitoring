@@ -1,6 +1,6 @@
-resource "kubernetes_deployment" "flink_jobmanager" {
+resource "kubernetes_deployment" "flink_taskmanager" {
   metadata {
-    name = "flink-jobmanager"
+    name = "flink-taskmanager"
   }
 
   spec {
@@ -10,7 +10,7 @@ resource "kubernetes_deployment" "flink_jobmanager" {
       match_labels = {
         app = "flink"
 
-        component = "jobmanager"
+        component = "taskmanager"
       }
     }
 
@@ -19,7 +19,7 @@ resource "kubernetes_deployment" "flink_jobmanager" {
         labels = {
           app = "flink"
 
-          component = "jobmanager"
+          component = "taskmanager"
         }
       }
 
@@ -43,33 +43,28 @@ resource "kubernetes_deployment" "flink_jobmanager" {
         }
 
         container {
-          name  = "jobmanager"
-          image = "apache/flink:${var.flink_version}"
-          args  = ["jobmanager"]
+          name  = "taskmanager"
+          image = "us-central1-docker.pkg.dev/master-choir-347215/docker-repo/flink_quickstart:latest"
+          args  = ["taskmanager"]
 
           port {
             name           = "rpc"
-            container_port = 6123
+            container_port = 6122
           }
 
           port {
-            name           = "blob-server"
-            container_port = 6124
-          }
-
-          port {
-            name           = "webui"
-            container_port = 8081
+            name           = "query-state"
+            container_port = 6125
           }
 
           volume_mount {
             name       = "flink-config-volume"
-            mount_path = "/opt/flink/conf"
+            mount_path = "/opt/flink/conf/"
           }
 
           liveness_probe {
             tcp_socket {
-              port = "6123"
+              port = "6122"
             }
 
             initial_delay_seconds = 30

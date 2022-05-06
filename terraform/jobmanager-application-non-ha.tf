@@ -1,25 +1,15 @@
-resource "kubernetes_deployment" "flink_taskmanager" {
+resource "kubernetes_job" "flink_jobmanager" {
   metadata {
-    name = "flink-taskmanager"
+    name = "flink-jobmanager"
   }
 
   spec {
-    replicas = 2
-
-    selector {
-      match_labels = {
-        app = "flink"
-
-        component = "taskmanager"
-      }
-    }
-
     template {
       metadata {
         labels = {
           app = "flink"
 
-          component = "taskmanager"
+          component = "jobmanager"
         }
       }
 
@@ -43,28 +33,33 @@ resource "kubernetes_deployment" "flink_taskmanager" {
         }
 
         container {
-          name  = "taskmanager"
-          image = "apache/flink:${var.flink_version}"
-          args  = ["taskmanager"]
+          name  = "jobmanager"
+          image = "us-central1-docker.pkg.dev/master-choir-347215/docker-repo/flink_quickstart:latest"
+          args  = ["standalone-job", "--job-classname", "org.myorg.quickstart.WordCount"]
 
           port {
             name           = "rpc"
-            container_port = 6122
+            container_port = 6123
           }
 
           port {
-            name           = "query-state"
-            container_port = 6125
+            name           = "blob-server"
+            container_port = 6124
+          }
+
+          port {
+            name           = "webui"
+            container_port = 8081
           }
 
           volume_mount {
             name       = "flink-config-volume"
-            mount_path = "/opt/flink/conf/"
+            mount_path = "/opt/flink/conf"
           }
 
           liveness_probe {
             tcp_socket {
-              port = "6122"
+              port = "6123"
             }
 
             initial_delay_seconds = 30
@@ -75,6 +70,8 @@ resource "kubernetes_deployment" "flink_taskmanager" {
             run_as_user = 9999
           }
         }
+
+        restart_policy = "OnFailure"
       }
     }
   }
