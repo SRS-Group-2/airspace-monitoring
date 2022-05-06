@@ -1,3 +1,4 @@
+# general
 variable "project_id" {
   type        = string
   description = "The Google Cloud Project Id"
@@ -8,6 +9,7 @@ variable "region" {
   description = "The region where to deploy"
 }
 
+# pubsub
 variable "aircraft_list_topic" {
   type        = string
   description = "The name of the PubSub topic with the list of aircrafts"
@@ -38,11 +40,18 @@ variable "aircraft_list_subscriber_id" {
   description = "The id of the subscriber for the aircraft_list"
 }
 
+# app credentials
 variable "google_list_credentials" {
   type        = string
   description = "The credentials for the aircraft list service"
 }
 
+variable "google_monthly_history_credentials" {
+  type        = string
+  description = "The credentials for the airspace monthly history service"
+}
+
+# kubernetes
 variable "kube_cluster" {
   type        = string
   description = "Name of the kubernetes cluster being deployed"

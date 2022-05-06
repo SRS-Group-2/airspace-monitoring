@@ -8,6 +8,8 @@ on:
         required: true
       AIRCRAFT_LIST_GCP_CREDENTIALS:
         required: true
+      AIRSPACE_MONTHLY_GCP_CREDENTIALS:
+        required: true
 env:
   REGION: 'us-central1' # TODO
   GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID: aircraftsTopic
@@ -58,6 +60,7 @@ jobs:
           -var "history_6_topic=${GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID}" \
           -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}" \
           -var 'google_list_credentials=${{ secrets.AIRCRAFT_LIST_GCP_CREDENTIALS }}' \
+          -var 'google_monthly_history_credentials=${{ secrets.AIRSPACE_MONTHLY_GCP_CREDENTIALS }}' \
           -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}" \
           -var "kube_network=${KUBE_NETWORK}" \
           -var "kube_subnetwork=${KUBE_SUBNETWORK}" \
@@ -79,6 +82,7 @@ jobs:
           -var "history_6_topic=${GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID}" \
           -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}" \
           -var 'google_list_credentials=${{ secrets.AIRCRAFT_LIST_GCP_CREDENTIALS }}' \
+          -var 'google_monthly_history_credentials=${{ secrets.AIRSPACE_MONTHLY_GCP_CREDENTIALS }}' \
           -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}" \
           -var "kube_network=${KUBE_NETWORK}" \
           -var "kube_subnetwork=${KUBE_SUBNETWORK}" \
