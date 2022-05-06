@@ -73,7 +73,7 @@ resource "kubernetes_deployment" "flink_jobmanager" {
               port = "6123"
             }
 
-            initial_delay_seconds = 30
+            initial_delay_seconds = 60
             period_seconds        = 60
           }
 

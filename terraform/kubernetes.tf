@@ -26,19 +26,34 @@ module "gke" {
 
   node_pools = [
     {
-      name               = "default-node-pool"
+      name               = "micro-node-pool"
       machine_type       = "e2-micro"
       node_locations     = "${var.region}-c"
       min_count          = 1
-      max_count          = 4
+      max_count          = 3
       local_ssd_count    = 0
-      disk_size_gb       = 32
+      disk_size_gb       = 10
       disk_type          = "pd-standard"
       image_type         = "COS_CONTAINERD"
       auto_repair        = true
       auto_upgrade       = true
       preemptible        = false
-      initial_node_count = 3
+      initial_node_count = 2
+    },
+    {
+      name               = "small-node-pool"
+      machine_type       = "e2-small"
+      node_locations     = "${var.region}-c"
+      min_count          = 1
+      max_count          = 2
+      local_ssd_count    = 0
+      disk_size_gb       = 10
+      disk_type          = "pd-standard"
+      image_type         = "COS_CONTAINERD"
+      auto_repair        = true
+      auto_upgrade       = true
+      preemptible        = false
+      initial_node_count = 1
     },
   ]
 
@@ -47,7 +62,7 @@ module "gke" {
       "https://www.googleapis.com/auth/devstorage.read_only", # to read from artifact registry
     ]
 
-    default-node-pool = [
+    micro-node-pool = [
       "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/devstorage.read_only", # to read from artifact registry
       "https://www.googleapis.com/auth/logging.write",
@@ -56,6 +71,24 @@ module "gke" {
       "https://www.googleapis.com/auth/servicecontrol",
       "https://www.googleapis.com/auth/trace.append",
     ]
+
+    small-node-pool = [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/devstorage.read_only", # to read from artifact registry
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+      "https://www.googleapis.com/auth/service.management.readonly",
+      "https://www.googleapis.com/auth/servicecontrol",
+      "https://www.googleapis.com/auth/trace.append",
+    ]
+  }
+
+  node_pools_labels = {
+    all = {}
+
+    small-node-pool = {
+      node_type = "small"
+    }
   }
 }
 

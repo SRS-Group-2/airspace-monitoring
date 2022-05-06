@@ -67,13 +67,17 @@ resource "kubernetes_deployment" "flink_taskmanager" {
               port = "6122"
             }
 
-            initial_delay_seconds = 30
+            initial_delay_seconds = 60
             period_seconds        = 60
           }
 
           security_context {
             run_as_user = 9999
           }
+        }
+
+        node_selector = {
+          node_type = "small"
         }
       }
     }
