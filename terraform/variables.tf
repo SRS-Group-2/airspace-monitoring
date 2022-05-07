@@ -56,6 +56,12 @@ variable "states_source_credentials" {
   description = "The credentials for the states source service"
 }
 
+# firestore
+variable "firestore_name" {
+  type        = string
+  description = "Firestore instance name"
+}
+
 # kubernetes
 variable "kube_cluster" {
   type        = string
