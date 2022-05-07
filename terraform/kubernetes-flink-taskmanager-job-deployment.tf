@@ -44,8 +44,23 @@ resource "kubernetes_deployment" "flink_taskmanager" {
 
         container {
           name  = "taskmanager"
-          image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/flink_quickstart:latest"
+          image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/states_source:latest"
           args  = ["taskmanager"]
+
+          env {
+            name  = "GOOGLE_APPLICATION_CREDENTIALS"
+            value = var.states_source_credentials
+          }
+
+          env {
+            name  = "GOOGLE_CLOUD_PROJECT_ID"
+            value = var.project_id
+          }
+
+          env {
+            name  = "GOOGLE_PUBSUB_VECTORS_TOPIC_ID"
+            value = var.vectors_topic
+          }
 
           port {
             name           = "rpc"
