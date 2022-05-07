@@ -68,7 +68,7 @@ jobs:
           -var 'google_monthly_history_credentials=${{ secrets.AIRSPACE_MONTHLY_GCP_CREDENTIALS }}' \
           -var 'google_daily_history_credentials=${{ secrets.AIRSPACE_DAILY_GCP_CREDENTIALS }}'
           -var 'states_source_credentials=${{ secrets.STATES_SOURCE_GCP_CREDENTIALS }}'
-          -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}" \
+          -var "aircraft_list_subscriber_id=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}" \
           -var "kube_cluster=${KUBE_CLUSTER}" \
           -var "kube_network=${KUBE_NETWORK}" \
           -var "kube_subnetwork=${KUBE_SUBNETWORK}" \
@@ -93,7 +93,7 @@ jobs:
           -var 'google_monthly_history_credentials=${{ secrets.AIRSPACE_MONTHLY_GCP_CREDENTIALS }}' \
           -var 'google_daily_history_credentials=${{ secrets.AIRSPACE_DAILY_GCP_CREDENTIALS }}'
           -var 'states_source_credentials=${{ secrets.STATES_SOURCE_GCP_CREDENTIALS }}'
-          -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}" \
+          -var "aircraft_list_subscriber_id=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}" \
           -var "kube_cluster=${KUBE_CLUSTER}" \
           -var "kube_network=${KUBE_NETWORK}" \
           -var "kube_subnetwork=${KUBE_SUBNETWORK}" \
