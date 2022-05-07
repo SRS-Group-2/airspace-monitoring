@@ -143,7 +143,7 @@ resource "google_cloud_run_service_iam_policy" "noauth_airspace_monthly_history"
 
 # Aircraft Daily History service
 resource "google_cloud_run_service" "airspace_daily_history" {
-  name     = "airspace-mdailyhistory"
+  name     = "airspace-daily-history"
   location = var.region
 
   template {
@@ -185,6 +185,54 @@ resource "google_cloud_run_service_iam_policy" "noauth_airspace_daily_history" {
   location = google_cloud_run_service.airspace_daily_history.location
   project  = google_cloud_run_service.airspace_daily_history.project
   service  = google_cloud_run_service.airspace_daily_history.name
+
+  policy_data = data.google_iam_policy.noauth.policy_data
+}
+
+
+# Aircraft Daily History service
+resource "google_cloud_run_service" "airspace_history_calculator" {
+  name     = "airspace-history-calculator"
+  location = var.region
+
+  template {
+    spec {
+      containers {
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_history_calculator:latest"
+        env {
+          name  = "GOOGLE_APPLICATION_CREDENTIALS"
+          value = var.airspace_history_calculator_credentials
+        }
+        env {
+          name  = "GOOGLE_CLOUD_PROJECT_ID"
+          value = var.project_id
+        }
+        env {
+          name  = "GIN_MODE"
+          value = "release"
+        }
+      }
+    }
+
+    metadata {
+      annotations = {
+        "autoscaling.knative.dev/maxScale" = "2"
+        "autoscaling.knative.dev/minScale" = "0"
+      }
+    }
+  }
+
+  # direct all traffic toward latest revision
+  traffic {
+    percent         = 100
+    latest_revision = true
+  }
+}
+
+resource "google_cloud_run_service_iam_policy" "noauth_airspace_history_calculator" {
+  location = google_cloud_run_service.airspace_history_calculator.location
+  project  = google_cloud_run_service.airspace_history_calculator.project
+  service  = google_cloud_run_service.airspace_history_calculator.name
 
   policy_data = data.google_iam_policy.noauth.policy_data
 }
