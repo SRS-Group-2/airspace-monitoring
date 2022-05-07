@@ -45,7 +45,7 @@ module "gke" {
       machine_type       = "e2-small"
       node_locations     = "${var.region}-c"
       min_count          = 1
-      max_count          = 2
+      max_count          = 1
       local_ssd_count    = 0
       disk_size_gb       = 10
       disk_type          = "pd-standard"
@@ -88,6 +88,10 @@ module "gke" {
 
     small-node-pool = {
       node_type = "small"
+    }
+
+    micro-node-pool = {
+      node_type = "micro"
     }
   }
 }
