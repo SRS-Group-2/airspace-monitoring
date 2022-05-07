@@ -152,7 +152,7 @@ resource "google_cloud_run_service" "airspace_daily_history" {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_daily_history:latest"
         env {
           name  = "GOOGLE_APPLICATION_CREDENTIALS"
-          value = var.google_monthly_history_credentials
+          value = var.google_daily_history_credentials
         }
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
