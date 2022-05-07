@@ -226,7 +226,7 @@ func getAllFromDb(client *firestore.Client) *firestore.DocumentIterator {
 func incState(state *HistoryState, val HistoryValues) {
 	state.IncCO2(val.CO2)
 	state.IncDistance(val.Distance)
-	state.WriteTimestamp(val.Timestamp)
+	state.WriteTimestamp(truncateToFiveMin(time.Now().UTC()).Format("2006-01-02-15-04"))
 }
 
 func incStates(val HistoryValues) {
@@ -318,7 +318,8 @@ func parseDate(timestamp string) (time.Time, error) {
 	return timeVal, err
 }
 
-func removeOldFromStates(client *firestore.Client) {
+func cronjobHandler5min(client *firestore.Client) {
+	// Since 5 minutes passed, subtract values that are now out of 1h,6h,24h interval from state
 	now := truncateToFiveMin(time.Now().UTC())
 
 	time24hAgo := now.AddDate(0, 0, -1).Format("2006-01-02-15-04")
@@ -361,13 +362,28 @@ func getDocFromDB(client *firestore.Client, documentID string) (*firestore.Docum
 }
 
 func decreaseStateValues(data map[string]interface{}, state *HistoryState) {
-	state.IncCO2(-data["CO2t"].(int64))
-	state.IncDistance(-data["distanceKm"].(int64))
+	values := HistoryValues{}
+
+	values.CO2 = -data["CO2t"].(int64)
+	values.Distance = -data["distanceKm"].(int64)
+
+	incState(state, values)
 }
 
-// func deleteDocs(time time.Time, client *firestore.Client) {
+func cronjobHandler1hour(client *firestore.Client) {
+	// Write down 1h state to firestore 30d-history 1h-bucket
+	ctx := context.Background()
+	documentID := time.Now().Format("2006-01-02-15")
+	client.Collection("airspace").Doc("30d-history").Collection("1h-bucket").Doc(documentID).Set(ctx, map[string]interface{}{
+		"CO2t":       oneHourState.ReadCO2(),
+		"distanceKm": oneHourState.ReadDistance(),
+		"timestamp":  oneHourState.ReadTimestamp(),
+	})
+}
 
-// }
+func cronjobHandler1day(client *firestore.Client) {
+
+}
 
 func truncateToFiveMin(dateTime time.Time) time.Time {
 	trunc := dateTime.UTC().Truncate(time.Minute)
@@ -377,9 +393,14 @@ func truncateToFiveMin(dateTime time.Time) time.Time {
 }
 
 func updateWithTimer(client *firestore.Client) {
-	startTime := truncateToFiveMin(time.Now().UTC())
-	startTime.Add(time.Minute * 5)
+	startTime5min := truncateToFiveMin(time.Now().UTC())
+	startTime5min.Add(time.Minute * 5).Add(time.Minute)
 
-	// gocron.Every(1).Hour().From(&startTime).Do(deleteDocs, client)
-	gocron.Every(5).Minutes().From(&startTime).Do(removeOldFromStates, client)
+	startTime1Hour := time.Now().UTC().Truncate(time.Hour).Add(time.Hour).Add(time.Minute * 2)
+	startTime1Day := time.Now().UTC().Truncate(time.Hour*24).AddDate(0, 0, 1).Add(time.Minute * 3)
+
+	gocron.Every(5).Minutes().From(&startTime5min).Do(cronjobHandler5min, client)
+	gocron.Every(1).Hour().From(&startTime1Hour).Do(cronjobHandler1hour, client)
+	gocron.Every(1).Day().From(&startTime1Day).Do(cronjobHandler1day, client)
+
 }
