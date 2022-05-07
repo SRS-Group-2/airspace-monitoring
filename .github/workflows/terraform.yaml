@@ -12,6 +12,8 @@ on:
         required: true
       AIRSPACE_DAILY_GCP_CREDENTIALS:
         required: true
+      AIRSPACE_HISTORY_GCP_CREDENTIALS:
+        required: true
       STATES_SOURCE_GCP_CREDENTIALS:
         required: true
 env:
@@ -61,6 +63,7 @@ jobs:
           -var 'google_list_credentials=${{ secrets.AIRCRAFT_LIST_GCP_CREDENTIALS }}' \
           -var 'google_monthly_history_credentials=${{ secrets.AIRSPACE_MONTHLY_GCP_CREDENTIALS }}' \
           -var 'google_daily_history_credentials=${{ secrets.AIRSPACE_DAILY_GCP_CREDENTIALS }}' \
+          -var 'airspace_history_calculator_credentials=${{ secrets.AIRSPACE_HISTORY_GCP_CREDENTIALS }}' \
           -var 'states_source_credentials=${{ secrets.STATES_SOURCE_GCP_CREDENTIALS }}'
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
@@ -74,6 +77,7 @@ jobs:
           -var 'google_list_credentials=${{ secrets.AIRCRAFT_LIST_GCP_CREDENTIALS }}' \
           -var 'google_monthly_history_credentials=${{ secrets.AIRSPACE_MONTHLY_GCP_CREDENTIALS }}' \
           -var 'google_daily_history_credentials=${{ secrets.AIRSPACE_DAILY_GCP_CREDENTIALS }}' \
+          -var 'airspace_history_calculator_credentials=${{ secrets.AIRSPACE_HISTORY_GCP_CREDENTIALS }}' \
           -var 'states_source_credentials=${{ secrets.STATES_SOURCE_GCP_CREDENTIALS }}'
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
