@@ -1,5 +1,5 @@
-resource "google_monitoring_dashboard" "dashboard" {
-  project = var.project_id
+resource "google_monitoring_dashboard" "cloud_run_dashboard" {
+  project        = var.project_id
   dashboard_json = <<EOF
 {
   "displayName": "Cloud Run Dashboard",
