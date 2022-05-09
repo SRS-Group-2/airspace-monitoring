@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	"github.com/jasonlvhit/gocron"
+	"github.com/go-co-op/gocron"
 	"google.golang.org/api/iterator"
 )
 
@@ -48,34 +48,22 @@ func (l *HistoryState) ReadTimestamp() string {
 	return l.val.Timestamp
 }
 
-func (l *HistoryState) WriteCO2(newVal int64) {
-	l.Lock()
-	defer l.Unlock()
-	l.val.CO2 = newVal
+func (l *HistoryState) Read() HistoryValues {
+	l.RLock()
+	defer l.RUnlock()
+	result := HistoryValues{}
+	result.CO2 = l.val.CO2
+	result.Distance = l.val.Distance
+	result.Timestamp = l.val.Timestamp
+	return result
 }
 
-func (l *HistoryState) WriteDistance(newVal int64) {
+func (l *HistoryState) Add(addVal HistoryValues) {
 	l.Lock()
 	defer l.Unlock()
-	l.val.Distance = newVal
-}
-
-func (l *HistoryState) WriteTimestamp(newVal string) {
-	l.Lock()
-	defer l.Unlock()
-	l.val.Timestamp = newVal
-}
-
-func (l *HistoryState) IncCO2(newVal int64) {
-	l.Lock()
-	defer l.Unlock()
-	l.val.CO2 += newVal
-}
-
-func (l *HistoryState) IncDistance(newVal int64) {
-	l.Lock()
-	defer l.Unlock()
-	l.val.Distance += newVal
+	l.val.CO2 += addVal.CO2
+	l.val.Distance += addVal.Distance
+	l.val.Timestamp = addVal.Timestamp
 }
 
 var oneHourState = &HistoryState{
@@ -109,7 +97,6 @@ func main() {
 	defer client.Close()
 
 	// Service just woke up, initialize the values of the states to the sum of what is in the DB
-
 	lastUpdateTime := coldLoadFromDb(client)
 
 	// Update the database entries for 1h, 6h 24h sums with initial values
@@ -120,6 +107,7 @@ func main() {
 
 	// Listen for new 5m data from db and update the state
 	listenForDbUpdates(client, lastUpdateTime)
+
 }
 
 func coldLoadFromDb(client *firestore.Client) string {
@@ -132,6 +120,7 @@ func coldLoadFromDb(client *firestore.Client) string {
 		doc, err := docIter.Next()
 
 		if err == iterator.Done {
+
 			break
 		}
 
@@ -145,22 +134,40 @@ func coldLoadFromDb(client *firestore.Client) string {
 		values := getValuesFromData(data)
 
 		lastUpdateTime = incStateIfInRange(values, lastUpdateTime)
+
 	}
 	return lastUpdateTime
 }
 
+func getAllFromDb(client *firestore.Client) *firestore.DocumentIterator {
+
+	from := time.Now().UTC().AddDate(0, 0, -1) //from 24h
+	fromUtc := truncTo5Min(from.UTC()).Format("2006-01-02-15-04")
+
+	ctx := context.Background()
+	docIter := client.Collection("airspace/24h-history/5m-bucket").
+		Where("startTime", ">=", fromUtc).
+		OrderBy("startTime", firestore.Asc).
+		Documents(ctx)
+
+	return docIter
+}
+
 func listenForDbUpdates(client *firestore.Client, lastUpdateTime string) {
+
 	ctx := context.Background()
 	snapIter := client.Collection("airspace").Doc("5m-history").Snapshots(ctx)
 
 	for {
 		// Wait for new snapshots of the document
 		docSnap := waitForNewSnapshot(snapIter.Next())
-		lastUpdateTime = documentUpdateHandler(docSnap, lastUpdateTime)
+		lastUpdateTime = documentUpdateHandler(client, docSnap, lastUpdateTime)
+
 	}
 }
 
 func waitForNewSnapshot(docSnap *firestore.DocumentSnapshot, err error) *firestore.DocumentSnapshot {
+
 	checkErr(err)
 
 	if !docSnap.Exists() {
@@ -170,7 +177,7 @@ func waitForNewSnapshot(docSnap *firestore.DocumentSnapshot, err error) *firesto
 	return docSnap
 }
 
-func documentUpdateHandler(docSnap *firestore.DocumentSnapshot, lastUpdateTime string) string {
+func documentUpdateHandler(client *firestore.Client, docSnap *firestore.DocumentSnapshot, lastUpdateTime string) string {
 
 	data := docSnap.Data()
 
@@ -179,11 +186,13 @@ func documentUpdateHandler(docSnap *firestore.DocumentSnapshot, lastUpdateTime s
 	if isValidNewDocument(values.Timestamp, lastUpdateTime) {
 		lastUpdateTime = values.Timestamp
 		incStates(values)
+		saveStateToDb(client)
 	}
 	return lastUpdateTime
 }
 
 func isValidNewDocument(timestamp string, lastUpdateTime string) bool {
+
 	_, err := parseDate(timestamp)
 
 	if err != nil {
@@ -198,6 +207,7 @@ func isValidNewDocument(timestamp string, lastUpdateTime string) bool {
 }
 
 func getValuesFromData(data map[string]interface{}) HistoryValues {
+
 	values := HistoryValues{}
 
 	values.Timestamp = data["startTime"].(string)
@@ -207,53 +217,34 @@ func getValuesFromData(data map[string]interface{}) HistoryValues {
 	return values
 }
 
-func getAllFromDb(client *firestore.Client) *firestore.DocumentIterator {
-
-	from := time.Now().UTC().AddDate(0, 0, -1) //from 24h
-	fromUtc := from.UTC().Format("2006-01-02-15-04")
-	toUtc := time.Now().UTC().Format("2006-01-02-15-04")
-
-	ctx := context.Background()
-	docIter := client.Collection("airspace/24h-history/5m-bucket").
-		Where("startTime", ">=", fromUtc).
-		Where("startTime", "<=", toUtc).
-		OrderBy("startTime", firestore.Asc).
-		Documents(ctx)
-
-	return docIter
-}
-
-func incState(state *HistoryState, val HistoryValues) {
-	state.IncCO2(val.CO2)
-	state.IncDistance(val.Distance)
-	state.WriteTimestamp(val.Timestamp)
-}
-
 func incStates(val HistoryValues) {
-	incState(oneHourState, val)
-	incState(sixHoursState, val)
-	incState(oneDayState, val)
+
+	oneHourState.Add(val)
+	sixHoursState.Add(val)
+	oneDayState.Add(val)
 }
 
 func incStateIfInRange(values HistoryValues, lastUpdateTime string) string {
+
 	referenceTime := truncTo5Min(time.Now().UTC().Truncate(time.Minute))
 
-	if isAfter(values.Timestamp, referenceTime.Add(1*time.Hour)) {
-		incState(oneHourState, values)
+	if isAfter(values.Timestamp, referenceTime.Add(-1*time.Hour)) {
+		oneHourState.Add(values)
+	}
+
+	if isAfter(values.Timestamp, referenceTime.Add(-6*time.Hour)) {
+		sixHoursState.Add(values)
+	}
+
+	if isAfter(values.Timestamp, referenceTime.Add(-24*time.Hour)) {
+		oneDayState.Add(values)
 		lastUpdateTime = values.Timestamp
-	}
-
-	if isAfter(values.Timestamp, referenceTime.Add(6*time.Hour)) {
-		incState(sixHoursState, values)
-	}
-
-	if isAfter(values.Timestamp, referenceTime.Add(24*time.Hour)) {
-		incState(oneDayState, values)
 	}
 	return lastUpdateTime
 }
 
 func isAfter(timestamp string, threshold time.Time) bool {
+
 	dateTime, err := parseDate(timestamp)
 	if err != nil {
 		fmt.Println("Error parsing date: ", timestamp, err)
@@ -269,6 +260,7 @@ func isAfter(timestamp string, threshold time.Time) bool {
 }
 
 func saveStateToDb(client *firestore.Client) {
+
 	ctx := context.Background()
 
 	client.Collection("airspace").Doc("24h-history").Update(ctx, []firestore.Update{
@@ -305,6 +297,7 @@ func mustGetenv(k string) string {
 }
 
 func parseDate(timestamp string) (time.Time, error) {
+
 	timeVal, err := time.Parse("2006-01-02-15-04", timestamp)
 
 	if err != nil {
@@ -319,7 +312,9 @@ func parseDate(timestamp string) (time.Time, error) {
 }
 
 func cronjobHandler5min(client *firestore.Client) {
+
 	// Since 5 minutes passed, subtract values that are now out of 1h,6h,24h interval from state
+
 	now := truncTo5Min(time.Now().UTC())
 
 	time24hAgo := now.AddDate(0, 0, -1).Format("2006-01-02-15-04")
@@ -348,6 +343,7 @@ func cronjobHandler5min(client *firestore.Client) {
 }
 
 func getDocFromDB(client *firestore.Client, documentID string) (*firestore.DocumentSnapshot, error) {
+
 	ctx := context.Background()
 	doc, err := client.Collection("airspace/24h-history/5m-bucket").Doc(documentID).Get(ctx)
 	if err != nil {
@@ -362,16 +358,18 @@ func getDocFromDB(client *firestore.Client, documentID string) (*firestore.Docum
 }
 
 func decreaseStateValues(data map[string]interface{}, state *HistoryState) {
+
 	values := HistoryValues{}
 
 	values.CO2 = -data["CO2t"].(int64)
 	values.Distance = -data["distanceKm"].(int64)
 	values.Timestamp = truncTo5Min(time.Now().UTC()).Format("2006-01-02-15-04")
 
-	incState(state, values)
+	state.Add(values)
 }
 
 func cronjobHandler1hour(client *firestore.Client) {
+
 	// Write down 1h state to firestore 30d-history 1h-bucket
 	ctx := context.Background()
 	documentID := time.Now().UTC().Format("2006-01-02-15")
@@ -385,6 +383,7 @@ func cronjobHandler1hour(client *firestore.Client) {
 }
 
 func cronjobHandler1day(client *firestore.Client) {
+
 	// Write down 1d state to firestore 30d-history 1d-bucket
 	ctx := context.Background()
 
@@ -402,6 +401,7 @@ func cronjobHandler1day(client *firestore.Client) {
 }
 
 func cleanupDb(client *firestore.Client) {
+
 	// Start deleting documents older than 25h ago in 24h-history/5m-bucket
 	threshold5min := time.Now().UTC().AddDate(0, 0, -1).Add(-time.Hour)
 	deleteOlderThanFrom(client, threshold5min, "24h-history/5m-bucket")
@@ -416,6 +416,7 @@ func cleanupDb(client *firestore.Client) {
 }
 
 func deleteOlderThanFrom(client *firestore.Client, threshold time.Time, collectionPath string) {
+
 	ctx := context.Background()
 	docIter := client.Collection("airspace/"+collectionPath).
 		Where("startTime", "<=", threshold).
@@ -445,21 +446,25 @@ func deleteOlderThanFrom(client *firestore.Client, threshold time.Time, collecti
 }
 
 func truncTo5Min(dateTime time.Time) time.Time {
-	trunc := dateTime.UTC().Truncate(time.Minute)
-	rest := trunc.Minute() % 5
-	dateTime.Add(-(time.Duration(rest) * time.Minute))
-	return dateTime
+
+	trunc := dateTime.UTC().Truncate(5 * time.Minute)
+
+	return trunc
 }
 
 func startCronJobs(client *firestore.Client) {
-	startTime5min := truncTo5Min(time.Now().UTC())
+
+	startTime5min := time.Now().UTC().Truncate(5 * time.Minute)
 	startTime5min.Add(time.Minute * 5).Add(time.Minute)
 
 	startTime1Hour := time.Now().UTC().Truncate(time.Hour).Add(time.Hour).Add(time.Minute * 2)
 	startTime1Day := time.Now().UTC().Truncate(time.Hour*24).AddDate(0, 0, 1).Add(time.Minute * 3)
 
-	gocron.Every(5).Minutes().From(&startTime5min).Do(cronjobHandler5min, client)
-	gocron.Every(1).Hour().From(&startTime1Hour).Do(cronjobHandler1hour, client)
-	gocron.Every(1).Day().From(&startTime1Day).Do(cronjobHandler1day, client)
+	scheduler := gocron.NewScheduler(time.UTC)
 
+	scheduler.Every(5).Minutes().StartAt(startTime5min).Do(cronjobHandler5min, client)
+	scheduler.Every(1).Hour().StartAt(startTime1Hour).Do(cronjobHandler1hour, client)
+	scheduler.Every(1).Day().StartAt(startTime1Day).Do(cronjobHandler1day, client)
+
+	scheduler.StartAsync()
 }
