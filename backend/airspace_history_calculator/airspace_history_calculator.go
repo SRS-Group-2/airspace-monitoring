@@ -115,8 +115,8 @@ func main() {
 	// Update the database entries for 1h, 6h 24h sums with initial values
 	saveStateToDb(client)
 
-	//decrease states values
-	updateWithTimer(client)
+	//decrease states values, update 1h, 1d, values, cleanup db.
+	startCronJobs(client)
 
 	// Listen for new 5m data from db and update the state
 	listenForDbUpdates(client, lastUpdateTime)
@@ -177,8 +177,8 @@ func documentUpdateHandler(docSnap *firestore.DocumentSnapshot, lastUpdateTime s
 	values := getValuesFromData(data)
 
 	if isValidNewDocument(values.Timestamp, lastUpdateTime) {
-		incStates(values)
 		lastUpdateTime = values.Timestamp
+		incStates(values)
 	}
 	return lastUpdateTime
 }
@@ -226,7 +226,7 @@ func getAllFromDb(client *firestore.Client) *firestore.DocumentIterator {
 func incState(state *HistoryState, val HistoryValues) {
 	state.IncCO2(val.CO2)
 	state.IncDistance(val.Distance)
-	state.WriteTimestamp(truncateToFiveMin(time.Now().UTC()).Format("2006-01-02-15-04"))
+	state.WriteTimestamp(val.Timestamp)
 }
 
 func incStates(val HistoryValues) {
@@ -236,7 +236,7 @@ func incStates(val HistoryValues) {
 }
 
 func incStateIfInRange(values HistoryValues, lastUpdateTime string) string {
-	referenceTime := truncateToFiveMin(time.Now().UTC().Truncate(time.Minute))
+	referenceTime := truncTo5Min(time.Now().UTC().Truncate(time.Minute))
 
 	if isAfter(values.Timestamp, referenceTime.Add(1*time.Hour)) {
 		incState(oneHourState, values)
@@ -320,7 +320,7 @@ func parseDate(timestamp string) (time.Time, error) {
 
 func cronjobHandler5min(client *firestore.Client) {
 	// Since 5 minutes passed, subtract values that are now out of 1h,6h,24h interval from state
-	now := truncateToFiveMin(time.Now().UTC())
+	now := truncTo5Min(time.Now().UTC())
 
 	time24hAgo := now.AddDate(0, 0, -1).Format("2006-01-02-15-04")
 	time6hAgo := now.Add(-6 * time.Hour).Format("2006-01-02-15-04")
@@ -366,6 +366,7 @@ func decreaseStateValues(data map[string]interface{}, state *HistoryState) {
 
 	values.CO2 = -data["CO2t"].(int64)
 	values.Distance = -data["distanceKm"].(int64)
+	values.Timestamp = truncTo5Min(time.Now().UTC()).Format("2006-01-02-15-04")
 
 	incState(state, values)
 }
@@ -373,27 +374,85 @@ func decreaseStateValues(data map[string]interface{}, state *HistoryState) {
 func cronjobHandler1hour(client *firestore.Client) {
 	// Write down 1h state to firestore 30d-history 1h-bucket
 	ctx := context.Background()
-	documentID := time.Now().Format("2006-01-02-15")
+	documentID := time.Now().UTC().Format("2006-01-02-15")
+	startTime := time.Now().UTC().Add(-time.Hour).Format("2006-01-02-15")
+
 	client.Collection("airspace").Doc("30d-history").Collection("1h-bucket").Doc(documentID).Set(ctx, map[string]interface{}{
 		"CO2t":       oneHourState.ReadCO2(),
 		"distanceKm": oneHourState.ReadDistance(),
-		"timestamp":  oneHourState.ReadTimestamp(),
+		"startTime":  startTime,
 	})
 }
 
 func cronjobHandler1day(client *firestore.Client) {
+	// Write down 1d state to firestore 30d-history 1d-bucket
+	ctx := context.Background()
 
+	// We are recording the data of the previous day
+	documentID := time.Now().UTC().AddDate(0, 0, -1).Format("2006-01-02")
+
+	client.Collection("airspace").Doc("30d-history").Collection("1d-bucket").Doc(documentID).Set(ctx, map[string]interface{}{
+		"CO2t":       oneHourState.ReadCO2(),
+		"distanceKm": oneHourState.ReadDistance(),
+		"startTime":  documentID,
+	})
+
+	// Cleanup some old documents from the collection
+	go cleanupDb(client)
 }
 
-func truncateToFiveMin(dateTime time.Time) time.Time {
+func cleanupDb(client *firestore.Client) {
+	// Start deleting documents older than 25h ago in 24h-history/5m-bucket
+	threshold5min := time.Now().UTC().AddDate(0, 0, -1).Add(-time.Hour)
+	deleteOlderThanFrom(client, threshold5min, "24h-history/5m-bucket")
+
+	// Start deleting documents older than 31d ago in 30d-history/1h-bucket
+	thresholdHours := time.Now().UTC().AddDate(0, 0, -31)
+	deleteOlderThanFrom(client, thresholdHours, "30d-history/1h-bucket")
+
+	// Start deleting documents older than 32d ago in 30dh-history/1d-bucket
+	thresholdDays := time.Now().UTC().AddDate(0, 0, -32)
+	deleteOlderThanFrom(client, thresholdDays, "30d-history/1d-bucket")
+}
+
+func deleteOlderThanFrom(client *firestore.Client, threshold time.Time, collectionPath string) {
+	ctx := context.Background()
+	docIter := client.Collection("airspace/"+collectionPath).
+		Where("startTime", "<=", threshold).
+		Documents(ctx)
+
+	batchOp := client.Batch()
+
+	for {
+		doc, err := docIter.Next()
+
+		if err == iterator.Done {
+			break
+		}
+
+		if err != nil {
+			continue
+		}
+
+		batchOp.Delete(doc.Ref)
+	}
+
+	_, err := batchOp.Commit(ctx)
+
+	if err != nil {
+		fmt.Println("Error deleting documents: ", err)
+	}
+}
+
+func truncTo5Min(dateTime time.Time) time.Time {
 	trunc := dateTime.UTC().Truncate(time.Minute)
 	rest := trunc.Minute() % 5
 	dateTime.Add(-(time.Duration(rest) * time.Minute))
 	return dateTime
 }
 
-func updateWithTimer(client *firestore.Client) {
-	startTime5min := truncateToFiveMin(time.Now().UTC())
+func startCronJobs(client *firestore.Client) {
+	startTime5min := truncTo5Min(time.Now().UTC())
 	startTime5min.Add(time.Minute * 5).Add(time.Minute)
 
 	startTime1Hour := time.Now().UTC().Truncate(time.Hour).Add(time.Hour).Add(time.Minute * 2)
