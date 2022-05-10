@@ -16,13 +16,13 @@ resource "google_monitoring_dashboard" "cloud_run_dashboard" {
             },
             "dataSets": [
               {
-                "minAlignmentPeriod": "300s",
+                "minAlignmentPeriod": "60s",
                 "plotType": "STACKED_BAR",
                 "targetAxis": "Y1",
                 "timeSeriesQuery": {
                   "timeSeriesFilter": {
                     "aggregation": {
-                      "alignmentPeriod": "300s",
+                      "alignmentPeriod": "60s",
                       "perSeriesAligner": "ALIGN_SUM"
                     },
                     "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\"",
@@ -52,14 +52,19 @@ resource "google_monitoring_dashboard" "cloud_run_dashboard" {
             },
             "dataSets": [
               {
-                "minAlignmentPeriod": "300s",
+                "minAlignmentPeriod": "60s",
                 "plotType": "STACKED_BAR",
                 "targetAxis": "Y1",
                 "timeSeriesQuery": {
                   "timeSeriesFilter": {
                     "aggregation": {
-                      "alignmentPeriod": "300s",
-                      "perSeriesAligner": "ALIGN_SUM"
+                      "alignmentPeriod": "60s",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": [
+                        "metric.label.\"state\"",
+                        "resource.label.\"service_name\""
+                      ],
+                      "perSeriesAligner": "ALIGN_MAX"
                     },
                     "filter": "metric.type=\"run.googleapis.com/container/instance_count\" resource.type=\"cloud_run_revision\"",
                     "secondaryAggregation": {
@@ -98,7 +103,7 @@ resource "google_monitoring_dashboard" "cloud_run_dashboard" {
                       "alignmentPeriod": "60s",
                       "crossSeriesReducer": "REDUCE_MEAN",
                       "groupByFields": [
-                        "resource.label.\"project_id\""
+                        "resource.label.\"service_name\""
                       ],
                       "perSeriesAligner": "ALIGN_SUM"
                     },
@@ -139,7 +144,7 @@ resource "google_monitoring_dashboard" "cloud_run_dashboard" {
                       "alignmentPeriod": "60s",
                       "crossSeriesReducer": "REDUCE_MEAN",
                       "groupByFields": [
-                        "resource.label.\"project_id\""
+                        "resource.label.\"service_name\""
                       ],
                       "perSeriesAligner": "ALIGN_SUM"
                     },
@@ -179,6 +184,10 @@ resource "google_monitoring_dashboard" "cloud_run_dashboard" {
                   "timeSeriesFilter": {
                     "aggregation": {
                       "alignmentPeriod": "60s",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": [
+                        "resource.label.\"service_name\""
+                      ],
                       "perSeriesAligner": "ALIGN_SUM"
                     },
                     "filter": "metric.type=\"run.googleapis.com/container/billable_instance_time\" resource.type=\"cloud_run_revision\"",
