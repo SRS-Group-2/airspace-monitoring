@@ -6,8 +6,9 @@ import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
 class InfoSimulation extends Simulation {
-  val BASE_URL = "https://aircraft-info-74anfdzq5q-uc.a.run.app"
-  val N_USERS = 600
+  val BASE_URL = System.getProperty("base_url")
+  val N_USERS = Integer.getInteger("users", 20)
+  val RAMP = java.lang.Long.getLong("ramp", 0)
 
   val httpProtocol = http
     .baseUrl(BASE_URL)
@@ -18,10 +19,12 @@ class InfoSimulation extends Simulation {
     .userAgentHeader("Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0")
 
   val scn = scenario("InfoSimulation")
-    .exec(
-      http("123456 aircraft info request")
-        .get("/airspace/aircraft/123456/info")
-    )
+    .during(RAMP) {
+      exec(
+        http("123456 aircraft info request")
+          .get("/airspace/aircraft/123456/info")
+      )
+    }
 
   setUp(
     scn.inject(atOnceUsers(N_USERS))

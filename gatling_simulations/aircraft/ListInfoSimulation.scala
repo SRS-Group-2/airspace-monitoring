@@ -6,8 +6,9 @@ import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
 class ListInfoSimulation extends Simulation {
-  val BASE_URL = "https://titty.free.beeceptor.com"
-  val N_USERS = 20
+  val BASE_URL = System.getProperty("base_url")
+  val N_USERS = Integer.getInteger("users", 20)
+  val RAMP = java.lang.Long.getLong("ramp", 0)
 
   val httpProtocol = http
     .baseUrl(BASE_URL)

@@ -77,6 +77,12 @@ gcloud container clusters get-credentials gke-1 --zone "us-central1"
 ```
 
 ### How to use Gatling
-Download [gatling](https://gatling.io/open-source/), unzip the bundle in your directory of choice, copy the content of `gatling_simulations` into `simulations` in the unzipped directory, run `bin/gatling.bat` or `bin/gatling.sh`. This requires Java to be installed.
+Download [gatling](https://gatling.io/open-source/), unzip the bundle in your directory of choice, copy the content of `gatling_simulations` into `simulations` in the unzipped directory, run 
+```
+JAVA_OPTS="-Dusers=10 -Dramp=3600 -Dbase_url=<our_base_url>" ./bin/gatling.sh
+```
+Change parameters as needed.
+
+This requires Java to be installed.
 
 Good tool for mocking apis: https://beeceptor.com/
