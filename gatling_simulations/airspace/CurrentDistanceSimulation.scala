@@ -5,13 +5,10 @@ import scala.concurrent.duration._
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
-class ShortHistorySimulation extends Simulation {
+class CurrentHistorySimulation extends Simulation {
   val BASE_URL = System.getProperty("base_url")
   val N_USERS = Integer.getInteger("users", 20)
   val RAMP = java.lang.Long.getLong("ramp", 0)
-
-  val toTimestamp: Long = System.currentTimeMillis / 1000
-  val fromTimestamp: Long = toTimestamp - 7 * 24 * 60 * 60 // one week
 
   val httpProtocol = http
     .baseUrl(BASE_URL)
@@ -21,11 +18,11 @@ class ShortHistorySimulation extends Simulation {
     .acceptEncodingHeader("gzip, deflate")
     .userAgentHeader("Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0")
 
-  val scn = scenario("ShortHistorySimulation")
+  val scn = scenario("CurrentHistorySimulation")
     .during(RAMP) {
       exec(
         http("Aircraft list request")
-          .get(s"/airspace/history?resolution=hour&to=${toTimestamp}&from=${fromTimestamp}")
+          .get("/airspace/history/realtime/1h") // make this more generic
       )
     }
     .pause(5)
