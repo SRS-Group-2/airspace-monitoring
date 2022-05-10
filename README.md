@@ -75,3 +75,8 @@ To configure `kubectl` (see https://cloud.google.com/kubernetes-engine/docs/how-
 ```
 gcloud container clusters get-credentials gke-1 --zone "us-central1"
 ```
+
+### How to use Gatling
+Download [gatling](https://gatling.io/open-source/), unzip the bundle in your directory of choice, copy the content of `gatling_simulations` into `simulations` in the unzipped directory, run `bin/gatling.bat` or `bin/gatling.sh`. This requires Java to be installed.
+
+Good tool for mocking apis: https://beeceptor.com/
