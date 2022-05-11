@@ -1,6 +1,5 @@
-const base_aircrafts_route = "/aircrafts"
-const base_distance_route = "/distance"
-const base_co2_route = "/co2"
+const base_aircraft_route = "/airspace/aircraft"
+const base_history_route = "/airspace/history"
 
 const max_days_range = 30
 
@@ -62,9 +61,19 @@ function get_timestamp(date_selector, time_selector) {
   return date_selector.valueAsNumber + time
 }
 
+function set_realtime_history(timeframe) {
+  request_value(base_history_route + "/history/realtime/" + timeframe, v => {
+    document.getElementById("current_distance").innerHTML = v // TODO:
+  })
+}
+
+function show_history(history) {
+  document.getElementById("historic_distance").innerHTML = history // TODO:
+}
+
 function set_selectable_italian_flights() {
   const flight_selector = document.getElementById("flight")
-  request_value(base_aircrafts_route, vs => {
+  request_value(base_aircraft_route + "/list", vs => {
     flight_selector.innerHTML = ""
     JSON.parse(vs).map(v => {
       var opt = document.createElement("option")
@@ -83,21 +92,17 @@ window.onload = _ => {
     set_selectable_italian_flights()
   }
   flight_selector.onchange = _ev => {
-    request_value(base_aircrafts_route + "/" + flight_selector.value + "/info", v => {
+    request_value(base_aircraft_route + "/" + flight_selector.value + "/info", v => {
       document.getElementById("info").innerHTML = v
       document.getElementById("coordinates").innerHTML = "Coordinates of " + flight_selector.value
+      // TODO with websockets
     })
   }
   /* set up current distance, co2 */
   const current_timeframe_selector = document.getElementById("current_timeframe")
-  const current_distance_field = document.getElementById("current_distance")
-  const current_co2_field = document.getElementById("current_co2")
-  request_value(base_distance_route + "/" + current_timeframe_selector.value, v => current_distance_field.innerHTML = v)
-  request_value(base_co2_route + "/" + current_timeframe_selector.value, v => current_co2_field.innerHTML = v)
+  set_realtime_history(current_timeframe_selector.value)
   current_timeframe_selector.onchange = _ev => {
-    var timeframe = current_timeframe_selector.value
-    request_value(base_distance_route + "/" + timeframe, v => current_distance_field.innerHTML = v)
-    request_value(base_co2_route + "/" + timeframe, v => current_co2_field.innerHTML = v)
+    set_realtime_history(current_timeframe_selector.value)
   }
 
   /* set up historic distance, co2 */
@@ -138,12 +143,11 @@ window.onload = _ => {
         document.getElementById("form_error").remove()
       }
       var params = {
-        "begin": get_begin_timestamp(),
-        "end": get_end_timestamp(),
+        "from": get_begin_timestamp(),
+        "to": get_end_timestamp(),
         "resolution": historic_resolution_selector.value
       }
-      request_value_with_params(base_distance_route + "/history", v => historic_distance_field.innerHTML = v, params)
-      request_value_with_params(base_co2_route + "/history", v => historic_co2_field.innerHTML = v, params)
+      request_value_with_params(base_history_route + "/history", show_history, params)
     } else {
       const error_paragraph = document.createElement("p")
       error_paragraph.id = "form_error"
