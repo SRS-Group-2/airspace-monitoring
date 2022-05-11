@@ -1,7 +1,8 @@
-package main
+package gcp
 
 import (
 	"context"
+	"errors"
 
 	"google.golang.org/api/option"
 
@@ -12,7 +13,7 @@ import (
 var PubsubClient *pubsub.Client
 
 // Initialize initializes GCP client service using the environment.
-func GcpInitialize(credJson string, projectName string) error {
+func Initialize(credJson string, projectName string) error {
 	var err error
 	ctx := context.Background()
 	credentialOpt := option.WithCredentialsJSON([]byte(credJson))
@@ -22,7 +23,7 @@ func GcpInitialize(credJson string, projectName string) error {
 }
 
 // GetTopic returns the specified topic in GCP pub/sub service and create it if it not exist.
-func GcpGetTopic(topicName string) (*pubsub.Topic, error) {
+func GetTopic(topicName string) (*pubsub.Topic, error) {
 	topic := PubsubClient.Topic(topicName)
 	ctx := context.Background()
 	isTopicExist, err := topic.Exists(ctx)
@@ -40,7 +41,7 @@ func GcpGetTopic(topicName string) (*pubsub.Topic, error) {
 }
 
 // GetSubscription returns the specified subscription in GCP pub/sub service and creates it if it not exist.
-func GcpGetSubscription(subName string, topic *pubsub.Topic) (*pubsub.Subscription, error) {
+func GetSubscription(subName string, topic *pubsub.Topic) (*pubsub.Subscription, error) {
 	sub := PubsubClient.Subscription(subName)
 	ctx := context.Background()
 	isSubExist, err := sub.Exists(ctx)
@@ -53,6 +54,27 @@ func GcpGetSubscription(subName string, topic *pubsub.Topic) (*pubsub.Subscripti
 		ctx = context.Background()
 		sub, err = PubsubClient.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{Topic: topic})
 	}
+
+	return sub, err
+}
+
+// CreateSubscription creates the specified subscription in GCP pub/sub service and fails it if it already exist.
+func CreateSubscription(subName string, topic *pubsub.Topic, filter string) (*pubsub.Subscription, error) {
+	sub := PubsubClient.Subscription(subName)
+	ctx := context.Background()
+	isSubExist, err := sub.Exists(ctx)
+
+	if err != nil {
+		return sub, err
+	}
+
+	if isSubExist {
+		err = errors.New("subscription already exists")
+		return sub, err
+	}
+
+	ctx = context.Background()
+	sub, err = PubsubClient.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{Topic: topic, Filter: filter})
 
 	return sub, err
 }
