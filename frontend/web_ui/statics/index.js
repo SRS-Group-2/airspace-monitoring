@@ -63,12 +63,12 @@ function get_timestamp(date_selector, time_selector) {
 
 function set_realtime_history(timeframe) {
   request_value(base_history_route + "/history/realtime/" + timeframe, v => {
-    document.getElementById("current_distance").innerHTML = v // TODO:
+    document.getElementById("current_distance").innerHTML = v // TODO: loom up how data is and how to set it in the page
   })
 }
 
 function show_history(history) {
-  document.getElementById("historic_distance").innerHTML = history // TODO:
+  document.getElementById("historic_distance").innerHTML = history // TODO: loom up how data is and how to set it in the page
 }
 
 function set_selectable_italian_flights() {
@@ -94,8 +94,13 @@ window.onload = _ => {
   flight_selector.onchange = _ev => {
     request_value(base_aircraft_route + "/" + flight_selector.value + "/info", v => {
       document.getElementById("info").innerHTML = v
-      document.getElementById("coordinates").innerHTML = "Coordinates of " + flight_selector.value
-      // TODO with websockets
+      document.getElementById("coordinates_title").innerHTML = "Current position of aircraft " + flight_selector.value
+      // TODO: improve websocket and websocket error management
+      var url = window.location.href.slice(0, -1) + base_aircraft_route + "/" + flight_selector.value + "/position"
+      var websocket = new WebSocket(url)
+      websocket.addEventListener('message', ev =>  {
+        document.getElementById("coordinates_data").innerHTML = ev.data
+      })
     })
   }
   /* set up current distance, co2 */
@@ -133,8 +138,6 @@ window.onload = _ => {
 
   /* manage submit */
   const historic_data_submit_button = document.getElementById("historic_data_submit")
-  const historic_distance_field = document.getElementById("historic_distance")
-  const historic_co2_field = document.getElementById("historic_co2")
   historic_data_submit_button.onclick = ev => {
     ev.preventDefault()
     const used_fields = Array.from(document.querySelectorAll("input[type=date], input[type=time]"))
