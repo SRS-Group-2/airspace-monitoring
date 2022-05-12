@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/gin-gonic/gin"
@@ -17,18 +18,18 @@ import (
 const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
-const env_topicID = "GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID"
-const env_subID = "GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID"
+const env_topicID = "GOOGLE_PUBSUB_AIRCRAFT_POSITIONS_TOPIC_ID"
+const env_subID = "GOOGLE_PUBSUB_AIRCRAFT_POSITIONS_SUBSCRIBER_ID"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
 
 var posTopic *pubsub.Topic
 
-type Hub struct {
-	sync.RWMutex
-	icaos map[string]*PubSubListener
-	SubID string
+type WSClient chan string
+
+func (c *WSClient) Send(msg string) {
+	*c <- msg
 }
 
 type PubSubListener struct {
@@ -38,7 +39,91 @@ type PubSubListener struct {
 	wsClients []WSClient
 	cache     string
 	//ctx       context.Context
-	Cancel func()
+	Cancel    func()
+	Timeout   time.Duration
+	stopCh    chan int
+	refreshCh chan int
+}
+
+func (state *PubSubListener) AddWSClient(cli WSClient) {
+	state.Lock()
+	defer state.Unlock()
+	state.wsClients = append(state.wsClients, cli)
+}
+
+func (state *PubSubListener) RemoveWSClient(cli WSClient) {
+	state.Lock()
+	defer state.Unlock()
+	idx := slices.IndexFunc(state.wsClients, func(c WSClient) bool { return c == cli })
+	if idx >= 0 {
+		length := len(state.wsClients) - 1
+		state.wsClients[idx] = state.wsClients[length]
+		state.wsClients = state.wsClients[:length]
+	} else {
+		fmt.Println("No client found in pbListener WSClients list")
+	}
+}
+
+func (state *PubSubListener) SendAll(msg string) {
+	state.RLock()
+	defer state.RUnlock()
+	for i := 0; i < len(state.wsClients); i++ {
+		state.wsClients[i].Send(msg)
+	}
+}
+
+func (state *PubSubListener) GetCache() string {
+	state.RLock()
+	defer state.RUnlock()
+	return state.cache
+}
+
+func (state *PubSubListener) SetCache(val string) {
+	state.Lock()
+	defer state.Unlock()
+	state.cache = val
+}
+
+func (state *PubSubListener) StartPubSubListener(ctx context.Context) {
+	filter := `"attributes.icao24 = "` + state.Icao24 + `"`
+	sub, err := gcp.CreateSubscription(state.SubID+"_"+state.Icao24, posTopic, filter)
+	checkErr(err)
+
+	err = sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
+		tryNotifyCh(state.refreshCh)
+
+		strMsg := string(msg.Data)
+
+		state.SendAll(strMsg)
+
+		state.SetCache(strMsg)
+
+		msg.Ack()
+	})
+
+	if err != nil {
+		fmt.Println("Error in Pub/Sub Receive: ", err)
+		state.stopCh <- 1
+	}
+}
+
+type Hub struct {
+	sync.RWMutex
+	icaos map[string]*PubSubListener
+	SubID string
+}
+
+func refreshableTimeout(refresh chan int, stop chan int, timeoutHandler func(), timeout time.Duration) {
+	for {
+		select {
+		case <-refresh:
+		case <-stop:
+			return
+		case <-time.After(timeout):
+			timeoutHandler()
+			return
+		}
+	}
 }
 
 func (h *Hub) RegisterClient(icao24 string) chan string {
@@ -51,6 +136,10 @@ func (h *Hub) RegisterClient(icao24 string) chan string {
 		psListener := &PubSubListener{}
 		psListener.Icao24 = icao24
 		psListener.SubID = h.SubID
+		psListener.Timeout = time.Second * 30
+		psListener.stopCh = make(chan int, 5)
+		psListener.refreshCh = make(chan int, 5)
+		psListener.cache = ""
 
 		var ctx context.Context
 		ctx, psListener.Cancel = context.WithCancel(context.Background())
@@ -59,12 +148,26 @@ func (h *Hub) RegisterClient(icao24 string) chan string {
 
 		h.icaos[icao24].AddWSClient(ch)
 
-		go startPubSubListener(ctx, psListener)
+		go psListener.StartPubSubListener(ctx)
+
+		go refreshableTimeout(psListener.refreshCh, psListener.stopCh, psListener.Cancel, psListener.Timeout)
 
 	} else {
 		h.icaos[icao24].AddWSClient(ch)
+
+		firstVal := h.icaos[icao24].GetCache()
+		if firstVal != "" {
+			ch <- firstVal
+		}
 	}
 	return ch
+}
+
+func tryNotifyCh(ch chan int) {
+	select {
+	case ch <- 1:
+	default:
+	}
 }
 
 func (h *Hub) UnregisterClient(icao24 string, ch chan string) {
@@ -81,61 +184,11 @@ func (h *Hub) UnregisterClient(icao24 string, ch chan string) {
 	length := len(psListener.wsClients)
 	if length <= 0 {
 		psListener.Cancel()
+
+		tryNotifyCh(psListener.stopCh)
+
+		psListener.stopCh <- 1
 		h.icaos[icao24] = nil
-	}
-}
-
-type WSClient chan string
-
-func (c *WSClient) Send(msg string) {
-	*c <- msg
-}
-
-func (pbl *PubSubListener) AddWSClient(cli WSClient) {
-	pbl.Lock()
-	defer pbl.Unlock()
-	pbl.wsClients = append(pbl.wsClients, cli)
-}
-
-func (pbl *PubSubListener) RemoveWSClient(cli WSClient) {
-	pbl.Lock()
-	defer pbl.Unlock()
-	idx := slices.IndexFunc(pbl.wsClients, func(c WSClient) bool { return c == cli })
-	if idx >= 0 {
-		length := len(pbl.wsClients) - 1
-		pbl.wsClients[idx] = pbl.wsClients[length]
-		pbl.wsClients = append(pbl.wsClients)
-		pbl.wsClients = pbl.wsClients[:length]
-	} else {
-		fmt.Println("No client found in pbListener WSClients list")
-	}
-}
-
-func (pbl *PubSubListener) Clients() []WSClient {
-	pbl.RLock()
-	defer pbl.RUnlock()
-	return pbl.wsClients
-}
-
-func (pbl *PubSubListener) SendAll(msg string) {
-	pbl.RLock()
-	defer pbl.RUnlock()
-	for i := 0; i < len(pbl.wsClients); i++ {
-		pbl.wsClients[i].Send(msg)
-	}
-}
-
-func startPubSubListener(ctx context.Context, state *PubSubListener) {
-	filter := `"attributes.icao24 = "` + state.Icao24 + `"`
-	sub, err := gcp.CreateSubscription(state.SubID+"_"+state.Icao24, posTopic, filter)
-	checkErr(err)
-
-	err = sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
-		state.SendAll(string(msg.Data))
-	})
-
-	if err != nil {
-		fmt.Println("Error in Pub/Sub Receive: ", err)
 	}
 }
 
@@ -161,32 +214,38 @@ func main() {
 	router := gin.New()
 
 	router.SetTrustedProxies(nil)
-	router.GET("/airspace/aircraft/position/:icao24", httpRequestHandler)
+	router.GET("/airspace/aircraft/:icao24/position", httpRequestHandler)
 
 	router.Run()
 }
 
 func httpRequestHandler(c *gin.Context) {
 	icao24 := c.Param("icao24")
+
 	if !validIcao24(icao24) {
 		c.String(http.StatusNotAcceptable, "invalid icao24")
 		return
 	}
+
 	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
+		// TODO check what best to do here
 		fmt.Println(err)
 		return
 	}
+
 	defer ws.Close()
+
 	ch := hub.RegisterClient(icao24)
+
 	var msg string
+
 	for {
 		msg = <-ch
 		err = ws.WriteMessage(websocket.TextMessage, []byte(msg))
 		if err != nil {
 			fmt.Println(err)
-			// TODO: fix it
-			hub.UnregisterClient(ch)
+			hub.UnregisterClient(icao24, ch)
 			break
 		}
 	}
