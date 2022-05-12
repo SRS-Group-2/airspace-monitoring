@@ -62,7 +62,7 @@ function get_timestamp(date_selector, time_selector) {
 }
 
 function set_realtime_history(timeframe) {
-  request_value(base_history_route + "/history/realtime/" + timeframe, v => {
+  request_value(base_history_route + "/realtime/" + timeframe, v => {
     document.getElementById("current_distance").innerHTML = v // TODO: loom up how data is and how to set it in the page
   })
 }
@@ -75,6 +75,10 @@ function set_selectable_italian_flights() {
   const flight_selector = document.getElementById("flight")
   request_value(base_aircraft_route + "/list", vs => {
     flight_selector.innerHTML = ""
+    var emptyOption = document.createElement("option")
+    emptyOption.value = " "
+    emptyOption.innerHTML = " "
+    flight_selector.append(emptyOption)
     JSON.parse(vs).map(v => {
       var opt = document.createElement("option")
       opt.value = v
@@ -92,21 +96,26 @@ window.onload = _ => {
     set_selectable_italian_flights()
   }
   flight_selector.onchange = _ev => {
-    request_value(base_aircraft_route + "/" + flight_selector.value + "/info", v => {
-      document.getElementById("info").innerHTML = v
-      document.getElementById("coordinates_title").innerHTML = "Current position of aircraft " + flight_selector.value
-      // TODO: improve websocket and websocket error management
-      var url = window.location.href.slice(0, -1) + base_aircraft_route + "/" + flight_selector.value + "/position"
-      var websocket = new WebSocket(url)
-      websocket.addEventListener('message', ev =>  {
-        document.getElementById("coordinates_data").innerHTML = ev.data
+    if (flight_selector.value === " ") {
+      document.getElementById("info").innerHTML = ""
+    } else {
+      request_value(base_aircraft_route + "/" + flight_selector.value + "/info", v => {
+        document.getElementById("info").innerHTML = v
+        document.getElementById("coordinates_title").innerHTML = "Current position of aircraft " + flight_selector.value
+        // TODO: improve websocket and websocket error management
+        // var url = window.location.href.slice(0, -1) + base_aircraft_route + "/" + flight_selector.value + "/position"
+        // var websocket = new WebSocket(url)
+        // websocket.addEventListener('message', ev =>  {
+        //   document.getElementById("coordinates_data").innerHTML = ev.data
+        // })
       })
-    })
+    }
   }
   /* set up current distance, co2 */
   const current_timeframe_selector = document.getElementById("current_timeframe")
   set_realtime_history(current_timeframe_selector.value)
   current_timeframe_selector.onchange = _ev => {
+    console.log(current_timeframe_selector.value)
     set_realtime_history(current_timeframe_selector.value)
   }
 
