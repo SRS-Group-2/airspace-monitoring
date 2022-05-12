@@ -15,9 +15,8 @@ class MinimalState(val icao: String, val latitude: Double, val longitude: Double
 
   def toJSONString(): String = {
     return "{ \"icao24\": " + icao + 
-           ", \"latitude\": " + latitude +
-           ", \"longitude\": " + longitude +
-          /*  ", \"onGround\": " + onGround +*/
+           ", \"lat\": " + latitude +
+           ", \"lon\": " + longitude +
            ", \"timestamp\": " + timestamp +            
            "}"
   }
@@ -29,7 +28,7 @@ def deg2rad(deg : Double) : Double = {
   return deg * (Math.PI/180)
 }
 
-def getDistanceFromLatLonInKm(other : MinimalState) : Double ={
+def getDistanceFromLatLonInKm(other : MinimalState) : Int ={
   if(other.latitude==0) {
     return 0
   }
@@ -43,7 +42,7 @@ def getDistanceFromLatLonInKm(other : MinimalState) : Double ={
     ; 
   var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
   var d = R * c // Distance in km
-  return d
+  return d.toInt
 }
 
 }

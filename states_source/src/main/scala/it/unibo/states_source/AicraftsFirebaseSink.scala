@@ -26,13 +26,11 @@ var databaseUrl : String = null
 
 override def open(parameters : Configuration) : Unit = {
 super.open(parameters)
-
-val serviceAccount =new FileInputStream(System.getenv("GOOGLE_APPLICATION_CREDENTIALS"));
-    val options = new FirebaseOptions.Builder()
-              .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-              .setProjectId("tokyo-rain-123-f6024")
+val options = new FirebaseOptions.Builder()
+              .setCredentials(GoogleCredentials.getApplicationDefault())
+              .setProjectId(System.getenv("GOOGLE_CLOUD_PROJECT_ID"))
               .build()
-    FirebaseApp.initializeApp(options)
+FirebaseApp.initializeApp(options)
 
 }
 
@@ -49,7 +47,7 @@ override def invoke(aircraft: Aircrafts, context: SinkFunction.Context) : Unit =
     val docRef : DocumentReference  = db.collection("airspace").document("aircraft-list")
     val data : Map[String, Object]  = new HashMap[String, Object]();
     data.put("timestamp",aircraft.getTimestamp())
-    data.put("icao",aircraft.getList().asJava)
+    data.put("icao24",aircraft.getList().asJava)
     val result : ApiFuture[WriteResult] = docRef.set(data)
 
 
@@ -59,5 +57,3 @@ override def invoke(aircraft: Aircrafts, context: SinkFunction.Context) : Unit =
 
   
 }
-
-

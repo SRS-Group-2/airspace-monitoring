@@ -19,18 +19,17 @@ import org.apache.flink.streaming.api.functions.sink.SinkFunction
 import com.google.auth.oauth2.GoogleCredentials
 
 
-class FiveMinutesFirebaseSink[IN] extends RichSinkFunction[(Double,Double,String)] (){
+class FiveMinutesFirebaseSink[IN] extends RichSinkFunction[(Int,Int,String)] (){
 var databaseUrl : String = null
 
 
 override def open(parameters : Configuration) : Unit = {
 super.open(parameters)
-val serviceAccount =new FileInputStream(System.getenv("GOOGLE_APPLICATION_CREDENTIALS"));
-    val options = new FirebaseOptions.Builder()
-              .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-              .setProjectId("tokyo-rain-123-f6024")
+val options = new FirebaseOptions.Builder()
+              .setCredentials(GoogleCredentials.getApplicationDefault())
+              .setProjectId(System.getenv("GOOGLE_CLOUD_PROJECT_ID"))
               .build()
-    FirebaseApp.initializeApp(options,"oneHour");
+FirebaseApp.initializeApp(options,"fiveMins");
 
 
 
@@ -40,13 +39,13 @@ override def close() : Unit ={
         super.close();
 }
 
-override def invoke(res:(Double,Double,String), context: SinkFunction.Context) : Unit = {
+override def invoke(res:(Int,Int,String), context: SinkFunction.Context) : Unit = {
     
     
     
-    val db = FirestoreClient.getFirestore(FirebaseApp.getInstance("oneHour"));
+    val db = FirestoreClient.getFirestore(FirebaseApp.getInstance("fiveMins"));
 
-    val docRef : DocumentReference  = db.collection("airspace").document("1h-history").collection("5m-bucket").document(res._3)
+    val docRef : DocumentReference  = db.collection("airspace").document("24h-history").collection("5m-bucket").document(res._3)
     val docRef1 : DocumentReference  = db.collection("airspace").document("5m-history")
     val data : Map[String, Any]  = new HashMap[String,Any]();
     data.put("CO2t",res._1)
@@ -65,5 +64,3 @@ override def invoke(res:(Double,Double,String), context: SinkFunction.Context) :
 
   
 }
-
-

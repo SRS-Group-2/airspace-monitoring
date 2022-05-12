@@ -39,11 +39,11 @@ object Main {
                    .windowAll(TumblingProcessingTimeWindows.of(Time.minutes(2)))
                    .aggregate(new AircraftsAggregator())
                    .addSink(aFirebaseSink)
-    val fMinutesFirebaseSink : SinkFunction[(Double,Double,String)] = new FiveMinutesFirebaseSink()
+    val fMinutesFirebaseSink : SinkFunction[(Int,Int,String)] = new FiveMinutesFirebaseSink()
     source.map(sv => new MinimalState(sv.getIcao24(), 
-                                             sv.getLatitude(), 
-                                             sv.getLongitude(),
-                                             (System.currentTimeMillis() / 1000L).toString()))
+                                      sv.getLatitude(), 
+                                      sv.getLongitude(),
+                                      (System.currentTimeMillis() / 1000L).toString()))
                  .keyBy(ms => ms.icao)
                  .window(TumblingProcessingTimeWindows.of(Time.minutes(5)))
                  .aggregate(new MinimalStateAggregator())
