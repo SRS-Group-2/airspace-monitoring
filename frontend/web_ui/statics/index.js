@@ -80,12 +80,15 @@ function show_history(history) {
 function set_selectable_italian_flights() {
   const flight_selector = document.getElementById("flight")
   request_value(base_aircraft_route + "/list", vs => {
+    var json = JSON.parse(vs)
+    var args = json.timestamp.split("-").map(s => parseInt(s))
+    document.getElementById("flights_list_update").innerHTML = "Aircraft list updated at " + (new Date(...args)).toLocaleString()
     flight_selector.innerHTML = ""
     var emptyOption = document.createElement("option")
     emptyOption.value = " "
     emptyOption.innerHTML = " "
     flight_selector.append(emptyOption)
-    JSON.parse(vs).map(v => {
+    json["icao24"].map(v => {
       var opt = document.createElement("option")
       opt.value = v
       opt.innerHTML = v
