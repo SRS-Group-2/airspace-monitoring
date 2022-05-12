@@ -1,0 +1,31 @@
+##
+## Build
+##
+FROM golang:latest AS build
+
+WORKDIR /build
+
+COPY go.mod ./
+COPY go.sum ./
+
+RUN go mod download
+
+COPY *.go ./
+
+RUN GOOS=linux go build -a -o /app.exe
+
+##
+## Deploy
+##
+FROM gcr.io/distroless/base:latest
+
+WORKDIR /
+
+COPY --from=build /app.exe /app.exe
+COPY ./statics /statics
+
+ENV GIN_MODE release
+
+USER nonroot:nonroot
+
+ENTRYPOINT ["/app.exe"]
