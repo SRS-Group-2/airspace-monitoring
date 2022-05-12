@@ -65,24 +65,28 @@ function set_realtime_history(timeframe) {
   request_value(base_history_route + "/realtime/" + timeframe, v => {
     console.log(v)
     var json = JSON.parse(v) // strange error here
-    // TODO: loom up how data is and how to set it in the page
     const current_distance = document.getElementById("current_distance")
     const current_co2 = document.getElementById("current_co2")
-    current_distance.innerHTML = "Distance travelled in the last " + timeframe + " is " + json.distance
-    current_co2.innerHTML = "CO2 emitted in the last " + timeframe + " is " + json.co2
+    document.getElementById("current_update") = "Data last updated at " + get_date_string(json.timestamp)
+    current_distance.innerHTML = "Distance travelled in the last " + timeframe + " is " + json["distanceKm"]
+    current_co2.innerHTML = "CO2 emitted in the last " + timeframe + " is " + json["CO2t"]
   })
 }
 
 function show_history(history) {
-  document.getElementById("historic_distance").innerHTML = history // TODO: loom up how data is and how to set it in the page
+  document.getElementById("historic_distance").innerHTML = history
+}
+
+function get_date_string(timestamp) {
+  var args = timestamp.split("-").map(s => parseInt(s))
+  return (new Date(...args)).toLocaleString()
 }
 
 function set_selectable_italian_flights() {
   const flight_selector = document.getElementById("flight")
   request_value(base_aircraft_route + "/list", vs => {
     var json = JSON.parse(vs)
-    var args = json.timestamp.split("-").map(s => parseInt(s))
-    document.getElementById("flights_list_update").innerHTML = "Aircraft list updated at " + (new Date(...args)).toLocaleString()
+    document.getElementById("flights_list_update").innerHTML = "Aircraft list updated at " + get_date_string(json.timestamp)
     flight_selector.innerHTML = ""
     var emptyOption = document.createElement("option")
     emptyOption.value = " "
@@ -97,6 +101,14 @@ function set_selectable_italian_flights() {
   })
 }
 
+function set_aircraft_info(info) {
+  var json = JSON.parse(info)
+  document.getElementById("info").innerHTML = "Manufacturer: " + json.manufacturer + "<br>"
+                                            + "Model: " + json.model + "<br>"
+                                            + "Registration number: " + json.registration + "<br>"
+                                            + "Serial number: " + json.serialnumber
+}
+
 window.onload = _ => {
   /* set up flight selector */
   const flight_selector = document.getElementById("flight")
@@ -109,7 +121,7 @@ window.onload = _ => {
       document.getElementById("info").innerHTML = ""
     } else {
       request_value(base_aircraft_route + "/" + flight_selector.value + "/info", v => {
-        document.getElementById("info").innerHTML = v
+        set_aircraft_info(v)
         document.getElementById("coordinates_title").innerHTML = "Current position of aircraft " + flight_selector.value
         // TODO: improve websocket and websocket error management
         var url = window.location.href.slice(0, -1).replace("https://", "wss://") + base_aircraft_route + "/" + flight_selector.value + "/position"
