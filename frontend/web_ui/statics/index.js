@@ -74,7 +74,30 @@ function set_realtime_history(timeframe) {
 }
 
 function show_history(history) {
-  document.getElementById("historic_distance").innerHTML = history
+  var json = JSON.parse(history)
+  var table = document.createElement(table)
+  var h_row = document.createElement("tr")
+  var h_time = document.createElement("td")
+  h_time.innerHTML = "Time"
+  var h_distance = document.createElement("td")
+  h_distance.innerHTML = "Distance (km)"
+  var h_co2 = document.createElement("td")
+  h_co2.innerHTML = "CO2 (t)"
+  h_row.append(h_time, h_distance, h_co2)
+  table.append(h_row)
+  Object.entries(json).forEach(element => {
+    var row = document.createElement("tr")
+    var time = document.createElement("td")
+    time.innerHTML = get_date_string(element[1]["startTime"])
+    var distance = document.createElement("td")
+    distance.innerHTML = element[1]["distanceKm"]
+    var co2 = document.createElement("td")
+    co2.innerHTML = element[1]["CO2t"]
+    row.append(time, distance, co2)
+    table.append(row)
+  })
+  document.getElementById("historic_distance").innerHTML = ""
+  document.getElementById("historic_distance").append(table)
 }
 
 function get_date_string(timestamp) {
@@ -109,6 +132,14 @@ function set_aircraft_info(info) {
                                             + "Serial number: " + json.serialnumber
 }
 
+function update_aircraft_position(data) {
+  var json = JSON.parse(data)
+  var time = new Date(json.timestamp * 1000).toLocaleString()
+  document.getElementById("coordinates_data").innerHTML = "Position updated at " + time + "<br>"
+                                                        + "Latitude: " + json.lat + "<br>"
+                                                        + "Longitude: " + json.lon
+}
+
 window.onload = _ => {
   /* set up flight selector */
   const flight_selector = document.getElementById("flight")
@@ -127,7 +158,7 @@ window.onload = _ => {
         var url = window.location.href.slice(0, -1).replace("https://", "wss://") + base_aircraft_route + "/" + flight_selector.value + "/position"
         var websocket = new WebSocket(url)
         websocket.addEventListener('message', ev =>  {
-          document.getElementById("coordinates_data").innerHTML = ev.data
+          update_aircraft_position(ev.data)
         })
       })
     }
