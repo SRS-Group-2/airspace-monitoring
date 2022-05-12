@@ -26,35 +26,104 @@ const env_ginmode = "GIN_MODE"
 
 var posTopic *pubsub.Topic
 
-type WSClient chan string
+type WSClient struct {
+	icao24     string
+	ch         chan string
+	stopReader chan int
+	stopWriter chan int
+	ws         *websocket.Conn
+}
 
-func (c *WSClient) Send(msg string) {
-	*c <- msg
+func (cl *WSClient) Send(msg string) {
+	cl.ch <- msg
+}
+
+func (cl *WSClient) WSReadLoop() {
+	for {
+		if _, _, err := cl.ws.NextReader(); err != nil {
+			cl.ws.Close()
+			hub.UnregisterClient(cl)
+			break
+		}
+	}
+}
+
+// func (cl *WSClient) WSWriteLoop() {
+// 	for {
+// 		if _, err := cl.ws.NextWriter(1); err != nil {
+// 			cl.ws.Close()
+// 			hub.UnregisterClient(cl)
+// 			break
+// 		}
+// 	}
+// }
+
+type RefreshableTimer struct {
+	duration       time.Duration
+	stop           chan int
+	refresh        chan int
+	timeoutHandler func()
+}
+
+func (state *RefreshableTimer) StartTimer() {
+	go func() {
+		for {
+			select {
+			case <-state.refresh:
+			case <-state.stop:
+				return
+			case <-time.After(state.duration):
+				state.timeoutHandler()
+				return
+			}
+		}
+	}()
+}
+
+func (state *RefreshableTimer) StopTimer() {
+	tryNotifyCh(state.stop)
+}
+
+func (state *RefreshableTimer) RefreshTimer() {
+	tryNotifyCh(state.refresh)
 }
 
 type PubSubListener struct {
 	sync.RWMutex
-	Icao24    string
-	SubID     string
-	wsClients []WSClient
-	cache     string
-	//ctx       context.Context
-	Cancel    func()
-	Timeout   time.Duration
-	stopCh    chan int
-	refreshCh chan int
+	Icao24     string
+	SubID      string
+	cache      string
+	wsClients  []*WSClient
+	stopListen func()
+	timer      RefreshableTimer
 }
 
-func (state *PubSubListener) AddWSClient(cli WSClient) {
+func makePubSubListener(icao24 string, subID string, stopListen func()) *PubSubListener {
+	ps := &PubSubListener{
+		Icao24:     icao24,
+		SubID:      subID,
+		cache:      "",
+		stopListen: stopListen,
+		timer: RefreshableTimer{
+			duration:       time.Second * 30,
+			stop:           make(chan int, 5),
+			refresh:        make(chan int, 5),
+			timeoutHandler: stopListen,
+		},
+	}
+	return ps
+}
+
+func (state *PubSubListener) AddWSClient(cli *WSClient) {
 	state.Lock()
 	defer state.Unlock()
 	state.wsClients = append(state.wsClients, cli)
 }
 
-func (state *PubSubListener) RemoveWSClient(cli WSClient) {
+func (state *PubSubListener) RemoveWSClient(cli *WSClient) {
 	state.Lock()
 	defer state.Unlock()
-	idx := slices.IndexFunc(state.wsClients, func(c WSClient) bool { return c == cli })
+	idx := slices.IndexFunc(state.wsClients, func(c *WSClient) bool { return *c == *cli })
 	if idx >= 0 {
 		length := len(state.wsClients) - 1
 		state.wsClients[idx] = state.wsClients[length]
@@ -89,8 +158,10 @@ func (state *PubSubListener) StartPubSubListener(ctx context.Context) {
 	sub, err := gcp.CreateSubscription(state.SubID+"_"+state.Icao24, posTopic, filter)
 	checkErr(err)
 
+	state.timer.StartTimer()
+
 	err = sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
-		tryNotifyCh(state.refreshCh)
+		state.timer.RefreshTimer()
 
 		strMsg := string(msg.Data)
 
@@ -103,8 +174,13 @@ func (state *PubSubListener) StartPubSubListener(ctx context.Context) {
 
 	if err != nil {
 		fmt.Println("Error in Pub/Sub Receive: ", err)
-		state.stopCh <- 1
+		state.timer.StopTimer()
 	}
+}
+
+func (state *PubSubListener) StopPubSubListener() {
+	state.timer.StopTimer()
+	state.stopListen()
 }
 
 type Hub struct {
@@ -113,54 +189,29 @@ type Hub struct {
 	SubID string
 }
 
-func refreshableTimeout(refresh chan int, stop chan int, timeoutHandler func(), timeout time.Duration) {
-	for {
-		select {
-		case <-refresh:
-		case <-stop:
-			return
-		case <-time.After(timeout):
-			timeoutHandler()
-			return
-		}
-	}
-}
-
-func (h *Hub) RegisterClient(icao24 string) chan string {
+func (h *Hub) RegisterClient(cl *WSClient) {
 	h.Lock()
 	defer h.Unlock()
 
-	ch := make(chan string, 100)
+	if h.icaos[cl.icao24] == nil {
+		cancellableCtx, cancel := context.WithCancel(context.Background())
 
-	if h.icaos[icao24] == nil {
-		psListener := &PubSubListener{}
-		psListener.Icao24 = icao24
-		psListener.SubID = h.SubID
-		psListener.Timeout = time.Second * 30
-		psListener.stopCh = make(chan int, 5)
-		psListener.refreshCh = make(chan int, 5)
-		psListener.cache = ""
+		psListener := makePubSubListener(cl.icao24, h.SubID, cancel)
 
-		var ctx context.Context
-		ctx, psListener.Cancel = context.WithCancel(context.Background())
+		h.icaos[cl.icao24] = psListener
 
-		h.icaos[icao24] = psListener
+		h.icaos[cl.icao24].AddWSClient(cl)
 
-		h.icaos[icao24].AddWSClient(ch)
-
-		go psListener.StartPubSubListener(ctx)
-
-		go refreshableTimeout(psListener.refreshCh, psListener.stopCh, psListener.Cancel, psListener.Timeout)
+		go psListener.StartPubSubListener(cancellableCtx)
 
 	} else {
-		h.icaos[icao24].AddWSClient(ch)
+		h.icaos[cl.icao24].AddWSClient(cl)
 
-		firstVal := h.icaos[icao24].GetCache()
+		firstVal := h.icaos[cl.icao24].GetCache()
 		if firstVal != "" {
-			ch <- firstVal
+			cl.Send(firstVal)
 		}
 	}
-	return ch
 }
 
 func tryNotifyCh(ch chan int) {
@@ -170,25 +221,22 @@ func tryNotifyCh(ch chan int) {
 	}
 }
 
-func (h *Hub) UnregisterClient(icao24 string, ch chan string) {
+func (h *Hub) UnregisterClient(cl *WSClient) {
 	h.Lock()
 	defer h.Unlock()
 
-	if h.icaos[icao24] == nil {
+	if h.icaos[cl.icao24] == nil {
 		return
 	}
 
-	psListener := h.icaos[icao24]
-	psListener.RemoveWSClient(ch)
+	psListener := h.icaos[cl.icao24]
+	psListener.RemoveWSClient(cl)
 
 	length := len(psListener.wsClients)
 	if length <= 0 {
-		psListener.Cancel()
+		psListener.StopPubSubListener()
 
-		tryNotifyCh(psListener.stopCh)
-
-		psListener.stopCh <- 1
-		h.icaos[icao24] = nil
+		h.icaos[cl.icao24] = nil
 	}
 }
 
@@ -236,16 +284,27 @@ func httpRequestHandler(c *gin.Context) {
 
 	defer ws.Close()
 
-	ch := hub.RegisterClient(icao24)
+	cl := &WSClient{
+		ws:         ws,
+		icao24:     icao24,
+		ch:         make(chan string, 100),
+		stopReader: make(chan int, 5),
+		stopWriter: make(chan int, 5),
+	}
+
+	hub.RegisterClient(cl)
+
+	go cl.WSReadLoop()
 
 	var msg string
 
 	for {
-		msg = <-ch
+		msg = <-cl.ch
 		err = ws.WriteMessage(websocket.TextMessage, []byte(msg))
+
 		if err != nil {
 			fmt.Println(err)
-			hub.UnregisterClient(icao24, ch)
+			hub.UnregisterClient(cl)
 			break
 		}
 	}
