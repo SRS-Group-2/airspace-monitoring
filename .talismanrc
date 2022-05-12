@@ -2,8 +2,7 @@ scopeconfig:
   - scope: go
   - scope: node
 
-
 fileignoreconfig:
-- filename: states_source/src/main/scala/it/unibo/states_source/Main.scala
-  checksum: c3a6cfc4b5edc122408e1611dfb584fa3b65e478950bbf302a291bf0eb591121
+- filename: frontend/web_ui/statics/index.js
+  checksum: b8dc8f600cb06517a1901003afddadf61afa0b2915f94ac25e40ecc2bfe651b1
 version: ""
