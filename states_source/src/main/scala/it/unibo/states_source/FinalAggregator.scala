@@ -23,7 +23,7 @@ class FinalAggregator extends AggregateFunction[(Int,Int,Long),Array[Int],(Int,I
   val formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
   val timestamp = formatter.format(myDate);
   
-   (acc(0),(acc(1)/1000).toInt,timestamp)
+   (acc(0),acc(1),timestamp)
   }
 
   override def merge(a: Array[Int], b :Array[Int])= Array[Int](a(0)+b(0),a(1)+b(1))

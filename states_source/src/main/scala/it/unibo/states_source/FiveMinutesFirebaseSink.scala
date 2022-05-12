@@ -29,7 +29,7 @@ val options = new FirebaseOptions.Builder()
               .setCredentials(GoogleCredentials.getApplicationDefault())
               .setProjectId(System.getenv("GOOGLE_CLOUD_PROJECT_ID"))
               .build()
-FirebaseApp.initializeApp(options,"fiveMins");
+FirebaseApp.initializeApp(options,"fiveMins")
 
 
 
@@ -48,7 +48,7 @@ override def invoke(res:(Int,Int,String), context: SinkFunction.Context) : Unit 
     val docRef : DocumentReference  = db.collection("airspace").document("24h-history").collection("5m-bucket").document(res._3)
     val docRef1 : DocumentReference  = db.collection("airspace").document("5m-history")
     val data : Map[String, Any]  = new HashMap[String,Any]();
-    data.put("CO2t",res._1)
+    data.put("CO2t",(res._1/1000).toInt)
     data.put("distanceKm",res._2)
     data.put("timestamp",res._3)
     val result1 : ApiFuture[WriteResult] = docRef1.set(data)
