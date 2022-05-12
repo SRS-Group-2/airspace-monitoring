@@ -20,9 +20,7 @@ object Main {
     val params = ParameterTool.fromArgs(args)
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.getConfig.setGlobalJobParameters(params)
-    val sourceMinStates = env.addSource(sourceFunction)
-    val sourceAircrafts = env.addSource(sourceFunction)
-    val source5mins = env.addSource(sourceFunction)
+    val source = env.addSource(sourceFunction)
     val minsSerializationSchema: SerializationSchema[MinimalState]  = new JSONMinStateSerializer();
     val aircraftsSerializationSchema: SerializationSchema[Aircrafts]  = new JSONAircraftsSerializer();
     val minsPubsubSink: SinkFunction[MinimalState] = CustomPubSubSink.newBuilder()
@@ -30,19 +28,19 @@ object Main {
                                               .withProjectName(System.getenv("GOOGLE_CLOUD_PROJECT_ID"))
                                               .withTopicName(System.getenv("GOOGLE_PUBSUB_VECTORS_TOPIC_ID"))
                                               .build()
-    sourceMinStates.map(sv => new MinimalState(sv.getIcao24(), 
+    source.map(sv => new MinimalState(sv.getIcao24(), 
                                              sv.getLatitude(), 
                                              sv.getLongitude(),
                                              (System.currentTimeMillis() / 1000L).toString()))
                       .addSink(minsPubsubSink)
 
     val aFirebaseSink : SinkFunction[Aircrafts] = new AircraftsFirebaseSink()
-    sourceAircrafts.map(ms => ms.getIcao24())
+    source.map(ms => ms.getIcao24())
                    .windowAll(TumblingProcessingTimeWindows.of(Time.minutes(2)))
                    .aggregate(new AircraftsAggregator())
                    .addSink(aFirebaseSink)
     val fMinutesFirebaseSink : SinkFunction[(Double,Double,String)] = new FiveMinutesFirebaseSink()
-    source5mins.map(sv => new MinimalState(sv.getIcao24(), 
+    source.map(sv => new MinimalState(sv.getIcao24(), 
                                              sv.getLatitude(), 
                                              sv.getLongitude(),
                                              (System.currentTimeMillis() / 1000L).toString()))
