@@ -109,11 +109,11 @@ window.onload = _ => {
         document.getElementById("info").innerHTML = v
         document.getElementById("coordinates_title").innerHTML = "Current position of aircraft " + flight_selector.value
         // TODO: improve websocket and websocket error management
-        // var url = window.location.href.slice(0, -1) + base_aircraft_route + "/" + flight_selector.value + "/position"
-        // var websocket = new WebSocket(url)
-        // websocket.addEventListener('message', ev =>  {
-        //   document.getElementById("coordinates_data").innerHTML = ev.data
-        // })
+        var url = window.location.href.slice(0, -1).replace("https://", "wss://") + base_aircraft_route + "/" + flight_selector.value + "/position"
+        var websocket = new WebSocket(url)
+        websocket.addEventListener('message', ev =>  {
+          document.getElementById("coordinates_data").innerHTML = ev.data
+        })
       })
     }
   }
