@@ -2,6 +2,10 @@ FROM maven:3.8.5-jdk-11 AS builder
 
 COPY src /home/app/src
 COPY pom.xml /home/app
+
+RUN git clone https://github.com/openskynetwork/opensky-api.git \
+ && mvn -f ./opensky-api/java/pom.xml install
+
 RUN mvn -f /home/app/pom.xml clean package
 
 FROM flink:1.14.4-scala_2.12
