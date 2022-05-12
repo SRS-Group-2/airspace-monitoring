@@ -63,7 +63,13 @@ function get_timestamp(date_selector, time_selector) {
 
 function set_realtime_history(timeframe) {
   request_value(base_history_route + "/realtime/" + timeframe, v => {
-    document.getElementById("current_distance").innerHTML = v // TODO: loom up how data is and how to set it in the page
+    console.log(v)
+    var json = JSON.parse(v) // strange error here
+    // TODO: loom up how data is and how to set it in the page
+    const current_distance = document.getElementById("current_distance")
+    const current_co2 = document.getElementById("current_co2")
+    current_distance.innerHTML = "Distance travelled in the last " + timeframe + " is " + json.distance
+    current_co2.innerHTML = "CO2 emitted in the last " + timeframe + " is " + json.co2
   })
 }
 
@@ -115,7 +121,6 @@ window.onload = _ => {
   const current_timeframe_selector = document.getElementById("current_timeframe")
   set_realtime_history(current_timeframe_selector.value)
   current_timeframe_selector.onchange = _ev => {
-    console.log(current_timeframe_selector.value)
     set_realtime_history(current_timeframe_selector.value)
   }
 
