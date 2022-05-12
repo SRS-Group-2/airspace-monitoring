@@ -138,11 +138,11 @@ window.onload = _ => {
 
   /* Add time selector if necessary */
   const historic_resolution_selector = document.getElementById("historic_resolution")
-  if (historic_resolution_selector.value === "1h") {
+  if (historic_resolution_selector.value === "hour") {
     add_time_selectors()
   }
   historic_resolution_selector.onchange = _ev => {
-    if (historic_resolution_selector.value === "1h") {
+    if (historic_resolution_selector.value === "hour") {
       add_time_selectors()
     } else {
       document.getElementById("begin_time_selector").remove()
