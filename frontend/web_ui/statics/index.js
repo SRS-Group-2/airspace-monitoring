@@ -141,6 +141,7 @@ function update_aircraft_position(data) {
 }
 
 window.onload = _ => {
+  var websocket = null
   /* set up flight selector */
   const flight_selector = document.getElementById("flight")
   set_selectable_italian_flights()
@@ -150,13 +151,16 @@ window.onload = _ => {
   flight_selector.onchange = _ev => {
     if (flight_selector.value === " ") {
       document.getElementById("info").innerHTML = ""
+      if (websocket !== null) {
+        websocket.close()
+      }
     } else {
       request_value(base_aircraft_route + "/" + flight_selector.value + "/info", v => {
         set_aircraft_info(v)
         document.getElementById("coordinates_title").innerHTML = "Current position of aircraft " + flight_selector.value
         // TODO: improve websocket and websocket error management
         var url = window.location.href.slice(0, -1).replace("https://", "wss://") + base_aircraft_route + "/" + flight_selector.value + "/position"
-        var websocket = new WebSocket(url)
+        websocket = new WebSocket(url)
         websocket.addEventListener('message', ev =>  {
           update_aircraft_position(ev.data)
         })
