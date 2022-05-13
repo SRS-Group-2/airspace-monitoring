@@ -5,12 +5,12 @@ resource "google_service_account" "airspace_history_calculator" {
 }
 
 # bind the service account to the necessary roles
-resource "google_service_account_iam_binding" "airspace_history_calculator_binding" {
-  service_account_id = google_service_account.airspace_history_calculator.name
-  role               = "roles/datastore.user"
+resource "google_project_iam_binding" "airspace_history_calculator_binding" {
+  project = var.project_id
+  role    = "roles/datastore.user"
 
   members = [
-    "serviceAccount:${google_service_account.airspace_history_calculator.name}@${var.project_id}.iam.gserviceaccount.com",
+    "serviceAccount:${google_service_account.airspace_history_calculator.email}",
   ]
 }
 
@@ -21,7 +21,7 @@ resource "kubernetes_service_account" "airspace_history_calculator_kube_account"
     name      = "airspace-history-calculator-account"
     namespace = var.kube_namespace
     annotations = {
-      "iam.gke.io/gcp-service-account" = google_service_account.airspace_history_calculator.name
+      "iam.gke.io/gcp-service-account" = google_service_account.airspace_history_calculator.email
     }
   }
 }
@@ -32,7 +32,7 @@ resource "google_service_account_iam_binding" "airspace_history_calculator_accou
   role               = "roles/iam.workloadIdentityUser"
 
   members = [
-    "serviceAccount:${var.project_id}.svc.id.goog${var.kube_namespace}/${kubernetes_service_account.airspace_history_calculator_kube_account.metadata[0].name}",
+    "serviceAccount:${var.project_id}.svc.id.goog[${var.kube_namespace}/${kubernetes_service_account.airspace_history_calculator_kube_account.metadata[0].name}]",
   ]
 }
 
@@ -48,7 +48,7 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
 
     selector {
       match_labels = {
-        "app"                                    = "history-calculator"
+        "app" = "history-calculator"
       }
     }
 
@@ -60,6 +60,7 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
       }
 
       spec {
+        service_account_name = kubernetes_service_account.airspace_history_calculator_kube_account.metadata[0].name
         container {
           name  = "airspace-history-calculator"
           image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_history_calculator:latest"
