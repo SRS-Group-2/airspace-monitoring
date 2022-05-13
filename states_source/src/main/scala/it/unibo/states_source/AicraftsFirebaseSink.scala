@@ -12,12 +12,11 @@ import scala.collection.JavaConverters._
 
 import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.WriteResult
-
+import java.io.ByteArrayInputStream
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.sink.SinkFunction
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.gson.Gson
 
 
 class AircraftsFirebaseSink[IN] extends RichSinkFunction[Aircrafts] (){
@@ -26,11 +25,13 @@ var databaseUrl : String = null
 
 override def open(parameters : Configuration) : Unit = {
 super.open(parameters)
+
+val serviceAccount =new ByteArrayInputStream(System.getenv("GOOGLE_APPLICATION_CREDENTIALS").getBytes())
 val options = new FirebaseOptions.Builder()
-              .setCredentials(GoogleCredentials.getApplicationDefault())
+              .setCredentials(GoogleCredentials.fromStream(serviceAccount))
               .setProjectId(System.getenv("GOOGLE_CLOUD_PROJECT_ID"))
               .build()
-FirebaseApp.initializeApp(options)
+    FirebaseApp.initializeApp(options)
 
 }
 

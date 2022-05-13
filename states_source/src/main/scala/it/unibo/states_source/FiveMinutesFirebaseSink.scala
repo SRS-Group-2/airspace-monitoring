@@ -25,8 +25,9 @@ var databaseUrl : String = null
 
 override def open(parameters : Configuration) : Unit = {
 super.open(parameters)
+val serviceAccount =new ByteArrayInputStream(System.getenv("GOOGLE_APPLICATION_CREDENTIALS").getBytes())
 val options = new FirebaseOptions.Builder()
-              .setCredentials(GoogleCredentials.getApplicationDefault())
+              .setCredentials(GoogleCredentials.fromStream(serviceAccount))
               .setProjectId(System.getenv("GOOGLE_CLOUD_PROJECT_ID"))
               .build()
 FirebaseApp.initializeApp(options,"fiveMins")
