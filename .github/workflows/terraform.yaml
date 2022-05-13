@@ -29,6 +29,7 @@ env:
   TF_VAR_kube_subnetwork: sub-vpc-01
   TF_VAR_kube_pods_range: us-central1-01-gke-01-pods
   TF_VAR_kube_services_range: us-central1-01-gke-01-services
+  TF_VAR_opensky_bb: 36.619987291,47.1153931748,6.7499552751,18.4802470232
 
 jobs:
   terraform:
