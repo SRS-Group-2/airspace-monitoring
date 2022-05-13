@@ -65,10 +65,6 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
           image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_history_calculator:latest"
 
           env {
-            name  = "GOOGLE_APPLICATION_CREDENTIALS"
-            value = var.airspace_history_calculator_credentials
-          }
-          env {
             name  = "GOOGLE_CLOUD_PROJECT_ID"
             value = var.project_id
           }

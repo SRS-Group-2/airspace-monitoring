@@ -56,11 +56,6 @@ variable "google_daily_history_credentials" {
   description = "The credentials for the airspace daily history service"
 }
 
-variable "airspace_history_calculator_credentials" {
-  type        = string
-  description = "The credentials for the airspace history calculator service"
-}
-
 variable "states_source_credentials" {
   type        = string
   description = "The credentials for the states source service"
