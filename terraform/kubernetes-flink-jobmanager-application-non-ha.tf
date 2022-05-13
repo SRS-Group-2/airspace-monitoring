@@ -27,6 +27,7 @@
 #       }
 
 #       spec {
+#         service_account_name = kubernetes_service_account.flink_kube_account.metadata[0].name
 #         volume {
 #           name = "flink-config-volume"
 
@@ -102,6 +103,10 @@
 #           security_context {
 #             run_as_user = 9999
 #           }
+#         }
+
+#         node_selector = {
+#           "iam.gke.io/gke-metadata-server-enabled" = "true"
 #         }
 #       }
 #     }

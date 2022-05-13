@@ -1,3 +1,50 @@
+# # service account for flink
+# resource "google_service_account" "flink" {
+#   account_id   = "flink-source"
+#   display_name = "A service account for Flink"
+# }
+
+# # bind the service account to the necessary roles
+# resource "google_project_iam_binding" "flink_firestore_binding" {
+#   project = var.project_id
+#   role    = "roles/datastore.user"
+
+#   members = [
+#     "serviceAccount:${google_service_account.flink.email}",
+#   ]
+# }
+
+# resource "google_project_iam_binding" "flink_pubsub_binding" {
+#   project = var.project_id
+#   role    = "roles/pubsub.publisher" // TODO check whether editor is necessary
+
+#   members = [
+#     "serviceAccount:${google_service_account.flink.email}",
+#   ]
+# }
+
+# # kubernetes service account for airspace history calculator
+# resource "kubernetes_service_account" "flink_kube_account" {
+#   depends_on = [kubernetes_namespace.main_namespace]
+#   metadata {
+#     name      = "flink-account"
+#     namespace = var.kube_namespace
+#     annotations = {
+#       "iam.gke.io/gcp-service-account" = google_service_account.flink.email
+#     }
+#   }
+# }
+
+# # bind service account and kubernetes service account
+# resource "google_service_account_iam_binding" "flink_accounts_binding" {
+#   service_account_id = google_service_account.flink.name
+#   role               = "roles/iam.workloadIdentityUser"
+
+#   members = [
+#     "serviceAccount:${var.project_id}.svc.id.goog[${var.kube_namespace}/${kubernetes_service_account.flink_kube_account.metadata[0].name}]",
+#   ]
+# }
+
 # resource "kubernetes_deployment" "flink_taskmanager" {
 #   depends_on = [kubernetes_namespace.main_namespace]
 #   metadata {
@@ -26,6 +73,7 @@
 #       }
 
 #       spec {
+#         service_account_name = kubernetes_service_account.flink_kube_account.metadata[0].name
 #         volume {
 #           name = "flink-config-volume"
 
@@ -48,11 +96,6 @@
 #           name  = "taskmanager"
 #           image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/states_source:latest"
 #           args  = ["taskmanager"]
-
-#           env {
-#             name  = "GOOGLE_APPLICATION_CREDENTIALS"
-#             value = var.states_source_credentials
-#           }
 
 #           env {
 #             name  = "GOOGLE_CLOUD_PROJECT_ID"
@@ -99,7 +142,8 @@
 #         }
 
 #         node_selector = {
-#           node_type = "small"
+#           node_type                                = "small"
+#           "iam.gke.io/gke-metadata-server-enabled" = "true"
 #         }
 #       }
 #     }
