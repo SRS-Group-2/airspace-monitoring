@@ -1,6 +1,7 @@
 # resource "kubernetes_deployment" "flink_taskmanager" {
 #   metadata {
-#     name = "flink-taskmanager"
+#     name      = "flink-taskmanager"
+#     namespace = var.kube_namespace
 #   }
 
 #   spec {

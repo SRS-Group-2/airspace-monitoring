@@ -1,62 +1,101 @@
-# resource "kubernetes_deployment" "airspace_history_calculator" {
-#   metadata {
-#     name = "airspace-history-calculator"
-#   }
+# service account for airspace history calculator
+resource "google_service_account" "airspace_history_calculator" {
+  account_id   = "airspace-history-calculator"
+  display_name = "A service account for the Airspace History Calculator"
+}
 
-#   spec {
-#     replicas = 1
+# bind the service account to the necessary roles
+resource "google_service_account_iam_binding" "airspace_history_calculator_binding" {
+  service_account_id = google_service_account.airspace_history_calculator.name
+  role               = "roles/datastore.user"
 
-#     selector {
-#       match_labels = {
-#         app = "history-calculator"
-#       }
-#     }
+  members = [
+    "serviceAccount:${google_service_account.airspace_history_calculator.name}@${var.project_id}.iam.gserviceaccount.com",
+  ]
+}
 
-#     template {
-#       metadata {
-#         labels = {
-#           app = "history-calculator"
-#         }
-#       }
+# kubernetes service account for airspace history calculator
+resource "kubernetes_service_account" "airspace_history_calculator_kube_account" {
+  metadata {
+    name      = "airspace-history-calculator-account"
+    namespace = var.kube_namespace
+    annotations = {
+      "iam.gke.io/gcp-service-account" = google_service_account.airspace_history_calculator.name
+    }
+  }
+}
 
-#       spec {
-#         container {
-#           name  = "airspace-history-calculator"
-#           image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_history_calculator:latest"
+# bind service account and kubernetes service account
+resource "google_service_account_iam_binding" "airspace_history_calculator_accounts_binding" {
+  service_account_id = google_service_account.airspace_history_calculator.name
+  role               = "roles/iam.workloadIdentityUser"
 
-#           env {
-#             name  = "GOOGLE_APPLICATION_CREDENTIALS"
-#             value = var.airspace_history_calculator_credentials
-#           }
-#           env {
-#             name  = "GOOGLE_CLOUD_PROJECT_ID"
-#             value = var.project_id
-#           }
-#           env {
-#             name  = "GIN_MODE"
-#             value = "release"
-#           }
+  members = [
+    "serviceAccount:${var.project_id}.svc.id.goog${var.kube_namespace}/${kubernetes_service_account.airspace_history_calculator_kube_account.metadata[0].name}",
+  ]
+}
 
-#           #           port {
-#           #             name           = "port"
-#           #             container_port = 8080
-#           #           }
+resource "kubernetes_deployment" "airspace_history_calculator" {
+  metadata {
+    name      = "airspace-history-calculator"
+    namespace = var.kube_namespace
+  }
 
-#           #           liveness_probe {
-#           #             tcp_socket {
-#           #               port = "6122"
-#           #             }
+  spec {
+    replicas = 1
 
-#           #             initial_delay_seconds = 60
-#           #             period_seconds        = 60
-#           #           }
+    selector {
+      match_labels = {
+        "app"                                    = "history-calculator"
+        "iam.gke.io/gke-metadata-server-enabled" = "true"
+      }
+    }
 
-#           security_context {
-#             run_as_user = 9999
-#           }
-#         }
+    template {
+      metadata {
+        labels = {
+          app = "history-calculator"
+        }
+      }
 
-#       }
-#     }
-#   }
-# }
+      spec {
+        container {
+          name  = "airspace-history-calculator"
+          image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_history_calculator:latest"
+
+          env {
+            name  = "GOOGLE_APPLICATION_CREDENTIALS"
+            value = var.airspace_history_calculator_credentials
+          }
+          env {
+            name  = "GOOGLE_CLOUD_PROJECT_ID"
+            value = var.project_id
+          }
+          env {
+            name  = "GIN_MODE"
+            value = "release"
+          }
+
+          #           port {
+          #             name           = "port"
+          #             container_port = 8080
+          #           }
+
+          #           liveness_probe {
+          #             tcp_socket {
+          #               port = "6122"
+          #             }
+
+          #             initial_delay_seconds = 60
+          #             period_seconds        = 60
+          #           }
+
+          security_context {
+            run_as_user = 9999
+          }
+        }
+
+      }
+    }
+  }
+}

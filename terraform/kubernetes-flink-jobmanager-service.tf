@@ -1,6 +1,7 @@
 # resource "kubernetes_service" "flink_jobmanager" {
 #   metadata {
-#     name = "flink-jobmanager"
+#     name      = "flink-jobmanager"
+#     namespace = var.kube_namespace
 #   }
 
 #   spec {

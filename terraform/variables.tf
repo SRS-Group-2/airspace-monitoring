@@ -92,6 +92,11 @@ variable "kube_services_range" {
   description = "Name of ip range of services in kube subnetwork"
 }
 
+variable "kube_namespace" {
+  type        = string
+  description = "Name of the namespace in which the applications will be deployed"
+}
+
 # app
 variable "opensky_bb" {
   type        = string
