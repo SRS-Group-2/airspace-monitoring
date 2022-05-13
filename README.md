@@ -23,6 +23,7 @@ semgrep \
   --config p/golang \
   --config p/owasp-top-ten \
   --config p/clientside-js \
+  --config p/terraform \
   --metrics=off
 ```
 
@@ -59,3 +60,29 @@ VERSION=$(
 A useful tool to locally test workflows is [`act`](https://github.com/nektos/act).
 
 `act` shows different behaviours than Github Actions when using matrixes and checks if matrixes are empty and for the values of `${{ github.event.before }}` for new branches.
+
+### Terraform
+```
+gcloud init
+terraform -chdir=terraform fmt
+terraform -chdir=terraform validate
+terraform -chdir=terraform plan
+terraform -chdir=terraform apply
+terraform -chdir=terraform destroy
+```
+
+To configure `kubectl` (see https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#apt_1):
+```
+gcloud container clusters get-credentials gke-1 --zone "us-central1"
+```
+
+### How to use Gatling
+Download [gatling](https://gatling.io/open-source/), unzip the bundle in your directory of choice, copy the content of `gatling_simulations` into `simulations` in the unzipped directory, run 
+```
+JAVA_OPTS="-Dusers=10 -Dramp=3600 -Dbase_url=<our_base_url>" ./bin/gatling.sh
+```
+Change parameters as needed.
+
+This requires Java to be installed.
+
+Good tool for mocking apis: https://beeceptor.com/

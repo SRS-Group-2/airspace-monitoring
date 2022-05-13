@@ -1,3 +1,4 @@
+# general
 variable "project_id" {
   type        = string
   description = "The Google Cloud Project Id"
@@ -8,6 +9,7 @@ variable "region" {
   description = "The region where to deploy"
 }
 
+# pubsub
 variable "aircraft_list_topic" {
   type        = string
   description = "The name of the PubSub topic with the list of aircrafts"
@@ -38,7 +40,60 @@ variable "aircraft_list_subscriber_id" {
   description = "The id of the subscriber for the aircraft_list"
 }
 
+# app credentials
 variable "google_list_credentials" {
   type        = string
   description = "The credentials for the aircraft list service"
+}
+
+variable "google_monthly_history_credentials" {
+  type        = string
+  description = "The credentials for the airspace monthly history service"
+}
+
+variable "google_daily_history_credentials" {
+  type        = string
+  description = "The credentials for the airspace daily history service"
+}
+
+variable "states_source_credentials" {
+  type        = string
+  description = "The credentials for the states source service"
+}
+
+# kubernetes
+variable "kube_cluster" {
+  type        = string
+  description = "Name of the kubernetes cluster being deployed"
+}
+
+variable "kube_network" {
+  type        = string
+  description = "Name of the VPC network"
+}
+
+variable "kube_subnetwork" {
+  type        = string
+  description = "Name of the VPC subnetwork"
+}
+
+variable "kube_pods_range" {
+  type        = string
+  description = "Name of ip range of pods in kube subnetwork"
+}
+
+variable "kube_services_range" {
+  type        = string
+  description = "Name of ip range of services in kube subnetwork"
+}
+
+variable "kube_namespace" {
+  type        = string
+  description = "Name of the namespace in which the applications will be deployed"
+}
+
+# app
+variable "opensky_bb" {
+  type        = string
+  description = "Env for flink application"
 }

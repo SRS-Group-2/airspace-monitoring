@@ -8,14 +8,27 @@ on:
         required: true
       AIRCRAFT_LIST_GCP_CREDENTIALS:
         required: true
+      AIRSPACE_MONTHLY_GCP_CREDENTIALS:
+        required: true
+      AIRSPACE_DAILY_GCP_CREDENTIALS:
+        required: true
+      STATES_SOURCE_GCP_CREDENTIALS:
+        required: true
 env:
-  REGION: 'us-central1' # TODO
-  GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID: aircraftsTopic
-  GOOGLE_PUBSUB_VECTORS_TOPIC_ID: vectorsTopic
-  GOOGLE_PUBSUB_HISTORY_1_TOPIC_ID: history1Topic
-  GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID: history6Topic
-  GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID: history24Topic
-  GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID: list_sub
+  TF_VAR_region: 'us-central1' # TODO
+  TF_VAR_aircraft_list_topic: aircraftsTopic
+  TF_VAR_vectors_topic: vectorsTopic
+  TF_VAR_history_1_topic: history1Topic
+  TF_VAR_history_6_topic: history6Topic
+  TF_VAR_history_24_topic: history24Topic
+  TF_VAR_aircraft_list_subscriber_id: list_sub
+  TF_VAR_kube_cluster: gke-1
+  TF_VAR_kube_network: vpc-01
+  TF_VAR_kube_subnetwork: sub-vpc-01
+  TF_VAR_kube_pods_range: us-central1-01-gke-01-pods
+  TF_VAR_kube_services_range: us-central1-01-gke-01-services
+  TF_VAR_opensky_bb: 36.619987291,47.1153931748,6.7499552751,18.4802470232
+  TF_VAR_kube_namespace: airspace-monitoring
 
 jobs:
   terraform:
@@ -47,14 +60,10 @@ jobs:
       run: |
         terraform -chdir=terraform plan \
           -var 'project_id=${{ secrets.PROJECT }}' \
-          -var "region=${REGION}" \
-          -var "aircraft_list_topic=${GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID}" \
-          -var "vectors_topic=${GOOGLE_PUBSUB_VECTORS_TOPIC_ID}" \
-          -var "history_1_topic=${GOOGLE_PUBSUB_HISTORY_1_TOPIC_ID}" \
-          -var "history_6_topic=${GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID}" \
-          -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}" \
           -var 'google_list_credentials=${{ secrets.AIRCRAFT_LIST_GCP_CREDENTIALS }}' \
-          -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}"
+          -var 'google_monthly_history_credentials=${{ secrets.AIRSPACE_MONTHLY_GCP_CREDENTIALS }}' \
+          -var 'google_daily_history_credentials=${{ secrets.AIRSPACE_DAILY_GCP_CREDENTIALS }}' \
+          -var 'states_source_credentials=${{ secrets.STATES_SOURCE_GCP_CREDENTIALS }}'
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
     # On push to main, build or change infrastructure according to Terraform configuration files
@@ -64,13 +73,9 @@ jobs:
       run: |
         terraform -chdir=terraform apply -auto-approve \
           -var 'project_id=${{ secrets.PROJECT }}' \
-          -var "region=${REGION}" \
-          -var "aircraft_list_topic=${GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID}" \
-          -var "vectors_topic=${GOOGLE_PUBSUB_VECTORS_TOPIC_ID}" \
-          -var "history_1_topic=${GOOGLE_PUBSUB_HISTORY_1_TOPIC_ID}" \
-          -var "history_6_topic=${GOOGLE_PUBSUB_HISTORY_6_TOPIC_ID}" \
-          -var "history_24_topic=${GOOGLE_PUBSUB_HISTORY_24_TOPIC_ID}" \
           -var 'google_list_credentials=${{ secrets.AIRCRAFT_LIST_GCP_CREDENTIALS }}' \
-          -var "aircraft_list_subscriber=${GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID}"
+          -var 'google_monthly_history_credentials=${{ secrets.AIRSPACE_MONTHLY_GCP_CREDENTIALS }}' \
+          -var 'google_daily_history_credentials=${{ secrets.AIRSPACE_DAILY_GCP_CREDENTIALS }}' \
+          -var 'states_source_credentials=${{ secrets.STATES_SOURCE_GCP_CREDENTIALS }}'
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
