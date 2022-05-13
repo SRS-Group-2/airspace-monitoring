@@ -13,7 +13,6 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 
 const env_port = "PORT"
@@ -90,10 +89,9 @@ var oneDayState = &HistoryState{
 }
 
 func main() {
-	var credJson = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
 
-	client := FirestoreInit([]byte(credJson), projectID)
+	client := FirestoreInit(projectID)
 	defer client.Close()
 
 	// Service just woke up, initialize the values of the states to the sum of what is in the DB
