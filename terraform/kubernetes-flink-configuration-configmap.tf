@@ -1,4 +1,5 @@
 resource "kubernetes_config_map" "flink_config" {
+  depends_on = [kubernetes_namespace.main_namespace]
   metadata {
     name      = "flink-config"
     namespace = var.kube_namespace

@@ -1,5 +1,6 @@
 # # using deployment instead of Job because we don't expect it to end (it's a continuous job for us)
 # resource "kubernetes_deployment" "flink_jobmanager" {
+#   depends_on = [kubernetes_namespace.main_namespace]
 #   metadata {
 #     name      = "flink-jobmanager"
 #     namespace = var.kube_namespace

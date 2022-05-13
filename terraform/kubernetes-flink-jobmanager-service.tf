@@ -1,4 +1,5 @@
 # resource "kubernetes_service" "flink_jobmanager" {
+#   depends_on = [kubernetes_namespace.main_namespace]
 #   metadata {
 #     name      = "flink-jobmanager"
 #     namespace = var.kube_namespace

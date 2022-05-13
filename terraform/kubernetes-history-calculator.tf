@@ -16,6 +16,7 @@ resource "google_service_account_iam_binding" "airspace_history_calculator_bindi
 
 # kubernetes service account for airspace history calculator
 resource "kubernetes_service_account" "airspace_history_calculator_kube_account" {
+  depends_on = [kubernetes_namespace.main_namespace]
   metadata {
     name      = "airspace-history-calculator-account"
     namespace = var.kube_namespace
@@ -36,6 +37,7 @@ resource "google_service_account_iam_binding" "airspace_history_calculator_accou
 }
 
 resource "kubernetes_deployment" "airspace_history_calculator" {
+  depends_on = [kubernetes_namespace.main_namespace]
   metadata {
     name      = "airspace-history-calculator"
     namespace = var.kube_namespace
@@ -47,7 +49,6 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
     selector {
       match_labels = {
         "app"                                    = "history-calculator"
-        "iam.gke.io/gke-metadata-server-enabled" = "true"
       }
     }
 
@@ -95,6 +96,9 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
           }
         }
 
+        node_selector = {
+          "iam.gke.io/gke-metadata-server-enabled" = "true"
+        }
       }
     }
   }

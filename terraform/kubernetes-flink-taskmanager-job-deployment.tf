@@ -1,4 +1,5 @@
 # resource "kubernetes_deployment" "flink_taskmanager" {
+#   depends_on = [kubernetes_namespace.main_namespace]
 #   metadata {
 #     name      = "flink-taskmanager"
 #     namespace = var.kube_namespace
