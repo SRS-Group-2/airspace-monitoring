@@ -27,50 +27,105 @@ const env_ginmode = "GIN_MODE"
 var posTopic *pubsub.Topic
 
 type WSClient struct {
-	icao24     string
-	ch         chan string
-	stopReader chan int
-	stopWriter chan int
-	ws         *websocket.Conn
+	icao24       string
+	ch           chan string
+	chErr        chan string
+	clientCtx    context.Context
+	clientCancel func()
+	ws           *websocket.Conn
 }
 
 func (cl *WSClient) Send(msg string) {
 	cl.ch <- msg
 }
 
+func (cl *WSClient) SendErrAndClose(msg string) {
+	select {
+	case cl.chErr <- msg:
+	default:
+		fmt.Printf("Failed sending error on wsClient")
+		cl.clientCancel()
+	}
+}
+
 func (cl *WSClient) WSReadLoop() {
+	defer cl.clientCancel()
+
 	for {
-		if _, _, err := cl.ws.NextReader(); err != nil {
+		select {
+		case <-cl.clientCtx.Done():
+			return
+		default:
+		}
+
+		msgType, _, err := cl.ws.NextReader()
+
+		if err != nil {
+			cl.clientCancel()
 			cl.ws.Close()
 			hub.UnregisterClient(cl)
-			break
+			return
+		}
+
+		if msgType == websocket.CloseMessage {
+			cl.clientCancel()
+			cl.ws.Close()
+			hub.UnregisterClient(cl)
+			return
 		}
 	}
 }
 
-// func (cl *WSClient) WSWriteLoop() {
-// 	for {
-// 		if _, err := cl.ws.NextWriter(1); err != nil {
-// 			cl.ws.Close()
-// 			hub.UnregisterClient(cl)
-// 			break
-// 		}
-// 	}
-// }
+func (cl *WSClient) WSWriteLoop() {
+	defer cl.clientCancel()
+	defer cl.ws.Close()
+
+	var msg string
+	var err error
+
+	for {
+		select {
+		case msg = <-cl.ch:
+			err = cl.ws.WriteMessage(websocket.TextMessage, []byte(msg))
+
+			if err != nil {
+				fmt.Println(err)
+				cl.clientCancel()
+				cl.ws.Close()
+				hub.UnregisterClient(cl)
+				return
+			}
+
+		case msg = <-cl.chErr:
+			cl.ws.WriteMessage(websocket.CloseMessage, []byte(msg))
+			cl.clientCancel()
+			cl.ws.Close()
+			return
+
+		case <-cl.clientCtx.Done():
+			cl.ws.WriteMessage(websocket.CloseMessage, []byte("Closing the websocket"))
+			cl.ws.Close()
+			return
+		}
+	}
+}
 
 type RefreshableTimer struct {
 	duration       time.Duration
-	stop           chan int
 	refresh        chan int
 	timeoutHandler func()
+	timerCtx       context.Context
+	timerCancel    func()
 }
 
 func (state *RefreshableTimer) StartTimer() {
 	go func() {
+		defer state.timerCancel()
+
 		for {
 			select {
 			case <-state.refresh:
-			case <-state.stop:
+			case <-state.timerCtx.Done():
 				return
 			case <-time.After(state.duration):
 				state.timeoutHandler()
@@ -81,49 +136,59 @@ func (state *RefreshableTimer) StartTimer() {
 }
 
 func (state *RefreshableTimer) StopTimer() {
-	trySend(state.stop)
+	state.timerCancel()
 }
 
 func (state *RefreshableTimer) RefreshTimer() {
 	trySend(state.refresh)
 }
 
-type PubSubListener struct {
-	sync.RWMutex
-	Icao24     string
-	SubID      string
-	cache      string
-	wsClients  []*WSClient
-	stopListen func()
-	timer      RefreshableTimer
+func (state *RefreshableTimer) SetTimeoutHandler(f func()) {
+	state.timeoutHandler = f
 }
 
-func makePubSubListener(icao24 string, subID string, stopListen func()) *PubSubListener {
+type PubSubListener struct {
+	icao24         string
+	subId          string
+	cache          string
+	cacheLock      sync.RWMutex
+	wsClients      []*WSClient
+	clientsLock    sync.RWMutex
+	listenerCtx    context.Context
+	listenerCancel func()
+	timer          RefreshableTimer
+}
+
+func makePubSubListener(icao24 string, subID string, ctx context.Context, stopListen func()) *PubSubListener {
+	timeoutCtx, timeoutCancel := context.WithCancel(context.Background())
 	ps := &PubSubListener{
-		Icao24:     icao24,
-		SubID:      subID,
-		cache:      "",
-		stopListen: stopListen,
+		icao24:         icao24,
+		subId:          subID,
+		cache:          "",
+		listenerCtx:    ctx,
+		listenerCancel: stopListen,
 		timer: RefreshableTimer{
-			duration:       time.Second * 30,
-			stop:           make(chan int, 5),
-			refresh:        make(chan int, 5),
-			timeoutHandler: stopListen,
+			duration:    time.Second * 30,
+			refresh:     make(chan int, 5),
+			timerCtx:    timeoutCtx,
+			timerCancel: timeoutCancel,
 		},
 	}
 	return ps
 }
 
 func (state *PubSubListener) AddWSClient(cli *WSClient) {
-	state.Lock()
-	defer state.Unlock()
+	state.clientsLock.Lock()
+	defer state.clientsLock.Unlock()
 	state.wsClients = append(state.wsClients, cli)
 }
 
 func (state *PubSubListener) RemoveWSClient(cli *WSClient) {
-	state.Lock()
-	defer state.Unlock()
-	idx := slices.IndexFunc(state.wsClients, func(c *WSClient) bool { return *c == *cli })
+	state.clientsLock.Lock()
+	defer state.clientsLock.Unlock()
+
+	idx := slices.IndexFunc(state.wsClients, func(c *WSClient) bool { return c == cli })
+
 	if idx >= 0 {
 		length := len(state.wsClients) - 1
 		state.wsClients[idx] = state.wsClients[length]
@@ -134,28 +199,38 @@ func (state *PubSubListener) RemoveWSClient(cli *WSClient) {
 }
 
 func (state *PubSubListener) SendAll(msg string) {
-	state.RLock()
-	defer state.RUnlock()
+	state.clientsLock.RLock()
+	defer state.clientsLock.RUnlock()
 	for i := 0; i < len(state.wsClients); i++ {
 		state.wsClients[i].Send(msg)
 	}
 }
 
+func (state *PubSubListener) SendAllErr(msg string) {
+	state.clientsLock.RLock()
+	defer state.clientsLock.RUnlock()
+	for i := 0; i < len(state.wsClients); i++ {
+		state.wsClients[i].SendErrAndClose(msg)
+	}
+}
+
 func (state *PubSubListener) GetCache() string {
-	state.RLock()
-	defer state.RUnlock()
+	state.cacheLock.RLock()
+	defer state.cacheLock.RUnlock()
 	return state.cache
 }
 
 func (state *PubSubListener) SetCache(val string) {
-	state.Lock()
-	defer state.Unlock()
+	state.cacheLock.Lock()
+	defer state.cacheLock.Unlock()
 	state.cache = val
 }
 
 func (state *PubSubListener) StartPubSubListener(ctx context.Context) {
-	filter := `"attributes.icao24 = "` + state.Icao24 + `"`
-	sub, err := gcp.CreateSubscription(state.SubID+"_"+state.Icao24, posTopic, filter)
+	defer state.listenerCancel()
+
+	filter := `"attributes.icao24 = "` + state.icao24 + `"`
+	sub, err := gcp.CreateSubscription(state.subId+"_"+state.icao24, posTopic, filter)
 	checkErr(err)
 
 	state.timer.StartTimer()
@@ -175,12 +250,12 @@ func (state *PubSubListener) StartPubSubListener(ctx context.Context) {
 	if err != nil {
 		fmt.Println("Error in Pub/Sub Receive: ", err)
 		state.timer.StopTimer()
+		hub.UnregisterFailedListener(state)
 	}
 }
 
 func (state *PubSubListener) StopPubSubListener() {
-	state.timer.StopTimer()
-	state.stopListen()
+	state.listenerCancel()
 }
 
 type Hub struct {
@@ -193,24 +268,24 @@ func (h *Hub) RegisterClient(cl *WSClient) {
 	h.Lock()
 	defer h.Unlock()
 
-	if h.icaos[cl.icao24] == nil {
-		cancellableCtx, cancel := context.WithCancel(context.Background())
+	if existingListener, ok := h.icaos[cl.icao24]; ok {
+		existingListener.AddWSClient(cl)
 
-		psListener := makePubSubListener(cl.icao24, h.SubID, cancel)
-
-		h.icaos[cl.icao24] = psListener
-
-		h.icaos[cl.icao24].AddWSClient(cl)
-
-		go psListener.StartPubSubListener(cancellableCtx)
-
-	} else {
-		h.icaos[cl.icao24].AddWSClient(cl)
-
-		firstVal := h.icaos[cl.icao24].GetCache()
+		firstVal := existingListener.GetCache()
 		if firstVal != "" {
 			cl.Send(firstVal)
 		}
+	} else {
+		cancellableCtx, listenerCancel := context.WithCancel(context.Background())
+
+		newListener := makePubSubListener(cl.icao24, h.SubID, cancellableCtx, listenerCancel)
+		newListener.timer.SetTimeoutHandler(h.MakeListenerTimeoutHandler(newListener))
+
+		h.icaos[cl.icao24] = newListener
+
+		h.icaos[cl.icao24].AddWSClient(cl)
+
+		go newListener.StartPubSubListener(cancellableCtx)
 	}
 }
 
@@ -227,9 +302,30 @@ func (h *Hub) UnregisterClient(cl *WSClient) {
 
 	length := len(psListener.wsClients)
 	if length <= 0 {
-		psListener.StopPubSubListener()
+		psListener.listenerCancel()
+		psListener.timer.StopTimer()
 
-		h.icaos[cl.icao24] = nil
+		delete(h.icaos, cl.icao24)
+	}
+}
+
+func (h *Hub) UnregisterFailedListener(ls *PubSubListener) {
+	h.Lock()
+	defer h.Unlock()
+
+	fmt.Println("UnregisterFailedListener: ", ls.icao24)
+
+	// Notify all clients of the error and stop the writer/listeners goroutines
+	ls.SendAllErr("Error: server was unable to receive positions")
+
+	// Delete the PubSubListener from the map of active listeners
+	delete(h.icaos, ls.icao24)
+}
+
+func (h *Hub) MakeListenerTimeoutHandler(ls *PubSubListener) func() {
+	return func() {
+		ls.listenerCancel()
+		h.UnregisterFailedListener(ls)
 	}
 }
 
@@ -275,33 +371,21 @@ func httpRequestHandler(c *gin.Context) {
 		return
 	}
 
-	defer ws.Close()
+	cancellableCtx, cancel := context.WithCancel(context.Background())
 
 	cl := &WSClient{
-		ws:         ws,
-		icao24:     icao24,
-		ch:         make(chan string, 100),
-		stopReader: make(chan int, 5),
-		stopWriter: make(chan int, 5),
+		ws:           ws,
+		icao24:       icao24,
+		ch:           make(chan string, 100),
+		chErr:        make(chan string, 10),
+		clientCtx:    cancellableCtx,
+		clientCancel: cancel,
 	}
 
 	hub.RegisterClient(cl)
 
 	go cl.WSReadLoop()
-
-	var msg string
-
-	for {
-		msg = <-cl.ch
-		err = ws.WriteMessage(websocket.TextMessage, []byte(msg))
-
-		if err != nil {
-			fmt.Println(err)
-			hub.UnregisterClient(cl)
-			break
-		}
-	}
-
+	go cl.WSReadLoop()
 }
 
 func validIcao24(icao24 string) bool {
