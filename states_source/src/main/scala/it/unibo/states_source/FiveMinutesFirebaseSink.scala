@@ -9,6 +9,7 @@ import java.io.FileInputStream
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import scala.collection.JavaConverters._
+import java.io.ByteArrayInputStream
 
 import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.WriteResult
