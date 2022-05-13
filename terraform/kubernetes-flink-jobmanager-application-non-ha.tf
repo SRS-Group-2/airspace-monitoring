@@ -64,8 +64,8 @@
 #           }
 
 #           env {
-#             name   = "COORDINATES"
-#             values = var.opensky_bb
+#             name  = "COORDINATES"
+#             value = var.opensky_bb
 #           }
 
 #           port {
