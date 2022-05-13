@@ -91,3 +91,9 @@ variable "kube_services_range" {
   type        = string
   description = "Name of ip range of services in kube subnetwork"
 }
+
+# app
+variable "opensky_bb" {
+  type        = string
+  description = "Env for flink application"
+}

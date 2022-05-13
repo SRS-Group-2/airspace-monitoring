@@ -63,6 +63,11 @@
 #             value = var.vectors_topic
 #           }
 
+#           env {
+#             name   = "COORDINATES"
+#             values = var.opensky_bb
+#           }
+
 #           port {
 #             name           = "rpc"
 #             container_port = 6123
