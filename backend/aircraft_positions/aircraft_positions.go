@@ -48,34 +48,6 @@ func (cl *WSClient) SendErrAndClose(msg string) {
 	}
 }
 
-func (cl *WSClient) WSReadLoop() {
-	defer cl.clientCancel()
-
-	for {
-		select {
-		case <-cl.clientCtx.Done():
-			return
-		default:
-		}
-
-		msgType, _, err := cl.ws.NextReader()
-
-		if err != nil {
-			cl.clientCancel()
-			cl.ws.Close()
-			hub.UnregisterClient(cl)
-			return
-		}
-
-		if msgType == websocket.CloseMessage {
-			cl.clientCancel()
-			cl.ws.Close()
-			hub.UnregisterClient(cl)
-			return
-		}
-	}
-}
-
 func (cl *WSClient) WSWriteLoop() {
 	defer cl.clientCancel()
 	defer cl.ws.Close()
@@ -105,6 +77,34 @@ func (cl *WSClient) WSWriteLoop() {
 		case <-cl.clientCtx.Done():
 			cl.ws.WriteMessage(websocket.CloseMessage, []byte("Closing the websocket"))
 			cl.ws.Close()
+			return
+		}
+	}
+}
+
+func (cl *WSClient) WSReadLoop() {
+	defer cl.clientCancel()
+
+	for {
+		select {
+		case <-cl.clientCtx.Done():
+			return
+		default:
+		}
+
+		msgType, _, err := cl.ws.NextReader()
+
+		if err != nil {
+			cl.clientCancel()
+			cl.ws.Close()
+			hub.UnregisterClient(cl)
+			return
+		}
+
+		if msgType == websocket.CloseMessage {
+			cl.clientCancel()
+			cl.ws.Close()
+			hub.UnregisterClient(cl)
 			return
 		}
 	}
@@ -159,22 +159,32 @@ type PubSubListener struct {
 	timer          RefreshableTimer
 }
 
-func makePubSubListener(icao24 string, subID string, ctx context.Context, stopListen func()) *PubSubListener {
-	timeoutCtx, timeoutCancel := context.WithCancel(context.Background())
-	ps := &PubSubListener{
-		icao24:         icao24,
-		subId:          subID,
-		cache:          "",
-		listenerCtx:    ctx,
-		listenerCancel: stopListen,
-		timer: RefreshableTimer{
-			duration:    time.Second * 30,
-			refresh:     make(chan int, 5),
-			timerCtx:    timeoutCtx,
-			timerCancel: timeoutCancel,
-		},
+func (state *PubSubListener) StartPubSubListener(ctx context.Context) {
+	defer state.listenerCancel()
+
+	filter := `"attributes.icao24 = "` + state.icao24 + `"`
+	sub, err := gcp.CreateSubscription(state.subId+"_"+state.icao24, posTopic, filter)
+	checkErr(err)
+
+	state.timer.StartTimer()
+
+	err = sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
+		defer msg.Ack()
+
+		state.timer.RefreshTimer()
+
+		strMsg := string(msg.Data)
+
+		state.SendAll(strMsg)
+
+		state.SetCache(strMsg)
+	})
+
+	if err != nil {
+		fmt.Println("Error in Pub/Sub Receive: ", err)
+		state.timer.StopTimer()
+		hub.UnregisterFailedListener(state)
 	}
-	return ps
 }
 
 func (state *PubSubListener) AddWSClient(cli *WSClient) {
@@ -226,36 +236,24 @@ func (state *PubSubListener) SetCache(val string) {
 	state.cache = val
 }
 
-func (state *PubSubListener) StartPubSubListener(ctx context.Context) {
-	defer state.listenerCancel()
+func NewPubSubListener(icao24 string, subID string, ctx context.Context, stopListen func()) *PubSubListener {
+	timeoutCtx, timeoutCancel := context.WithCancel(context.Background())
 
-	filter := `"attributes.icao24 = "` + state.icao24 + `"`
-	sub, err := gcp.CreateSubscription(state.subId+"_"+state.icao24, posTopic, filter)
-	checkErr(err)
-
-	state.timer.StartTimer()
-
-	err = sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
-		state.timer.RefreshTimer()
-
-		strMsg := string(msg.Data)
-
-		state.SendAll(strMsg)
-
-		state.SetCache(strMsg)
-
-		msg.Ack()
-	})
-
-	if err != nil {
-		fmt.Println("Error in Pub/Sub Receive: ", err)
-		state.timer.StopTimer()
-		hub.UnregisterFailedListener(state)
+	ls := PubSubListener{
+		icao24:         icao24,
+		subId:          subID,
+		cache:          "",
+		listenerCtx:    ctx,
+		listenerCancel: stopListen,
+		timer: RefreshableTimer{
+			duration:    time.Second * 30,
+			refresh:     make(chan int, 5),
+			timerCtx:    timeoutCtx,
+			timerCancel: timeoutCancel,
+		},
 	}
-}
 
-func (state *PubSubListener) StopPubSubListener() {
-	state.listenerCancel()
+	return &ls
 }
 
 type Hub struct {
@@ -278,7 +276,7 @@ func (h *Hub) RegisterClient(cl *WSClient) {
 	} else {
 		cancellableCtx, listenerCancel := context.WithCancel(context.Background())
 
-		newListener := makePubSubListener(cl.icao24, h.SubID, cancellableCtx, listenerCancel)
+		newListener := NewPubSubListener(cl.icao24, h.SubID, cancellableCtx, listenerCancel)
 		newListener.timer.SetTimeoutHandler(h.MakeListenerTimeoutHandler(newListener))
 
 		h.icaos[cl.icao24] = newListener
@@ -330,6 +328,8 @@ func (h *Hub) MakeListenerTimeoutHandler(ls *PubSubListener) func() {
 }
 
 var hub = Hub{}
+
+var upgrader = websocket.Upgrader{}
 
 func main() {
 
@@ -412,40 +412,3 @@ func trySend(ch chan int) {
 	default:
 	}
 }
-
-func tryRecv(ch chan int) bool {
-	select {
-	case <-ch:
-		return true
-	default:
-		return false
-	}
-}
-
-func pubsubHandler(topicID string, subscriptionID string) {
-
-	topic, err := gcp.GetTopic(topicID)
-	checkErr(err)
-
-	sub, err := gcp.GetSubscription(subscriptionID, topic)
-	checkErr(err)
-
-	err = sub.Receive(context.Background(), func(ctx context.Context, msg *pubsub.Message) {
-		messageHandler(subscriptionID, ctx, msg)
-	})
-	checkErr(err)
-}
-
-func messageHandler(subscriptionID string, ctx context.Context, msg *pubsub.Message) {
-	defer func() {
-		if r := recover(); r != nil {
-			msg.Ack()
-		}
-	}()
-
-	msg.Ack()
-
-	// aircraftList.Write(string(msg.Data))
-}
-
-var upgrader = websocket.Upgrader{}
