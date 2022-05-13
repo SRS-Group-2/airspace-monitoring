@@ -46,7 +46,7 @@
 #         container {
 #           name  = "jobmanager"
 #           image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/states_source:latest"
-#           args  = ["standalone-job", "--job-classname", "org.myorg.quickstart.WordCount"]
+#           args  = ["standalone-job", "--job-classname", "it.unibo.states_source.Main"]
 
 #           env {
 #             name  = "GOOGLE_APPLICATION_CREDENTIALS"
