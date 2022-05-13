@@ -21,7 +21,7 @@
 
 #       spec {
 #         container {
-#           name  = "airspace_history_calculator"
+#           name  = "airspace-history-calculator"
 #           image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_history_calculator:latest"
 
 #           env {
