@@ -52,20 +52,12 @@ resource "google_cloud_run_service" "aircraft_list" {
       containers {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/aircraft_list:latest"
         env {
-          name  = "GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID"
-          value = var.aircraft_list_topic
-        }
-        env {
           name  = "GOOGLE_APPLICATION_CREDENTIALS"
           value = var.google_list_credentials
         }
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id
-        }
-        env {
-          name  = "GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID"
-          value = var.aircraft_list_subscriber_id
         }
       }
     }

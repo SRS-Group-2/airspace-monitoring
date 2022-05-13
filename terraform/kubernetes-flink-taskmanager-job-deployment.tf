@@ -1,107 +1,151 @@
-# resource "kubernetes_deployment" "flink_taskmanager" {
-#   depends_on = [kubernetes_namespace.main_namespace]
-#   metadata {
-#     name      = "flink-taskmanager"
-#     namespace = var.kube_namespace
-#   }
+# service account for flink
+resource "google_service_account" "flink" {
+  account_id   = "flink-source"
+  display_name = "A service account for Flink"
+}
 
-#   spec {
-#     replicas = 1
+# bind the service account to the necessary roles
+resource "google_project_iam_binding" "flink_firestore_binding" {
+  project = var.project_id
+  role    = "roles/datastore.user"
 
-#     selector {
-#       match_labels = {
-#         app = "flink"
+  members = [
+    "serviceAccount:${google_service_account.flink.email}",
+  ]
+}
 
-#         component = "taskmanager"
-#       }
-#     }
+resource "google_project_iam_binding" "flink_pubsub_binding" {
+  project = var.project_id
+  role    = "roles/pubsub.publisher" // TODO check whether editor is necessary
 
-#     template {
-#       metadata {
-#         labels = {
-#           app = "flink"
+  members = [
+    "serviceAccount:${google_service_account.flink.email}",
+  ]
+}
 
-#           component = "taskmanager"
-#         }
-#       }
+# kubernetes service account for airspace history calculator
+resource "kubernetes_service_account" "flink_kube_account" {
+  depends_on = [kubernetes_namespace.main_namespace]
+  metadata {
+    name      = "flink-account"
+    namespace = var.kube_namespace
+    annotations = {
+      "iam.gke.io/gcp-service-account" = google_service_account.flink.email
+    }
+  }
+}
 
-#       spec {
-#         volume {
-#           name = "flink-config-volume"
+# bind service account and kubernetes service account
+resource "google_service_account_iam_binding" "flink_accounts_binding" {
+  service_account_id = google_service_account.flink.name
+  role               = "roles/iam.workloadIdentityUser"
 
-#           config_map {
-#             name = "flink-config"
+  members = [
+    "serviceAccount:${var.project_id}.svc.id.goog[${var.kube_namespace}/${kubernetes_service_account.flink_kube_account.metadata[0].name}]",
+  ]
+}
 
-#             items {
-#               key  = "flink-conf.yaml"
-#               path = "flink-conf.yaml"
-#             }
+resource "kubernetes_deployment" "flink_taskmanager" {
+  depends_on = [kubernetes_namespace.main_namespace]
+  metadata {
+    name      = "flink-taskmanager"
+    namespace = var.kube_namespace
+  }
 
-#             items {
-#               key  = "log4j-console.properties"
-#               path = "log4j-console.properties"
-#             }
-#           }
-#         }
+  spec {
+    replicas = 1
 
-#         container {
-#           name  = "taskmanager"
-#           image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/states_source:latest"
-#           args  = ["taskmanager"]
+    selector {
+      match_labels = {
+        app = "flink"
 
-#           env {
-#             name  = "GOOGLE_APPLICATION_CREDENTIALS"
-#             value = var.states_source_credentials
-#           }
+        component = "taskmanager"
+      }
+    }
 
-#           env {
-#             name  = "GOOGLE_CLOUD_PROJECT_ID"
-#             value = var.project_id
-#           }
+    template {
+      metadata {
+        labels = {
+          app = "flink"
 
-#           env {
-#             name  = "GOOGLE_PUBSUB_VECTORS_TOPIC_ID"
-#             value = var.vectors_topic
-#           }
+          component = "taskmanager"
+        }
+      }
 
-#           env {
-#             name  = "COORDINATES"
-#             value = var.opensky_bb
-#           }
+      spec {
+        service_account_name = kubernetes_service_account.flink_kube_account.metadata[0].name
+        volume {
+          name = "flink-config-volume"
 
-#           port {
-#             name           = "rpc"
-#             container_port = 6122
-#           }
+          config_map {
+            name = "flink-config"
 
-#           port {
-#             name           = "query-state"
-#             container_port = 6125
-#           }
+            items {
+              key  = "flink-conf.yaml"
+              path = "flink-conf.yaml"
+            }
 
-#           volume_mount {
-#             name       = "flink-config-volume"
-#             mount_path = "/opt/flink/conf/"
-#           }
+            items {
+              key  = "log4j-console.properties"
+              path = "log4j-console.properties"
+            }
+          }
+        }
 
-#           liveness_probe {
-#             tcp_socket {
-#               port = "6122"
-#             }
+        container {
+          name  = "taskmanager"
+          image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/states_source:latest"
+          args  = ["taskmanager"]
 
-#             initial_delay_seconds = 60
-#             period_seconds        = 60
-#           }
+          env {
+            name  = "GOOGLE_CLOUD_PROJECT_ID"
+            value = var.project_id
+          }
 
-#           security_context {
-#             run_as_user = 9999
-#           }
-#         }
+          env {
+            name  = "GOOGLE_PUBSUB_VECTORS_TOPIC_ID"
+            value = var.vectors_topic
+          }
 
-#         node_selector = {
-#           node_type = "small"
-#         }
-#       }
-#     }
-#   }
-# }
+          env {
+            name  = "COORDINATES"
+            value = var.opensky_bb
+          }
+
+          port {
+            name           = "rpc"
+            container_port = 6122
+          }
+
+          port {
+            name           = "query-state"
+            container_port = 6125
+          }
+
+          volume_mount {
+            name       = "flink-config-volume"
+            mount_path = "/opt/flink/conf/"
+          }
+
+          liveness_probe {
+            tcp_socket {
+              port = "6122"
+            }
+
+            initial_delay_seconds = 60
+            period_seconds        = 60
+          }
+
+          security_context {
+            run_as_user = 9999
+          }
+        }
+
+        node_selector = {
+          node_type                                = "small"
+          "iam.gke.io/gke-metadata-server-enabled" = "true"
+        }
+      }
+    }
+  }
+}

@@ -74,20 +74,6 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
             value = "release"
           }
 
-          #           port {
-          #             name           = "port"
-          #             container_port = 8080
-          #           }
-
-          #           liveness_probe {
-          #             tcp_socket {
-          #               port = "6122"
-          #             }
-
-          #             initial_delay_seconds = 60
-          #             period_seconds        = 60
-          #           }
-
           security_context {
             run_as_user = 9999
           }
