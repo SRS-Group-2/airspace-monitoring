@@ -1,5 +1,5 @@
 # Google PubSub
-resource "google_pubsub_topic" "pubsub_list" {
+/*resource "google_pubsub_topic" "pubsub_list" {
   project = var.project_id
   name    = var.aircraft_list_topic
 }
@@ -38,3 +38,4 @@ resource "google_pubsub_topic" "pubsub_24h" {
 #     ttl = "300000.5s"
 #   }
 # }
+*/

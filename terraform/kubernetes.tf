@@ -1,3 +1,4 @@
+/*
 data "google_client_config" "default" {}
 
 provider "kubernetes" {
@@ -64,3 +65,4 @@ resource "google_project_iam_member" "allow_image_pull" {
   role    = "roles/artifactregistry.reader"
   member  = "serviceAccount:${module.gke.service_account}"
 }
+*/

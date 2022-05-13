@@ -9,11 +9,12 @@ variable "region" {
   description = "The region where to deploy"
 }
 
-# pubsub
+# # pubsub
 variable "aircraft_list_topic" {
   type        = string
   description = "The name of the PubSub topic with the list of aircrafts"
 }
+
 
 variable "vectors_topic" {
   type        = string
@@ -40,7 +41,7 @@ variable "aircraft_list_subscriber_id" {
   description = "The id of the subscriber for the aircraft_list"
 }
 
-# app credentials
+# # app credentials
 variable "google_list_credentials" {
   type        = string
   description = "The credentials for the aircraft list service"
@@ -52,32 +53,32 @@ variable "google_monthly_history_credentials" {
 }
 
 # kubernetes
-variable "kube_cluster" {
-  type        = string
-  description = "Name of the kubernetes cluster being deployed"
-}
+# variable "kube_cluster" {
+#   type        = string
+#   description = "Name of the kubernetes cluster being deployed"
+# }
 
-variable "kube_network" {
-  type        = string
-  description = "Name of the VPC network"
-}
+# variable "kube_network" {
+#   type        = string
+#   description = "Name of the VPC network"
+# }
 
-variable "kube_subnetwork" {
-  type        = string
-  description = "Name of the VPC subnetwork"
-}
+# variable "kube_subnetwork" {
+#   type        = string
+#   description = "Name of the VPC subnetwork"
+# }
 
-variable "kube_pods_range" {
-  type        = string
-  description = "Name of ip range of pods in kube subnetwork"
-}
+# variable "kube_pods_range" {
+#   type        = string
+#   description = "Name of ip range of pods in kube subnetwork"
+# }
 
-variable "kube_services_range" {
-  type        = string
-  description = "Name of ip range of services in kube subnetwork"
-}
+# variable "kube_services_range" {
+#   type        = string
+#   description = "Name of ip range of services in kube subnetwork"
+# }
 
-variable "flink_version" {
-  type        = string
-  description = "Label of Flink container image"
-}
+# variable "flink_version" {
+#   type        = string
+#   description = "Label of Flink container image"
+# }

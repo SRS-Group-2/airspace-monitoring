@@ -1,4 +1,4 @@
-resource "kubernetes_service" "flink_jobmanager" {
+/*resource "kubernetes_service" "flink_jobmanager" {
   metadata {
     name = "flink-jobmanager"
   }
@@ -28,3 +28,4 @@ resource "kubernetes_service" "flink_jobmanager" {
     type = "ClusterIP"
   }
 }
+*/

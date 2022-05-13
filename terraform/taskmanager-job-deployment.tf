@@ -1,4 +1,4 @@
-resource "kubernetes_deployment" "flink_taskmanager" {
+/*resource "kubernetes_deployment" "flink_taskmanager" {
   metadata {
     name = "flink-taskmanager"
   }
@@ -79,3 +79,4 @@ resource "kubernetes_deployment" "flink_taskmanager" {
     }
   }
 }
+*/

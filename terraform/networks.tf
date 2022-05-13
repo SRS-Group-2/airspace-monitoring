@@ -1,3 +1,5 @@
+/*
+
 resource "google_compute_subnetwork" "kubernetes_subnetwork" {
   name          = var.kube_subnetwork
   ip_cidr_range = "10.2.0.0/16"
@@ -18,3 +20,4 @@ resource "google_compute_network" "kubernetes_network" {
   name                    = var.kube_network
   auto_create_subnetworks = false
 }
+*/

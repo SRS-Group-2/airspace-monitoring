@@ -1,5 +1,5 @@
 # using deployment instead of Job because we don't expect it to end (it's a continuous job for us)
-resource "kubernetes_deployment" "flink_jobmanager" {
+/*resource "kubernetes_deployment" "flink_jobmanager" {
   metadata {
     name = "flink-jobmanager"
   }
@@ -85,3 +85,4 @@ resource "kubernetes_deployment" "flink_jobmanager" {
     }
   }
 }
+*/

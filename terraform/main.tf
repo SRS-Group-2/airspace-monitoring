@@ -5,15 +5,15 @@ terraform {
       source  = "hashicorp/google"
       version = "4.20.0"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "2.11.0"
-    }
+    # kubernetes = {
+    #  source  = "hashicorp/kubernetes"
+    # version = "2.11.0"
+    #}
   }
 
   # where to save states
   backend "gcs" {
-    bucket = "choir-tf-state"
+    bucket = "choir-tf-state3"
     prefix = "terraform/state"
   }
 }
@@ -23,4 +23,11 @@ provider "google" {
   project = var.project_id
   region  = var.region
   zone    = "${var.region}-c"
+}
+
+provider "google-beta" {
+  project = var.project_id
+  region  = var.region
+  zone    = "${var.region}-c"
+
 }

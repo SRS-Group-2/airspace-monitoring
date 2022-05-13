@@ -63,7 +63,10 @@ A useful tool to locally test workflows is [`act`](https://github.com/nektos/act
 
 ### Terraform
 ```
+
+
 gcloud init
+terraform -chdir=terraform init
 terraform -chdir=terraform fmt
 terraform -chdir=terraform validate
 terraform -chdir=terraform plan
@@ -75,3 +78,18 @@ To configure `kubectl` (see https://cloud.google.com/kubernetes-engine/docs/how-
 ```
 gcloud container clusters get-credentials gke-1 --zone "us-central1"
 ```
+
+PROCEDIMENTO
+1. creare bucket su cloud storage
+OK
+2. creare docker repo su artifact registry 
+ok
+3. push immagine su repo
+ok
+4. terraform -chdir=terraform apply
+ok
+provare richiesta su browser al link.etc..etc
+
+1. definire tutti servizi 
+
+2. rate-limiting
