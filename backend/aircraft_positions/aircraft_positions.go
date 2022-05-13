@@ -81,11 +81,11 @@ func (state *RefreshableTimer) StartTimer() {
 }
 
 func (state *RefreshableTimer) StopTimer() {
-	tryNotifyCh(state.stop)
+	trySend(state.stop)
 }
 
 func (state *RefreshableTimer) RefreshTimer() {
-	tryNotifyCh(state.refresh)
+	trySend(state.refresh)
 }
 
 type PubSubListener struct {
@@ -214,13 +214,6 @@ func (h *Hub) RegisterClient(cl *WSClient) {
 	}
 }
 
-func tryNotifyCh(ch chan int) {
-	select {
-	case ch <- 1:
-	default:
-	}
-}
-
 func (h *Hub) UnregisterClient(cl *WSClient) {
 	h.Lock()
 	defer h.Unlock()
@@ -327,6 +320,22 @@ func mustGetenv(k string) string {
 		panic("Environment variable not set: " + k)
 	}
 	return v
+}
+
+func trySend(ch chan int) {
+	select {
+	case ch <- 1:
+	default:
+	}
+}
+
+func tryRecv(ch chan int) bool {
+	select {
+	case <-ch:
+		return true
+	default:
+		return false
+	}
 }
 
 func pubsubHandler(topicID string, subscriptionID string) {
