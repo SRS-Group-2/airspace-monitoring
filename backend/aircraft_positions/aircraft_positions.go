@@ -162,7 +162,7 @@ type PubSubListener struct {
 func (state *PubSubListener) StartPubSubListener(ctx context.Context) {
 	defer state.listenerCancel()
 
-	filter := `"attributes.icao24 = "` + state.icao24 + `"`
+	filter := "attributes.icao24=\"" + state.icao24 + "\""
 	sub, err := gcp.CreateSubscription(state.subId+"_"+state.icao24, posTopic, filter)
 	defer gcp.DeleteSubscription(state.subId+"_"+state.icao24, posTopic)
 	checkErr(err)
@@ -311,8 +311,6 @@ func (h *Hub) UnregisterClient(cl *WSClient) {
 func (h *Hub) UnregisterFailedListener(ls *PubSubListener) {
 	h.Lock()
 	defer h.Unlock()
-
-	fmt.Println("UnregisterFailedListener: ", ls.icao24)
 
 	// Notify all clients of the error and stop the writer/listeners goroutines
 	ls.SendAllErr("Error: server was unable to receive positions")

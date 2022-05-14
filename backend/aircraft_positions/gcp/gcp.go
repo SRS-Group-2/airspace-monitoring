@@ -87,6 +87,5 @@ func DeleteSubscription(subID string, topic *pubsub.Topic) error {
 	if err := sub.Delete(ctx); err != nil {
 		return fmt.Errorf("delete: %v", err)
 	}
-	fmt.Println("Deleted subscription: ", subID)
 	return nil
 }
