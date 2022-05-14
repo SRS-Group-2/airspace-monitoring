@@ -7,7 +7,7 @@ resource "google_service_account" "aircraft_list_sa" {
 # bind the service account to the necessary roles
 resource "google_project_iam_binding" "aircraft_list_binding" {
   project = var.project_id
-  role    = "roles/datastore.user"
+  role    = "roles/datastore.viewer"
 
   members = [
     "serviceAccount:${google_service_account.aircraft_list_sa.email}",
