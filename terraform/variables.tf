@@ -15,27 +15,6 @@ variable "vectors_topic" {
   description = "The name of the PubSub topic with the state vectors"
 }
 
-# app credentials
-variable "google_list_credentials" {
-  type        = string
-  description = "The credentials for the aircraft list service"
-}
-
-variable "google_monthly_history_credentials" {
-  type        = string
-  description = "The credentials for the airspace monthly history service"
-}
-
-variable "google_daily_history_credentials" {
-  type        = string
-  description = "The credentials for the airspace daily history service"
-}
-
-variable "states_source_credentials" {
-  type        = string
-  description = "The credentials for the states source service"
-}
-
 # kubernetes
 variable "kube_cluster" {
   type        = string
