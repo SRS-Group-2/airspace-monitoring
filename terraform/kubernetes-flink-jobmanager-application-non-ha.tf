@@ -52,11 +52,6 @@
 #           args  = ["standalone-job", "--job-classname", "it.unibo.states_source.Main"]
 
 #           env {
-#             name  = "GOOGLE_APPLICATION_CREDENTIALS"
-#             value = var.states_source_credentials
-#           }
-
-#           env {
 #             name  = "GOOGLE_CLOUD_PROJECT_ID"
 #             value = var.project_id
 #           }
