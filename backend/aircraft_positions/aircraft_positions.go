@@ -386,7 +386,7 @@ func httpRequestHandler(c *gin.Context) {
 
 	hub.RegisterClient(cl)
 
-	go cl.WSReadLoop()
+	go cl.WSWriteLoop()
 	go cl.WSReadLoop()
 }
 
