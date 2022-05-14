@@ -3,6 +3,7 @@ package gcp
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"google.golang.org/api/option"
 
@@ -77,4 +78,15 @@ func CreateSubscription(subName string, topic *pubsub.Topic, filter string) (*pu
 	sub, err = PubsubClient.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{Topic: topic, Filter: filter})
 
 	return sub, err
+}
+
+func DeleteSubscription(subID string, topic *pubsub.Topic) error {
+	ctx := context.Background()
+
+	sub := PubsubClient.Subscription(subID)
+	if err := sub.Delete(ctx); err != nil {
+		return fmt.Errorf("delete: %v", err)
+	}
+	fmt.Println("Deleted subscription: ", subID)
+	return nil
 }
