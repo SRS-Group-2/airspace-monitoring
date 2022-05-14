@@ -161,10 +161,10 @@ type PubSubListener struct {
 
 func (state *PubSubListener) StartPubSubListener(ctx context.Context) {
 	defer state.listenerCancel()
-	defer gcp.DeleteSubscription(state.subId, posTopic)
 
 	filter := `"attributes.icao24 = "` + state.icao24 + `"`
 	sub, err := gcp.CreateSubscription(state.subId+"_"+state.icao24, posTopic, filter)
+	defer gcp.DeleteSubscription(state.subId+"_"+state.icao24, posTopic)
 	checkErr(err)
 
 	state.timer.StartTimer()
