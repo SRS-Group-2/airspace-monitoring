@@ -329,10 +329,11 @@ func (h *Hub) MakeListenerTimeoutHandler(ls *PubSubListener) func() {
 
 var hub = Hub{}
 
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true },
+}
 
 func main() {
-
 	var credJson = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
 	var topicID = mustGetenv(env_topicID)
@@ -367,6 +368,7 @@ func httpRequestHandler(c *gin.Context) {
 	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		// TODO check what best to do here
+		c.String(http.StatusUpgradeRequired, "Websocket upgrade failed")
 		fmt.Println(err)
 		return
 	}
