@@ -19,21 +19,3 @@ paths:
           description: OK
           schema:
             type: string
-x-google-backend:
-  address: https://aircraft-info2-37b64nc45a-uc.a.run.app
-paths:
-  /airspace/aircraft/{icao24}/info:
-    get:
-      parameters:
-        - in: path
-          name: icao24
-          type: string
-          required: true
-          description: Icao24 of the aircraft.
-      summary: aircraft-info
-      operationId: aircraft-info
-      responses:
-        '200':
-          description: OK
-          schema:
-            type: string

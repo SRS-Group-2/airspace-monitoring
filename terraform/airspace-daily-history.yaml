@@ -8,9 +8,9 @@ schemes:
 produces:
   - application/json
 x-google-backend:
-  address: <CLOUD RUN URL>
+  address: https://airspace-daily-history-37b64nc45a-uc.a.run.app
 paths:
-  /airspace/history/realtime/{interlval}:
+  /airspace/history/realtime/{interval}:
     get:
       parameters:
         - in: path
@@ -25,3 +25,4 @@ paths:
           description: OK
           schema:
             type: string
+ 

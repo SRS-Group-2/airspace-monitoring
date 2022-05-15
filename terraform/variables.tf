@@ -14,6 +14,7 @@ variable "google_list_credentials" {
   description = "gcp credentials"
 }
 
+/*
 
 variable "vectors_topic" {
   type        = string
@@ -40,7 +41,7 @@ variable "google_monthly_history_credentials" {
   type        = string
   description = "The credentials for the airspace monthly history service"
 }
-
+*/
 # kubernetes
 # variable "kube_cluster" {
 #   type        = string

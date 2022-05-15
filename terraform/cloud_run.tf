@@ -88,19 +88,20 @@ resource "google_cloud_run_service_iam_policy" "noauth_aircraft_list" {
 
   policy_data = data.google_iam_policy.noauth.policy_data
 }
+
 /*
 # # Aircraft History service
-resource "google_cloud_run_service" "airspace_monthly_history" {
-  name     = "airspace-monthly-history"
+resource "google_cloud_run_service" "airspace_daily_history" {
+  name     = "airspace-daily-history"
   location = var.region
 
   template {
     spec {
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_monthly_history:latest"
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_daily_history:latest"
         env {
           name  = "GOOGLE_APPLICATION_CREDENTIALS"
-          value = var.google_monthly_history_credentials
+          value = var.google_list_credentials
         }
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
@@ -122,10 +123,10 @@ resource "google_cloud_run_service" "airspace_monthly_history" {
     latest_revision = true
   }
 }
-resource "google_cloud_run_service_iam_policy" "noauth_airspace_monthly_history" {
-  location    = google_cloud_run_service.airspace_monthly_history.location
-  project     = google_cloud_run_service.airspace_monthly_history.project
-  service     = google_cloud_run_service.airspace_monthly_history.name
+resource "google_cloud_run_service_iam_policy" "noauth_airspace_daily_history" {
+  location    = google_cloud_run_service.airspace_daily_history.location
+  project     = google_cloud_run_service.airspace_daily_history.project
+  service     = google_cloud_run_service.airspace_daily_history.name
   policy_data = data.google_iam_policy.noauth.policy_data
 }
 */
