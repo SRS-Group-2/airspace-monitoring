@@ -5,7 +5,7 @@
 # }
 
 # # bind the service account to the necessary roles
-# resource "google_project_iam_binding" "flink_firestore_binding" {
+# resource "google_project_iam_binding" "flink_firestore_binding_user" {
 #   project = var.project_id
 #   role    = "roles/datastore.user"
 
@@ -91,6 +91,16 @@
 #             }
 #           }
 #         }
+
+#          init_container {
+#            name  = "workload-identity-initcontainer"
+#            image = "alpine/curl:3.14" // gcr.io/google.com/cloudsdktool/cloud-sdk:326.0.0-alpine
+#            command = [
+#              "/bin/sh",
+#              "-c",
+#              "echo Going to sleep it out && sleep 20 && (curl -s -H 'Metadata-Flavor: Google' 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token' --retry 30 --retry-connrefused --retry-max-time 30 > /dev/null && echo Metadata server working) || exit 1"
+#            ]
+#          }
 
 #         container {
 #           name  = "taskmanager"
