@@ -26,6 +26,7 @@ provider "google" {
 }
 
 provider "google-beta" {
+  #scredentials = "a.json"
   project = var.project_id
   region  = var.region
   zone    = "${var.region}-c"

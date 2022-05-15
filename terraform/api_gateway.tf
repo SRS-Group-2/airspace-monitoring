@@ -2,6 +2,7 @@ locals {
   api_config_id_prefix     = "api"
   api_gateway_container_id = "api-gw"
   gateway_id               = "gw"
+
 }
 
 resource "google_api_gateway_api" "api_gw" {
@@ -15,13 +16,14 @@ resource "google_api_gateway_api_config" "api_cfg" {
   provider             = google-beta
   api                  = google_api_gateway_api.api_gw.api_id
   api_config_id_prefix = local.api_config_id_prefix
-  display_name         = "aircraft-info-gateway"
+  display_name         = "aircraft-gateway"
 
   openapi_documents {
     document {
-      path     = "spec.yaml"
-      contents = filebase64("aircraft_info.yaml")
+      path     = "aircraft_list.yaml"
+      contents = filebase64("aircraft_list.yaml")
     }
+  
   }
 }
 
@@ -36,3 +38,8 @@ resource "google_api_gateway_gateway" "gw" {
 
   depends_on = [google_api_gateway_api_config.api_cfg]
 }
+
+
+
+
+    

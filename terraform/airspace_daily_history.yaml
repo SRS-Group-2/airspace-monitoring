@@ -1,0 +1,27 @@
+swagger: '2.0'
+info:
+  title: api-gateway
+  description: API Gateway
+  version: 1.0.0
+schemes:
+  - https
+produces:
+  - application/json
+x-google-backend:
+  address: <CLOUD RUN URL>
+paths:
+  /airspace/history/realtime/{interlval}:
+    get:
+      parameters:
+        - in: path
+          name: interval
+          type: string
+          required: true
+          description: Interval hour.
+      summary: history-realtime
+      operationId: history-realtime
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string

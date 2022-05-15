@@ -9,10 +9,9 @@ variable "region" {
   description = "The region where to deploy"
 }
 
-# # pubsub
-variable "aircraft_list_topic" {
+variable "google_list_credentials" {
   type        = string
-  description = "The name of the PubSub topic with the list of aircrafts"
+  description = "gcp credentials"
 }
 
 
@@ -36,16 +35,6 @@ variable "history_24_topic" {
   description = "The name of the PubSub topic with the distanche and CO2 of the last twentyfour hours"
 }
 
-variable "aircraft_list_subscriber_id" {
-  type        = string
-  description = "The id of the subscriber for the aircraft_list"
-}
-
-# # app credentials
-variable "google_list_credentials" {
-  type        = string
-  description = "The credentials for the aircraft list service"
-}
 
 variable "google_monthly_history_credentials" {
   type        = string

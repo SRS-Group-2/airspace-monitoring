@@ -45,7 +45,7 @@ resource "google_cloud_run_service_iam_policy" "noauth_aircraft_info" {
 }
 
 
-/*
+
 # # Aircraft List service
 resource "google_cloud_run_service" "aircraft_list" {
   name     = "aircraft-list"
@@ -55,10 +55,7 @@ resource "google_cloud_run_service" "aircraft_list" {
     spec {
       containers {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/aircraft_list:latest"
-        env {
-          name  = "GOOGLE_PUBSUB_AIRCRAFT_LIST_TOPIC_ID"
-          value = var.aircraft_list_topic
-        }
+
         env {
           name  = "GOOGLE_APPLICATION_CREDENTIALS"
           value = var.google_list_credentials
@@ -67,10 +64,7 @@ resource "google_cloud_run_service" "aircraft_list" {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id
         }
-        env {
-          name  = "GOOGLE_PUBSUB_AIRCRAFT_LIST_SUBSCRIBER_ID"
-          value = var.aircraft_list_subscriber_id
-        }
+
       }
     }
     metadata {
@@ -94,7 +88,7 @@ resource "google_cloud_run_service_iam_policy" "noauth_aircraft_list" {
 
   policy_data = data.google_iam_policy.noauth.policy_data
 }
-
+/*
 # # Aircraft History service
 resource "google_cloud_run_service" "airspace_monthly_history" {
   name     = "airspace-monthly-history"
