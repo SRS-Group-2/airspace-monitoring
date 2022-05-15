@@ -42,7 +42,7 @@ module "gke" {
     },
     {
       name               = "small-node-pool"
-      machine_type       = "e2-micro" # "e2-small"
+      machine_type       = "e2-small"
       node_locations     = "${var.region}-c"
       min_count          = 1
       max_count          = 1
