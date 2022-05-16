@@ -16,8 +16,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
-
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const env_topicID = "GOOGLE_PUBSUB_AIRCRAFT_POSITIONS_TOPIC_ID"
 
@@ -342,11 +340,10 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
-	var credJson = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
 	var topicID = mustGetenv(env_topicID)
 
-	err := gcp.Initialize(credJson, projectID)
+	err := gcp.Initialize(projectID)
 	checkErr(err)
 	defer gcp.PubsubClient.Close()
 

@@ -8,7 +8,6 @@ require (
 	github.com/google/uuid v1.1.5
 	github.com/gorilla/websocket v1.5.0
 	golang.org/x/exp v0.0.0-20220428152302-39d4317da171
-	google.golang.org/api v0.78.0
 )
 
 require (
@@ -36,6 +35,7 @@ require (
 	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29 // indirect
 	golang.org/x/sys v0.0.0-20220513210249-45d2b4557a2a // indirect
 	golang.org/x/text v0.3.7 // indirect
+	google.golang.org/api v0.78.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220505152158-f39f71e6c8f3 // indirect
 	google.golang.org/grpc v1.46.2 // indirect

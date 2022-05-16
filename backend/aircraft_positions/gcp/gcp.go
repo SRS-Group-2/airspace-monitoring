@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"google.golang.org/api/option"
-
 	"cloud.google.com/go/pubsub"
 )
 
@@ -14,12 +12,11 @@ import (
 var PubsubClient *pubsub.Client
 
 // Initialize initializes GCP client service using the environment.
-func Initialize(credJson string, projectName string) error {
+func Initialize(projectName string) error {
 	var err error
 	ctx := context.Background()
-	credentialOpt := option.WithCredentialsJSON([]byte(credJson))
 
-	PubsubClient, err = pubsub.NewClient(ctx, projectName, credentialOpt)
+	PubsubClient, err = pubsub.NewClient(ctx, projectName)
 	return err
 }
 
