@@ -1,18 +1,20 @@
 locals {
-  api_config_id_prefix      = "api"
+  api_config_id_prefix      = "airspace-monitoring"
   ////
   api_gateway_container_id  = "api-gw"
   api_gateway_container_id2 = "api-gw2"
   api_gateway_container_id3 = "api-gw3"
+  api_gateway_container_id4 = "api-gw4"
   ////
   gateway_id                = "gw"
   gateway_id2               = "gw2"
   gateway_id3               = "gw3"
+  gateway_id4               = "gw4"
 
 }
 
-///////////////////GOOGLE_API_GATEWAY////////////////////////
-//1
+
+
 resource "google_api_gateway_api" "api_gw" {
   provider     = google-beta
   api_id       = local.api_gateway_container_id
@@ -36,7 +38,6 @@ resource "google_api_gateway_api_config" "api_cfg" {
 
   }
 }
-
 
 resource "google_api_gateway_gateway" "gw" {
   provider = google-beta
@@ -116,7 +117,7 @@ resource "google_api_gateway_api_config" "api_cfg3" {
 
   openapi_documents {
     document {
-      path     = "airspace-daily-historyt.yaml"
+      path     = "airspace-daily-history.yaml"
       contents = filebase64("airspace-daily-history.yaml")
     }
   }
@@ -134,4 +135,46 @@ resource "google_api_gateway_gateway" "gw3" {
   display_name = "The Gateway for daili history"
 
   depends_on = [google_api_gateway_api_config.api_cfg3]
+}
+
+
+///////////////////////////////////////////////////////////////
+
+
+
+resource "google_api_gateway_api" "api_gw4" {
+  provider     = google-beta
+  api_id       = local.api_gateway_container_id4
+  display_name = "airspace-daily-history"
+
+}
+
+
+
+resource "google_api_gateway_api_config" "api_cfg4" {
+  provider             = google-beta
+  api                  = google_api_gateway_api.api_gw4.api_id
+  api_config_id_prefix = local.api_config_id_prefix
+  display_name         = "airspace-monthly-history"
+
+  openapi_documents {
+    document {
+      path     = "airspace-monthly-history.yaml"
+      contents = filebase64("airspace-monthly-history.yaml")
+    }
+  }
+
+}
+
+
+resource "google_api_gateway_gateway" "gw4" {
+  provider = google-beta
+  region   = var.region
+
+  api_config = google_api_gateway_api_config.api_cfg4.id
+
+  gateway_id   = local.gateway_id4
+  display_name = "The Gateway for daili history"
+
+  depends_on = [google_api_gateway_api_config.api_cfg4]
 }
