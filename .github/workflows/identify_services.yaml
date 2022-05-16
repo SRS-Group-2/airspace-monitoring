@@ -38,7 +38,7 @@ jobs:
           while IFS= read -r file
           do
             # echo checking $file
-            if [[ "${file%/*}" == *"/"* ]]; then
+            if [[ -d "${file%/*}" ]]; then
               # Working on a directory
               # find all subdirectories
               IFS='/' read -r -a ARRAY <<< "${file%/*}"

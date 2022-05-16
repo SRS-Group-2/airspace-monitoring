@@ -12,8 +12,6 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
-
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 
 const env_port = "PORT"
@@ -21,11 +19,10 @@ const env_ginmode = "GIN_MODE"
 
 func main() {
 
-	var credString = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
 
 	//DB
-	client := FirestoreInit([]byte(credString), projectID)
+	client := FirestoreInit(projectID)
 	defer client.Close()
 
 	router := gin.New()

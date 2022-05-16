@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 
 const env_port = "PORT"
@@ -42,11 +41,9 @@ var aircraftList = AircraftList{
 }
 
 func main() {
-
-	var credJson = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
 
-	go backgroundUpdateState(credJson, projectID, "aircraft-list", &aircraftList)
+	go backgroundUpdateState(projectID, "aircraft-list", &aircraftList)
 
 	router := gin.New()
 
@@ -75,9 +72,9 @@ func mustGetenv(k string) string {
 	return v
 }
 
-func backgroundUpdateState(credString string, projectId string, documentID string, state *AircraftList) {
+func backgroundUpdateState(projectId string, documentID string, state *AircraftList) {
 
-	client := FirestoreInit([]byte(credString), projectId)
+	client := FirestoreInit(projectId)
 	defer client.Close()
 
 	ctx := context.Background()
