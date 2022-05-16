@@ -3,32 +3,27 @@ locals {
   api_config_id_prefix      = "airspace-monitoring"
   ////
   api_gateway_container_id  = "api-gw"
-  api_gateway_container_id2 = "api-gw2"
-  api_gateway_container_id3 = "api-gw3"
-  api_gateway_container_id4 = "api-gw4"
-  api_gateway_container_id5 = "api-gw5"
+#   api_gateway_container_id2 = "api-gw2"
+#   api_gateway_container_id3 = "api-gw3"
+#   api_gateway_container_id4 = "api-gw4"
+#   api_gateway_container_id5 = "api-gw5"
   ////
-  gateway_id                = "gw"
-  gateway_id2               = "gw2"
-  gateway_id3               = "gw3"
-  gateway_id4               = "gw4"
-  gateway_id5               = "gw5"
-  ///
-  
-  aircraft_info_cr_url = google_cloud_run_service.aircraft_info.status[0].url
-  /*aircraft_list_cr_url = google_cloud_run_service.aircraft_list.status[0].url
-  airspace_daily_history_cr_url = google_cloud_run_service.airspace_daily_history.status[0].url
-  airspace_monthly_history_cr_url = google_cloud_run_service.airspace_monthly_history.status[0].url
-*/
+ # gateway_id                = "gw"
+
+ # aircraft_info_cr_url = google_cloud_run_service.aircraft_info.status[0].url
+
 }
 
 
 data "template_file" "aircraft_info" {
-  template = "${file("aircraft_info.yaml")}"
+  template = "${file("aircraft.yaml")}"
   vars ={
     aircraft_info_url="${google_cloud_run_service.aircraft_info.status[0].url}"
+    aircraft_list_url="${google_cloud_run_service.aircraft_list.status[0].url}"
+    airspace_daily_history_url = "${google_cloud_run_service.airspace_daily_history.status[0].url}"
+    airspace_monthly_history_url = "${google_cloud_run_service.airspace_monthly_history.status[0].url}"
   }
-   depends_on = [google_cloud_run_service.aircraft_info]
+   depends_on = [google_cloud_run_service.aircraft_info, google_cloud_run_service.aircraft_list, google_cloud_run_service.airspace_daily_history, google_cloud_run_service.airspace_monthly_history]
 }
 
 
@@ -72,127 +67,126 @@ resource "google_api_gateway_gateway" "gw" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-
-resource "google_api_gateway_api" "api_gw2" {
-  provider     = google-beta
-  api_id       = local.api_gateway_container_id2
-  display_name = "airspace-list"
-
-}
 
 
+# resource "google_api_gateway_api" "api_gw2" {
+#   provider     = google-beta
+#   api_id       = local.api_gateway_container_id2
+#   display_name = "airspace-list"
 
-resource "google_api_gateway_api_config" "api_cfg2" {
-  provider             = google-beta
-  api                  = google_api_gateway_api.api_gw2.api_id
-  api_config_id_prefix = local.api_config_id_prefix
-  display_name         = "airspace-list"
-
-  openapi_documents {
-    document {
-      path     = "aircraft_list.yaml"
-      contents = filebase64("aircraft_list.yaml")
-    }
-  }
-
-}
+# }
 
 
-resource "google_api_gateway_gateway" "gw2" {
-  provider = google-beta
-  region   = var.region
 
-  api_config = google_api_gateway_api_config.api_cfg2.id
+# resource "google_api_gateway_api_config" "api_cfg2" {
+#   provider             = google-beta
+#   api                  = google_api_gateway_api.api_gw2.api_id
+#   api_config_id_prefix = local.api_config_id_prefix
+#   display_name         = "airspace-list"
 
-  gateway_id   = local.gateway_id2
-  display_name = "The Gateway for airspace-monitoring2"
+#   openapi_documents {
+#     document {
+#       path     = "aircraft_list.yaml"
+#       contents = filebase64("aircraft_list.yaml")
+#     }
+#   }
 
-  depends_on = [google_api_gateway_api_config.api_cfg2]
-}
+# }
+
+
+# resource "google_api_gateway_gateway" "gw2" {
+#   provider = google-beta
+#   region   = var.region
+
+#   api_config = google_api_gateway_api_config.api_cfg2.id
+
+#   gateway_id   = local.gateway_id2
+#   display_name = "The Gateway for airspace-monitoring2"
+
+#   depends_on = [google_api_gateway_api_config.api_cfg2]
+# }
 
 
     
 ///////////////////////////////////////////
 
 
-resource "google_api_gateway_api" "api_gw3" {
-  provider     = google-beta
-  api_id       = local.api_gateway_container_id3
-  display_name = "airspace-daily-history"
+# resource "google_api_gateway_api" "api_gw3" {
+#   provider     = google-beta
+#   api_id       = local.api_gateway_container_id3
+#   display_name = "airspace-daily-history"
 
-}
-
-
-
-resource "google_api_gateway_api_config" "api_cfg3" {
-  provider             = google-beta
-  api                  = google_api_gateway_api.api_gw3.api_id
-  api_config_id_prefix = local.api_config_id_prefix
-  display_name         = "airspace-daily-history"
-
-  openapi_documents {
-    document {
-      path     = "airspace-daily-history.yaml"
-      contents = filebase64("airspace-daily-history.yaml")
-    }
-  }
-
-}
+# }
 
 
-resource "google_api_gateway_gateway" "gw3" {
-  provider = google-beta
-  region   = var.region
 
-  api_config = google_api_gateway_api_config.api_cfg3.id
+# resource "google_api_gateway_api_config" "api_cfg3" {
+#   provider             = google-beta
+#   api                  = google_api_gateway_api.api_gw3.api_id
+#   api_config_id_prefix = local.api_config_id_prefix
+#   display_name         = "airspace-daily-history"
 
-  gateway_id   = local.gateway_id3
-  display_name = "The Gateway for daili history"
+#   openapi_documents {
+#     document {
+#       path     = "airspace-daily-history.yaml"
+#       contents = filebase64("airspace-daily-history.yaml")
+#     }
+#   }
 
-  depends_on = [google_api_gateway_api_config.api_cfg3]
-}
+# }
+
+
+# resource "google_api_gateway_gateway" "gw3" {
+#   provider = google-beta
+#   region   = var.region
+
+#   api_config = google_api_gateway_api_config.api_cfg3.id
+
+#   gateway_id   = local.gateway_id3
+#   display_name = "The Gateway for daili history"
+
+#   depends_on = [google_api_gateway_api_config.api_cfg3]
+# }
 
 
 ///////////////////////////////////////////////////////////////
 
-resource "google_api_gateway_api" "api_gw4" {
-  provider     = google-beta
-  api_id       = local.api_gateway_container_id4
-  display_name = "airspace-daily-history"
+# resource "google_api_gateway_api" "api_gw4" {
+#   provider     = google-beta
+#   api_id       = local.api_gateway_container_id4
+#   display_name = "airspace-daily-history"
 
-}
-
-
-
-resource "google_api_gateway_api_config" "api_cfg4" {
-  provider             = google-beta
-  api                  = google_api_gateway_api.api_gw4.api_id
-  api_config_id_prefix = local.api_config_id_prefix
-  display_name         = "airspace-monthly-history"
-
-  openapi_documents {
-    document {
-      path     = "airspace-monthly-history.yaml"
-      contents = filebase64("airspace-monthly-history.yaml")
-    }
-  }
-
-}
+# }
 
 
-resource "google_api_gateway_gateway" "gw4" {
-  provider = google-beta
-  region   = var.region
 
-  api_config = google_api_gateway_api_config.api_cfg4.id
+# resource "google_api_gateway_api_config" "api_cfg4" {
+#   provider             = google-beta
+#   api                  = google_api_gateway_api.api_gw4.api_id
+#   api_config_id_prefix = local.api_config_id_prefix
+#   display_name         = "airspace-monthly-history"
 
-  gateway_id   = local.gateway_id4
-  display_name = "The Gateway for monthly history"
+#   openapi_documents {
+#     document {
+#       path     = "airspace-monthly-history.yaml"
+#       contents = filebase64("airspace-monthly-history.yaml")
+#     }
+#   }
 
-  depends_on = [google_api_gateway_api_config.api_cfg4]
-}
+# }
 
-/////
 
-*/
+# resource "google_api_gateway_gateway" "gw4" {
+#   provider = google-beta
+#   region   = var.region
+
+#   api_config = google_api_gateway_api_config.api_cfg4.id
+
+#   gateway_id   = local.gateway_id4
+#   display_name = "The Gateway for monthly history"
+
+#   depends_on = [google_api_gateway_api_config.api_cfg4]
+# }
+
+# /////
+

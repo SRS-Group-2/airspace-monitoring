@@ -1,0 +1,57 @@
+swagger: '2.0'
+info:
+  title: api-gateway
+  description: API Gateway
+  version: 1.0.0
+schemes:
+  - https
+produces:
+  - application/json
+x-google-backend:
+  address: ${aircraft_info_url}
+paths:
+  /airspace/aircraft/{icao24}/info:
+    get:
+      parameters:
+        - in: path
+          name: icao24
+          type: string
+          required: true
+          description: Icao24 of the aircraft.
+      summary: aircraft-info
+      operationId: aircraft-info
+      x-google-backend:
+        address: ${aircraft_info_url}
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  /airspace/aircraft/list:
+    get:
+      summary: aircraft-list
+      operationId: aircraft-list
+      x-google-backend:
+        address: ${aircraft_info_url}
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  /airspace/history/realtime/{interval}:
+    get:
+      parameters:
+        - in: path
+          name: interval
+          type: string
+          required: true
+          description: Interval hour.
+      summary: history-realtime
+      operationId: history-realtime-monthly
+        x-google-backend:
+        address: ${airspace_daily_history_url}
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
