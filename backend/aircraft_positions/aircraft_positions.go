@@ -28,6 +28,7 @@ var posTopic *pubsub.Topic
 
 type WSClient struct {
 	icao24       string
+	cliId        string
 	ch           chan string
 	chErr        chan string
 	clientCtx    context.Context
@@ -199,7 +200,7 @@ func (state *PubSubListener) RemoveWSClient(cli *WSClient) {
 	state.clientsLock.Lock()
 	defer state.clientsLock.Unlock()
 
-	idx := slices.IndexFunc(state.wsClients, func(c *WSClient) bool { return c == cli })
+	idx := slices.IndexFunc(state.wsClients, func(c *WSClient) bool { return c.cliId == cli.cliId })
 
 	if idx >= 0 {
 		length := len(state.wsClients) - 1
@@ -383,6 +384,7 @@ func httpRequestHandler(c *gin.Context) {
 	cl := &WSClient{
 		ws:           ws,
 		icao24:       icao24,
+		cliId:        uuid.New().String(),
 		ch:           make(chan string, 100),
 		chErr:        make(chan string, 10),
 		clientCtx:    cancellableCtx,
