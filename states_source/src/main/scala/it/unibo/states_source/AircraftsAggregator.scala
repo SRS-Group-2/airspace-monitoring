@@ -16,12 +16,12 @@ class AircraftsAggregator extends AggregateFunction[String,List[String],Aircraft
   override def getResult(acc:List[String])= {
     
     val myDate  = Date.from(Instant.now())
-    val formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
+    val formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm")
     val timestamp = formatter.format(myDate);
     
     new Aircrafts(timestamp,acc.distinct)
-
-    }
+  }
 
   override def merge(a: List[String],b:List[String])= a++b
+
 }

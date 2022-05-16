@@ -13,7 +13,6 @@ class MinimalStateAggregator extends AggregateFunction[MinimalState,Array[Int],(
   override def createAccumulator() = {
     status= new MinimalState("",0,0,"")
     Array[Int](0,0)
-
   }
 
   override def add(min: MinimalState, acc : Array[Int]) =  {
@@ -21,7 +20,7 @@ class MinimalStateAggregator extends AggregateFunction[MinimalState,Array[Int],(
     this.status=min
     var co2 : Int = 0
     if(distance>0){
-    co2 = (distance*0.375).toInt
+      co2 = (distance*0.375).toInt
     }
     acc(0)=acc(0)+co2
     acc(1)=acc(1)+distance

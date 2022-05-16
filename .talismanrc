@@ -6,3 +6,8 @@ fileignoreconfig:
 - filename: frontend/web_ui/statics/index.js
   checksum: b8dc8f600cb06517a1901003afddadf61afa0b2915f94ac25e40ecc2bfe651b1
 version: ""
+
+fileignoreconfig:
+- filename: states_source/src/main/scala/it/unibo/states_source/Main.scala
+  checksum: 6c24f4f44adbebd10b90459c218fb1c2f44395c97a7a8160213fb38370bbe3ae
+version: ""

@@ -20,6 +20,7 @@ package it.unibo.states_source;
  */
 
 
+
 import org.apache.flink.api.common.serialization.RuntimeContextInitializationContextAdapters;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.configuration.Configuration;
@@ -96,6 +97,8 @@ public class CustomPubSubSink<MinimalState> extends RichSinkFunction<MinimalStat
         this.topicName = topicName;
         this.hostAndPortForEmulator = hostAndPortForEmulator;
     }
+
+
 
     private transient ManagedChannel managedChannel = null;
     private transient TransportChannel channel = null;
@@ -200,6 +203,7 @@ public class CustomPubSubSink<MinimalState> extends RichSinkFunction<MinimalStat
                         .build();
 
         ApiFuture<String> future = publisher.publish(pubsubMessage);
+        LOG.info("Message published on the pubsub");
         numPendingFutures.incrementAndGet();
         ApiFutures.addCallback(future, failureHandler, directExecutor());
     }
