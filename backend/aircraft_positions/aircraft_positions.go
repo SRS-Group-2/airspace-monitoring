@@ -11,6 +11,7 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"golang.org/x/exp/slices"
 )
@@ -19,7 +20,6 @@ const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const env_topicID = "GOOGLE_PUBSUB_AIRCRAFT_POSITIONS_TOPIC_ID"
-const env_subID = "GOOGLE_PUBSUB_AIRCRAFT_POSITIONS_SUBSCRIBER_ID"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
@@ -163,8 +163,9 @@ func (state *PubSubListener) StartPubSubListener(ctx context.Context) {
 	defer state.listenerCancel()
 
 	filter := "attributes.icao24=\"" + state.icao24 + "\""
-	sub, err := gcp.CreateSubscription(state.subId+"_"+state.icao24, posTopic, filter)
-	defer gcp.DeleteSubscription(state.subId+"_"+state.icao24, posTopic)
+
+	sub, err := gcp.CreateSubscription(state.subId, posTopic, filter)
+	defer gcp.DeleteSubscription(state.subId, posTopic)
 	checkErr(err)
 
 	state.timer.StartTimer()
@@ -237,8 +238,16 @@ func (state *PubSubListener) SetCache(val string) {
 	state.cache = val
 }
 
-func NewPubSubListener(icao24 string, subID string, ctx context.Context, stopListen func()) *PubSubListener {
+func NewPubSubListener(icao24 string, ctx context.Context, stopListen func()) *PubSubListener {
 	timeoutCtx, timeoutCancel := context.WithCancel(context.Background())
+
+	/* SubIDs are required to:
+	start with a letter,
+	be longer than 3 and shorted than 255 characters,
+	not start with "goog"
+	contain only Letters [A-Za-z], numbers [0-9], dashes -, underscores _, periods ., tildes ~, plus signs +, and percent signs %
+	*/
+	subID := "sub_" + icao24 + "_" + uuid.New().String()
 
 	ls := PubSubListener{
 		icao24:         icao24,
@@ -260,7 +269,6 @@ func NewPubSubListener(icao24 string, subID string, ctx context.Context, stopLis
 type Hub struct {
 	sync.RWMutex
 	icaos map[string]*PubSubListener
-	SubID string
 }
 
 func (h *Hub) RegisterClient(cl *WSClient) {
@@ -277,7 +285,7 @@ func (h *Hub) RegisterClient(cl *WSClient) {
 	} else {
 		cancellableCtx, listenerCancel := context.WithCancel(context.Background())
 
-		newListener := NewPubSubListener(cl.icao24, h.SubID, cancellableCtx, listenerCancel)
+		newListener := NewPubSubListener(cl.icao24, cancellableCtx, listenerCancel)
 		newListener.timer.SetTimeoutHandler(h.MakeListenerTimeoutHandler(newListener))
 
 		h.icaos[cl.icao24] = newListener
@@ -336,7 +344,6 @@ func main() {
 	var credJson = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
 	var topicID = mustGetenv(env_topicID)
-	var subID = mustGetenv(env_subID)
 
 	err := gcp.Initialize(credJson, projectID)
 	checkErr(err)
@@ -346,7 +353,6 @@ func main() {
 	checkErr(err)
 
 	hub.icaos = make(map[string]*PubSubListener)
-	hub.SubID = subID
 
 	router := gin.New()
 
@@ -383,7 +389,7 @@ func httpRequestHandler(c *gin.Context) {
 		clientCancel: cancel,
 	}
 
-	hub.RegisterClient(cl)
+	go hub.RegisterClient(cl)
 
 	go cl.WSWriteLoop()
 	go cl.WSReadLoop()
