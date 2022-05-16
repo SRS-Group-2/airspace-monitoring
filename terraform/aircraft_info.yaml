@@ -8,7 +8,7 @@ schemes:
 produces:
   - application/json
 x-google-backend:
-  address: https://aircraft-info2-37b64nc45a-uc.a.run.app
+  address: ${aircraft_info_url}
 paths:
   /airspace/aircraft/{icao24}/info:
     get:

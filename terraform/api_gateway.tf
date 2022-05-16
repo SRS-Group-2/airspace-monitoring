@@ -1,3 +1,4 @@
+
 locals {
   api_config_id_prefix      = "airspace-monitoring"
   ////
@@ -5,21 +6,36 @@ locals {
   api_gateway_container_id2 = "api-gw2"
   api_gateway_container_id3 = "api-gw3"
   api_gateway_container_id4 = "api-gw4"
+  api_gateway_container_id5 = "api-gw5"
   ////
   gateway_id                = "gw"
   gateway_id2               = "gw2"
   gateway_id3               = "gw3"
   gateway_id4               = "gw4"
-
+  gateway_id5               = "gw5"
+  ///
+  
+  aircraft_info_cr_url = google_cloud_run_service.aircraft_info.status[0].url
+  /*aircraft_list_cr_url = google_cloud_run_service.aircraft_list.status[0].url
+  airspace_daily_history_cr_url = google_cloud_run_service.airspace_daily_history.status[0].url
+  airspace_monthly_history_cr_url = google_cloud_run_service.airspace_monthly_history.status[0].url
+*/
 }
 
+
+data "template_file" "aircraft_info" {
+  template = "${file("aircraft_info.yaml")}"
+  vars ={
+    aircraft_info_url="${google_cloud_run_service.aircraft_info.status[0].url}"
+  }
+   depends_on = [google_cloud_run_service.aircraft_info]
+}
 
 
 resource "google_api_gateway_api" "api_gw" {
   provider     = google-beta
   api_id       = local.api_gateway_container_id
   display_name = "airspace-info"
-
 }
 
 
@@ -32,12 +48,13 @@ resource "google_api_gateway_api_config" "api_cfg" {
   openapi_documents {
     document {
       path     = "aircraft_info.yaml"
-      contents = filebase64("aircraft_info.yaml")
+      contents = base64encode(data.template_file.aircraft_info.rendered)
+     
     }
-
 
   }
 }
+
 
 resource "google_api_gateway_gateway" "gw" {
   provider = google-beta
@@ -55,8 +72,7 @@ resource "google_api_gateway_gateway" "gw" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
+/*
 
 resource "google_api_gateway_api" "api_gw2" {
   provider     = google-beta
@@ -140,8 +156,6 @@ resource "google_api_gateway_gateway" "gw3" {
 
 ///////////////////////////////////////////////////////////////
 
-
-
 resource "google_api_gateway_api" "api_gw4" {
   provider     = google-beta
   api_id       = local.api_gateway_container_id4
@@ -174,7 +188,11 @@ resource "google_api_gateway_gateway" "gw4" {
   api_config = google_api_gateway_api_config.api_cfg4.id
 
   gateway_id   = local.gateway_id4
-  display_name = "The Gateway for daili history"
+  display_name = "The Gateway for monthly history"
 
   depends_on = [google_api_gateway_api_config.api_cfg4]
 }
+
+/////
+
+*/
