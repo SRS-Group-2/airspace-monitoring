@@ -10,6 +10,7 @@ COPY go.sum ./
 
 RUN go mod download
 
+COPY gcp/ ./gcp
 COPY *.go ./
 
 RUN GOOS=linux go build -a -o /app.exe
