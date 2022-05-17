@@ -1,5 +1,5 @@
 
-# Aircraft Info service
+# Web UI service
 resource "google_cloud_run_service" "web_ui" {
   name     = "web-ui"
   location = var.region
