@@ -71,7 +71,7 @@ jobs:
       - name: Clone OpenSky API repo
         run: git clone https://github.com/openskynetwork/opensky-api.git
       - name: Install OpenSky API
-        run: mvn -q -f ./opensky-api/java/pom.xml install
+        run: mvn -q -f ./opensky-api/java/pom.xml install  -DskipTests -Dmaven.javadoc.skip=true
       - uses: actions/checkout@v3
       - name: Check if Spotbugs plugin is configured in Maven project
         id: plugin_presence
