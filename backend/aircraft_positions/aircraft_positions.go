@@ -4,11 +4,13 @@ import (
 	gcp "aircraft_positions/gcp"
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"sync"
 	"time"
 
+	"cloud.google.com/go/logging"
 	"cloud.google.com/go/pubsub"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -18,6 +20,7 @@ import (
 
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const env_topicID = "GOOGLE_PUBSUB_AIRCRAFT_POSITIONS_TOPIC_ID"
+const env_logName = "GOOGLE_LOG_NAME_AIRCRAFT_POSITIONS"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
@@ -42,7 +45,7 @@ func (cl *WSClient) SendErrAndClose(msg string) {
 	select {
 	case cl.chErr <- msg:
 	default:
-		fmt.Printf("Failed sending error on wsClient")
+		logDebug.Println("Failed to notify WSWriteLoop of error: ", msg)
 		cl.clientCancel()
 	}
 }
@@ -60,10 +63,10 @@ func (cl *WSClient) WSWriteLoop() {
 			err = cl.ws.WriteMessage(websocket.TextMessage, []byte(msg))
 
 			if err != nil {
-				fmt.Println(err)
 				cl.clientCancel()
 				cl.ws.Close()
 				hub.UnregisterClient(cl)
+				logErr.Println("Error writing to ws with icao24=", cl.icao24, ", err: ", err)
 				return
 			}
 
@@ -71,11 +74,13 @@ func (cl *WSClient) WSWriteLoop() {
 			cl.ws.WriteMessage(websocket.CloseMessage, []byte(msg))
 			cl.clientCancel()
 			cl.ws.Close()
+			logDebug.Println("Closing WS with icao24=", cl.icao24, " due some error (positions unavailable).")
 			return
 
 		case <-cl.clientCtx.Done():
 			cl.ws.WriteMessage(websocket.CloseMessage, []byte("Closing the websocket"))
 			cl.ws.Close()
+			logDebug.Println("Closing WS with icao24=", cl.icao24, ": operation cancelled.")
 			return
 		}
 	}
@@ -94,6 +99,7 @@ func (cl *WSClient) WSReadLoop() {
 		msgType, _, err := cl.ws.NextReader()
 
 		if err != nil {
+			logErr.Println("Error reading from websocket with icao24=", cl.icao24, ", err: ", err)
 			cl.clientCancel()
 			cl.ws.Close()
 			hub.UnregisterClient(cl)
@@ -104,6 +110,7 @@ func (cl *WSClient) WSReadLoop() {
 			cl.clientCancel()
 			cl.ws.Close()
 			hub.UnregisterClient(cl)
+			logDebug.Println("Closing websocket with icao24=", cl.icao24, " due to client close request.")
 			return
 		}
 	}
@@ -125,6 +132,7 @@ func (state *RefreshableTimer) StartTimer() {
 			select {
 			case <-state.refresh:
 			case <-state.timerCtx.Done():
+				logDebug.Println("Stopping timer, operation cancelled.")
 				return
 			case <-time.After(state.duration):
 				state.timeoutHandler()
@@ -163,6 +171,8 @@ func (state *PubSubListener) StartPubSubListener(ctx context.Context) {
 
 	filter := "attributes.icao24=\"" + state.icao24 + "\""
 
+	logDebug.Println("Creating new pubsub subscription: ", state.subId)
+
 	sub, err := gcp.CreateSubscription(state.subId, posTopic, filter)
 	defer gcp.DeleteSubscription(state.subId, posTopic)
 	checkErr(err)
@@ -182,7 +192,7 @@ func (state *PubSubListener) StartPubSubListener(ctx context.Context) {
 	})
 
 	if err != nil {
-		fmt.Println("Error in Pub/Sub Receive: ", err)
+		logErr.Println("Error in pubsub Receive: ", err)
 		state.timer.StopTimer()
 		hub.UnregisterFailedListener(state)
 	}
@@ -328,6 +338,7 @@ func (h *Hub) UnregisterFailedListener(ls *PubSubListener) {
 
 func (h *Hub) MakeListenerTimeoutHandler(ls *PubSubListener) func() {
 	return func() {
+		logDebug.Println("Pubsub subscription timed out, subID: ", ls.subId)
 		ls.listenerCancel()
 		h.UnregisterFailedListener(ls)
 	}
@@ -339,11 +350,27 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
+var logDebug *log.Logger
+var logErr *log.Logger
+var logCritical *log.Logger
+
 func main() {
 	var projectID = mustGetenv(env_projectID)
 	var topicID = mustGetenv(env_topicID)
+	var logName = mustGetenv(env_logName)
 
-	err := gcp.Initialize(projectID)
+	ctx := context.Background()
+	loggerClient, err := logging.NewClient(ctx, projectID)
+	if err != nil {
+		panic(err)
+	}
+	defer loggerClient.Close()
+
+	logDebug = loggerClient.Logger(logName).StandardLogger(logging.Debug)
+	logErr = loggerClient.Logger(logName).StandardLogger(logging.Error)
+	logCritical = loggerClient.Logger(logName).StandardLogger(logging.Critical)
+
+	err = gcp.Initialize(projectID)
 	checkErr(err)
 	defer gcp.PubsubClient.Close()
 
@@ -363,6 +390,8 @@ func main() {
 func httpRequestHandler(c *gin.Context) {
 	icao24 := c.Param("icao24")
 
+	logDebug.Println("New request for icao24=", icao24)
+
 	if !validIcao24(icao24) {
 		c.String(http.StatusNotAcceptable, "invalid icao24")
 		return
@@ -372,7 +401,7 @@ func httpRequestHandler(c *gin.Context) {
 	if err != nil {
 		// TODO check what best to do here
 		c.String(http.StatusUpgradeRequired, "Websocket upgrade failed")
-		fmt.Println(err)
+		logErr.Println("Error: websocket upgrade failed for client with icao24=", icao24, " err: ", err)
 		return
 	}
 
@@ -400,6 +429,7 @@ func validIcao24(icao24 string) bool {
 
 func checkErr(err error) {
 	if err != nil {
+		logCritical.Println("critical error, panicking: ", err)
 		panic(err)
 	}
 }
