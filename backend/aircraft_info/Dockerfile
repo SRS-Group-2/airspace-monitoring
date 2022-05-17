@@ -26,13 +26,10 @@ COPY resources/aircraft_info.db /resources/
 COPY --from=build /app.exe /app.exe
 
 ENV GIN_MODE release
-ENV PORT 9032
-
-EXPOSE 9032
 
 USER nonroot:nonroot
 
 ENTRYPOINT ["/app.exe"]
 
 ## docker build . --tag aircraft_info
-## docker run --publish 8080:9032  aircraft_info
+## docker run --publish 8080:8080  aircraft_info
