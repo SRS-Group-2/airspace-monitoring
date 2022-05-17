@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
+	"os"
 
+	"cloud.google.com/go/logging"
 	"github.com/bvinc/go-sqlite-lite/sqlite3"
 	"github.com/gin-gonic/gin"
 )
@@ -23,7 +27,28 @@ const max_db_connections = 25
 const database_path = "file:./resources/aircraft_info.db"
 const database_config = "?immutable=1&mode=ro"
 
+const env_logName = "GOOGLE_LOG_NAME_AIRCRAFT_INFO"
+const env_credentials = "GOOGLE_APPLICATION_CREDENTIALS"
+const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
+
+var logDebug *log.Logger
+var logErr *log.Logger
+var logCritical *log.Logger
+
 func main() {
+	var projectID = mustGetenv(env_projectID)
+	var logName = mustGetenv(env_logName)
+
+	ctx := context.Background()
+	loggerClient, err := logging.NewClient(ctx, projectID)
+	if err != nil {
+		panic(err)
+	}
+	defer loggerClient.Close()
+
+	logDebug = loggerClient.Logger(logName).StandardLogger(logging.Debug)
+	logErr = loggerClient.Logger(logName).StandardLogger(logging.Error)
+	logCritical = loggerClient.Logger(logName).StandardLogger(logging.Critical)
 
 	// Create multiple database connections to allow concurrent queries
 	connections := make(chan *sqlite3.Stmt, max_db_connections)
@@ -64,6 +89,9 @@ func main() {
 
 	router.GET("/airspace/aircraft/:icao24/info", func(c *gin.Context) {
 		var icao24 = c.Param("icao24")
+
+		logDebug.Println("New requests for icao24=", icao24)
+
 		if len(icao24) != 6 {
 			c.String(http.StatusNotAcceptable, "Invalid icao24")
 			return
@@ -78,6 +106,7 @@ func main() {
 
 		if err != nil {
 			c.String(http.StatusInternalServerError, err.Error())
+			logErr.Println("Error querying database for icao24=", icao24, " err: ", err)
 			return
 		}
 
@@ -102,6 +131,15 @@ func main() {
 
 func checkErr(err error) {
 	if err != nil {
+		logCritical.Println("Critical error, panicking: ", err)
 		panic(err)
 	}
+}
+
+func mustGetenv(k string) string {
+	v := os.Getenv(k)
+	if v == "" {
+		panic("Environment variable not set: " + k)
+	}
+	return v
 }
