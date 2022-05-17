@@ -76,6 +76,11 @@ To configure `kubectl` (see https://cloud.google.com/kubernetes-engine/docs/how-
 gcloud container clusters get-credentials gke-1 --zone "us-central1"
 ```
 
+The account running the terraform commands requires the following roles:
+- IAM Project Admin
+- Service Account Admin
+- Editor
+
 ### How to use Gatling
 Download [gatling](https://gatling.io/open-source/), unzip the bundle in your directory of choice, copy the content of `gatling_simulations` into `simulations` in the unzipped directory, run 
 ```
