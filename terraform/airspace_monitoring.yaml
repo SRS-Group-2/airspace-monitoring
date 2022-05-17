@@ -22,22 +22,28 @@ paths:
       operationId: aircraft-info
       x-google-backend:
         address: ${aircraft_info_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
       responses:
         '200':
           description: OK
           schema:
             type: string
+        '400':
+          description: "Something missing."
   /airspace/aircraft/list:
     get:
       summary: aircraft-list
       operationId: aircraft-list
       x-google-backend:
-        address: ${aircraft_info_url}
+        address: ${aircraft_list_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
       responses:
         '200':
           description: OK
           schema:
             type: string
+        '400':
+          description: "List missing."
   /airspace/history/realtime/{interval}:
     get:
       parameters:
@@ -47,11 +53,40 @@ paths:
           required: true
           description: Interval hour.
       summary: history-realtime
-      operationId: history-realtime-monthly
-        x-google-backend:
+      operationId: history-realtime-daily
+      x-google-backend:
         address: ${airspace_daily_history_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
       responses:
         '200':
           description: OK
           schema:
             type: string
+  /airspace/history:
+    get:
+      parameters:
+        - in: query
+          name: from
+          type: integer
+          description: starting point
+        - in: query
+          name: to
+          type: integer
+          description: ending point
+        - in: query
+          name: resolution
+          type: string
+          required: true
+          description: resolution in hours.
+      summary: history-realtime
+      operationId: history-realtime-monthly
+      x-google-backend:
+        address: ${airspace_monthly_history_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '400':
+          description: "error."

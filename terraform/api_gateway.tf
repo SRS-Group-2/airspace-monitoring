@@ -1,29 +1,20 @@
 
 locals {
-  api_config_id_prefix      = "airspace-monitoring"
-  ////
-  api_gateway_container_id  = "api-gw"
-#   api_gateway_container_id2 = "api-gw2"
-#   api_gateway_container_id3 = "api-gw3"
-#   api_gateway_container_id4 = "api-gw4"
-#   api_gateway_container_id5 = "api-gw5"
-  ////
- # gateway_id                = "gw"
-
- # aircraft_info_cr_url = google_cloud_run_service.aircraft_info.status[0].url
-
+  api_config_id_prefix     = "airspace-monitoring"
+  api_gateway_container_id = "api-gw"
+  gateway_id               = "airspace-monitoring"
 }
 
 
 data "template_file" "aircraft_info" {
-  template = "${file("aircraft.yaml")}"
-  vars ={
-    aircraft_info_url="${google_cloud_run_service.aircraft_info.status[0].url}"
-    aircraft_list_url="${google_cloud_run_service.aircraft_list.status[0].url}"
-    airspace_daily_history_url = "${google_cloud_run_service.airspace_daily_history.status[0].url}"
+  template = file("airspace_monitoring.yaml")
+  vars = {
+    aircraft_info_url            = "${google_cloud_run_service.aircraft_info.status[0].url}"
+    aircraft_list_url            = "${google_cloud_run_service.aircraft_list.status[0].url}"
+    airspace_daily_history_url   = "${google_cloud_run_service.airspace_daily_history.status[0].url}"
     airspace_monthly_history_url = "${google_cloud_run_service.airspace_monthly_history.status[0].url}"
   }
-   depends_on = [google_cloud_run_service.aircraft_info, google_cloud_run_service.aircraft_list, google_cloud_run_service.airspace_daily_history, google_cloud_run_service.airspace_monthly_history]
+  depends_on = [google_cloud_run_service.aircraft_info, google_cloud_run_service.aircraft_list, google_cloud_run_service.airspace_daily_history, google_cloud_run_service.airspace_monthly_history]
 }
 
 
@@ -44,12 +35,11 @@ resource "google_api_gateway_api_config" "api_cfg" {
     document {
       path     = "aircraft_info.yaml"
       contents = base64encode(data.template_file.aircraft_info.rendered)
-     
+
     }
 
   }
 }
-
 
 resource "google_api_gateway_gateway" "gw" {
   provider = google-beta
@@ -107,7 +97,7 @@ resource "google_api_gateway_gateway" "gw" {
 # }
 
 
-    
+
 ///////////////////////////////////////////
 
 
