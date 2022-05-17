@@ -63,7 +63,7 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
         service_account_name = kubernetes_service_account.airspace_history_calculator_kube_account.metadata[0].name
         init_container {
           name  = "workload-identity-initcontainer"
-          image = "gcr.io/google.com/cloudsdktool/cloud-sdk:385.0.0-alpine" // "alpine/curl:3.14" // 
+          image = "alpine/curl:3.14" // "gcr.io/google.com/cloudsdktool/cloud-sdk:385.0.0-alpine" //  
           command = [
             "/bin/sh",
             "-c",
