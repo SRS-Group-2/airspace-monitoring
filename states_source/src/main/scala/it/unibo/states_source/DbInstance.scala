@@ -19,7 +19,7 @@ object  DbInstance {
         val options = 
           new FirebaseOptions.Builder()
           .setCredentials(GoogleCredentials.getApplicationDefault())
-          .setProjectId(System.getenv("GOOGLE_CLOUD_CREDENTIALS"))
+          .setProjectId(System.getenv("GOOGLE_CLOUD_PROJECT_ID"))
           .build()
           
         this.instance = FirebaseApp.initializeApp(options)
