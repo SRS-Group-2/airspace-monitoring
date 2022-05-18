@@ -195,7 +195,7 @@ public class CustomPubSubSink<MinimalState> extends RichSinkFunction<MinimalStat
     @Override
     public void invoke(MinimalState message, SinkFunction.Context context) {
         Map<String,String> attributes = new HashMap<String,String>();
-        attributes.put("icao",  getIcao(serializationSchema.serialize(message)));
+        attributes.put("icao24",  getIcao(serializationSchema.serialize(message)));
         PubsubMessage pubsubMessage = 
                 PubsubMessage.newBuilder()
                         .setData(ByteString.copyFrom(serializationSchema.serialize(message)))
