@@ -50,7 +50,9 @@ class FiveMinutesFirebaseSink[IN] extends RichSinkFunction[(Int,Int,String)] (){
     data.put("timestamp",res._3)
     val result1 : ApiFuture[WriteResult] = docRef1.set(data)
     val result : ApiFuture[WriteResult] = docRef.set(data)
-    LOG.info("FiveMins written on firestore")
+    if(result.get()!=null && result1.get!=null) {
+      LOG.info("FiveMins written on firestore")
+    }
   }
 
 }

@@ -40,7 +40,9 @@ class AircraftsFirebaseSink[IN] extends RichSinkFunction[Aircrafts] () {
     data.put("timestamp",aircraft.getTimestamp())
     data.put("icao24",aircraft.getList().asJava)
     val result : ApiFuture[WriteResult] = docRef.set(data)
-    LOG.info("Aircrafts written on firestore")
+    if(result.get()!=null){
+      LOG.info("Aircrafts written on firestore")
+    }
   }
 
 }

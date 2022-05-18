@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -203,7 +204,13 @@ public class CustomPubSubSink<MinimalState> extends RichSinkFunction<MinimalStat
                         .build();
 
         ApiFuture<String> future = publisher.publish(pubsubMessage);
-        LOG.info("Message published on the pubsub");
+        try {
+            if(future.get()!=null) {
+                LOG.info("Message published on the pubsub");
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        };
         numPendingFutures.incrementAndGet();
         ApiFutures.addCallback(future, failureHandler, directExecutor());
     }
