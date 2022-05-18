@@ -85,6 +85,7 @@ module "gke" {
       "https://www.googleapis.com/auth/service.management.readonly",
       "https://www.googleapis.com/auth/servicecontrol",
       "https://www.googleapis.com/auth/trace.append",
+      "https://www.googleapis.com/auth/datastore", # is this necessary?
     ]
 
     small-node-pool-1 = [
@@ -95,6 +96,7 @@ module "gke" {
       "https://www.googleapis.com/auth/service.management.readonly",
       "https://www.googleapis.com/auth/servicecontrol",
       "https://www.googleapis.com/auth/trace.append",
+      "https://www.googleapis.com/auth/datastore", # is this necessary?
     ]
 
     small-node-pool-2 = [
@@ -105,6 +107,7 @@ module "gke" {
       "https://www.googleapis.com/auth/service.management.readonly",
       "https://www.googleapis.com/auth/servicecontrol",
       "https://www.googleapis.com/auth/trace.append",
+      "https://www.googleapis.com/auth/datastore", # is this necessary?
     ]
   }
 
