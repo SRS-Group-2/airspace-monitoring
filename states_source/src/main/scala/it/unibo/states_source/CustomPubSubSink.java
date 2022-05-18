@@ -188,7 +188,7 @@ public class CustomPubSubSink<MinimalState> extends RichSinkFunction<MinimalStat
     private String getIcao(byte[] bytes){
 
         String message = new String(bytes);
-        String res = message.split(": ")[1].split(",")[0];
+        String res = message.split(": ")[1].split(",")[0].substring(1,7);
         return res;
 
     }

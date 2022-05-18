@@ -149,22 +149,29 @@ window.onload = _ => {
     set_selectable_italian_flights()
   }
   flight_selector.onchange = _ev => {
+    document.getElementById("coordinates_data").innerHTML =""
+    
     if (flight_selector.value === " ") {
       document.getElementById("info").innerHTML = ""
       if (websocket !== null) {
         websocket.close()
       }
     } else {
-      request_value(base_aircraft_route + "/" + flight_selector.value + "/info", v => {
-        set_aircraft_info(v)
-        document.getElementById("coordinates_title").innerHTML = "Current position of aircraft " + flight_selector.value
-        // TODO: improve websocket and websocket error management
-        var url = window.location.href.slice(0, -1).replace("https://", "wss://") + base_aircraft_route + "/" + flight_selector.value + "/position"
-        websocket = new WebSocket(url)
-        websocket.addEventListener('message', ev =>  {
-          update_aircraft_position(ev.data)
+      flight=flight_selector.value
+      request_value(base_aircraft_route + "/" + flight + "/info", v => {
+        set_aircraft_info(v)})
+      document.getElementById("coordinates_title").innerHTML = "Current position of aircraft " + flight
+      // TODO: improve websocket and websocket error management
+      var url = window.location.href.slice(0, -1).replace("https://", "ws://") + base_aircraft_route + "/" + flight + "/position"
+      websocket = new WebSocket(url)
+      websocket.addEventListener('message', ev =>  {
+      update_aircraft_position(ev.data)
         })
-      })
+      websocket.onclose = function (event) {
+        if(event.code == 1006){
+          alert("The connection was closed abnormally: code 1006")
+        }
+      }
     }
   }
   /* set up current distance, co2 */
