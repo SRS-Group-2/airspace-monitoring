@@ -32,13 +32,12 @@ class AircraftsFirebaseSink[IN] extends RichSinkFunction[Aircrafts] () {
   }
 
   override def invoke(aircraft: Aircrafts, context: SinkFunction.Context) : Unit = {
-
     val instance = DbInstance.getInstance()
     val db = FirestoreClient.getFirestore()
     val docRef : DocumentReference  = db.collection("airspace").document("aircraft-list")
     val data : Map[String, Object]  = new HashMap[String, Object]()
-    data.put("timestamp",aircraft.getTimestamp())
-    data.put("icao24",aircraft.getList().asJava)
+    data.put("timestamp", aircraft.getTimestamp())
+    data.put("icao24", aircraft.getList().asJava)
     val result : ApiFuture[WriteResult] = docRef.set(data)
     LOG.info("Aircrafts written on firestore")
   }

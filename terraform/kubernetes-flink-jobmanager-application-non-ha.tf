@@ -46,6 +46,16 @@ resource "kubernetes_deployment" "flink_jobmanager" {
           }
         }
 
+        init_container {
+          name  = "workload-identity-initcontainer"
+          image = "alpine/curl:3.14" // "gcr.io/google.com/cloudsdktool/cloud-sdk:385.0.0-alpine" //  
+          command = [
+            "/bin/sh",
+            "-c",
+            "echo Going to sleep it out && sleep 20 && (curl -s -H 'Metadata-Flavor: Google' 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token' --retry 30 --retry-connrefused --retry-max-time 30 > /dev/null && echo Metadata server working) || exit 1"
+          ]
+        }
+
         container {
           name  = "jobmanager"
           image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/states_source:latest"
@@ -84,6 +94,15 @@ resource "kubernetes_deployment" "flink_jobmanager" {
           volume_mount {
             name       = "flink-config-volume"
             mount_path = "/opt/flink/conf"
+          }
+
+          startup_probe {
+            tcp_socket {
+              port = "6123"
+            }
+
+            failure_threshold = 15
+            period_seconds    = 60
           }
 
           liveness_probe {
