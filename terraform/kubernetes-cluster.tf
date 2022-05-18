@@ -38,14 +38,29 @@ module "gke" {
       auto_repair        = true
       auto_upgrade       = true
       preemptible        = false
-      initial_node_count = 2
+      initial_node_count = 1
     },
     {
-      name               = "small-node-pool"
+      name               = "small-node-pool-1"
       machine_type       = "e2-small"
       node_locations     = "${var.region}-c"
       min_count          = 1
-      max_count          = 1
+      max_count          = 2
+      local_ssd_count    = 0
+      disk_size_gb       = 10
+      disk_type          = "pd-standard"
+      image_type         = "COS_CONTAINERD"
+      auto_repair        = true
+      auto_upgrade       = true
+      preemptible        = false
+      initial_node_count = 1
+    },
+    {
+      name               = "small-node-pool-2"
+      machine_type       = "e2-small"
+      node_locations     = "${var.region}-c"
+      min_count          = 1
+      max_count          = 2
       local_ssd_count    = 0
       disk_size_gb       = 10
       disk_type          = "pd-standard"
@@ -72,7 +87,17 @@ module "gke" {
       "https://www.googleapis.com/auth/trace.append",
     ]
 
-    small-node-pool = [
+    small-node-pool-1 = [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/devstorage.read_only", # to read from artifact registry
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+      "https://www.googleapis.com/auth/service.management.readonly",
+      "https://www.googleapis.com/auth/servicecontrol",
+      "https://www.googleapis.com/auth/trace.append",
+    ]
+
+    small-node-pool-2 = [
       "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/devstorage.read_only", # to read from artifact registry
       "https://www.googleapis.com/auth/logging.write",
@@ -90,8 +115,14 @@ module "gke" {
       node_type = "micro"
     }
 
-    small-node-pool = {
-      node_type = "small"
+    small-node-pool-1 = {
+      node_type  = "small"
+      node_group = "small-1"
+    }
+
+    small-node-pool-2 = {
+      node_type  = "small"
+      node_group = "small-2"
     }
   }
 }

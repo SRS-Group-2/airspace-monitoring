@@ -117,9 +117,16 @@ resource "kubernetes_deployment" "flink_jobmanager" {
           security_context {
             run_as_user = 9999
           }
+
+          resources {
+            limits = {
+              memory = "625Mi"
+            }
+          }
         }
 
         node_selector = {
+          node_group                               = "small-2"
           "iam.gke.io/gke-metadata-server-enabled" = "true"
         }
       }
