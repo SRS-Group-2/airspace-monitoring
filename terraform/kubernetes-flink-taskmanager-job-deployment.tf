@@ -7,7 +7,7 @@ resource "google_service_account" "flink" {
 # bind the service account to the necessary roles
 resource "google_project_iam_binding" "flink_firestore_binding" {
   project = var.project_id
-  role    = "roles/datastore.owner"
+  role    = "roles/datastore.user"
 
   members = [
     "serviceAccount:${google_service_account.flink.email}",
