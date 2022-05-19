@@ -18,6 +18,7 @@ module "gke" {
   subnetwork                 = var.kube_subnetwork
   ip_range_pods              = var.kube_pods_range
   ip_range_services          = var.kube_services_range
+  logging_service            = "none"
   http_load_balancing        = false
   network_policy             = false
   horizontal_pod_autoscaling = true
@@ -119,11 +120,11 @@ module "gke" {
     }
 
     small-node-pool = {
-      node_type  = "small"
+      node_type = "small"
     }
 
     medium-node-pool = {
-      node_type  = "medium"
+      node_type = "medium"
     }
   }
 }

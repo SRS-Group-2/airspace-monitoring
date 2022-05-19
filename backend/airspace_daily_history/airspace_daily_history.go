@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 
 const env_port = "PORT"
@@ -45,11 +46,12 @@ var oneDayState = HistoryState{
 
 func main() {
 
+	var credJson = mustGetenv(env_credJson)
 	var projectID = mustGetenv(env_projectID)
 
-	go backgroundUpdateState(projectID, "1h-history", &oneHourState)
-	go backgroundUpdateState(projectID, "6h-history", &sixHoursState)
-	go backgroundUpdateState(projectID, "24h-history", &oneDayState)
+	go backgroundUpdateState(credJson, projectID, "1h-history", &oneHourState)
+	go backgroundUpdateState(credJson, projectID, "6h-history", &sixHoursState)
+	go backgroundUpdateState(credJson, projectID, "24h-history", &oneDayState)
 
 	router := gin.New()
 	router.SetTrustedProxies(nil)
@@ -73,9 +75,9 @@ func main() {
 	router.Run()
 }
 
-func backgroundUpdateState(projectId string, documentID string, historyState *HistoryState) {
+func backgroundUpdateState(credString string, projectId string, documentID string, historyState *HistoryState) {
 
-	client := FirestoreInit(projectId)
+	client := FirestoreInit([]byte(credString), projectId)
 	defer client.Close()
 
 	ctx := context.Background()

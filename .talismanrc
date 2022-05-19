@@ -3,8 +3,10 @@ scopeconfig:
   - scope: node
 
 fileignoreconfig:
-- filename: terraform/kubernetes-flink-jobmanager-application-non-ha.tf
-  checksum: 649dd1d3d3ba6b7a6117c2e10467422605ec3551680cfbacdfdfec1ba8453bcd
-- filename: terraform/kubernetes-flink-taskmanager-job-deployment.tf
-  checksum: ef11bcc588a3c3bf2b4ea1752245fb6aae92066a72b005742e9a7401b2e92aef
+- filename: terraform/cloud-run-aircraft-list.tf
+  checksum: 4aa5cd2b6d7972f10304fd96fbc5133a7bcbc14c32c23af3edcc16b73e8f48bc
+- filename: terraform/cloud-run-airspace-daily-history.tf
+  checksum: 545882a91eb3f9e80d8f31a1ec14ff05721ac64fc167f01d4874429e26893f8e
+- filename: terraform/cloud-run-airspace-monthly-history.tf
+  checksum: b36c1aaa604e1ae9605c248498fee8bf98a86f2db9271322f62b8cb216fa5f1a
 version: ""
