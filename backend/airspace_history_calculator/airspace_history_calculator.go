@@ -11,6 +11,8 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/go-co-op/gocron"
 	"google.golang.org/api/iterator"
+	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/codes"
 )
 
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
@@ -123,8 +125,13 @@ func coldLoadFromDb(client *firestore.Client) string {
 		}
 
 		if err != nil {
-			fmt.Println("Error calculating initial state, iterating documents:", err)
-			continue
+			code := status.Code(err)
+			if code == codes.PermissionDenied || code == codes.Unauthenticated {
+				panic(err)
+			} else {
+				fmt.Println("Error calculating initial state, iterating documents:", err)
+				continue
+			}
 		}
 
 		data := doc.Data()
