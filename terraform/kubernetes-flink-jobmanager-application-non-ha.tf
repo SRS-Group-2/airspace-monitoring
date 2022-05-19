@@ -127,7 +127,6 @@ resource "kubernetes_deployment" "flink_jobmanager" {
 
         node_selector = {
           node_type                                = "small"
-          node_group                               = "small-2"
           "iam.gke.io/gke-metadata-server-enabled" = "true"
         }
       }

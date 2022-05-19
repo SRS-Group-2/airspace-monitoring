@@ -135,6 +135,15 @@ resource "kubernetes_deployment" "flink_taskmanager" {
             mount_path = "/opt/flink/conf/"
           }
 
+          startup_probe {
+            tcp_socket {
+              port = "6123"
+            }
+
+            failure_threshold = 15
+            period_seconds    = 60
+          }
+
           liveness_probe {
             tcp_socket {
               port = "6122"
@@ -147,11 +156,16 @@ resource "kubernetes_deployment" "flink_taskmanager" {
           security_context {
             run_as_user = 9999
           }
+
+          resources {
+            limits = {
+              memory = "1025Mi"
+            }
+          }
         }
 
         node_selector = {
-          node_type                                = "small"
-          node_group                               = "small-1"
+          node_type                                = "medium"
           "iam.gke.io/gke-metadata-server-enabled" = "true"
         }
       }

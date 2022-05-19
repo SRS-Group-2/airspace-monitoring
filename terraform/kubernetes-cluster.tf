@@ -22,7 +22,7 @@ module "gke" {
   network_policy             = false
   horizontal_pod_autoscaling = true
   filestore_csi_driver       = false
-  default_max_pods_per_node  = 32 # using a /24 subnet per pool, so actually a /26 per node, so https://cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr#cidr_ranges_for_clusters says max 32
+  default_max_pods_per_node  = 32 # using a /24 subnet per pool, so actually a /26 per node, considering 4 nodes, so https://cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr#cidr_ranges_for_clusters says max 32
 
   node_pools = [
     {
@@ -41,7 +41,7 @@ module "gke" {
       initial_node_count = 1
     },
     {
-      name               = "small-node-pool-1"
+      name               = "small-node-pool"
       machine_type       = "e2-small"
       node_locations     = "${var.region}-c"
       min_count          = 1
@@ -56,11 +56,11 @@ module "gke" {
       initial_node_count = 1
     },
     {
-      name               = "small-node-pool-2"
-      machine_type       = "e2-small"
+      name               = "medium-node-pool"
+      machine_type       = "e2-medium"
       node_locations     = "${var.region}-c"
       min_count          = 1
-      max_count          = 2
+      max_count          = 1
       local_ssd_count    = 0
       disk_size_gb       = 10
       disk_type          = "pd-standard"
@@ -88,7 +88,7 @@ module "gke" {
       "https://www.googleapis.com/auth/datastore", # is this necessary?
     ]
 
-    small-node-pool-1 = [
+    small-node-pool = [
       "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/devstorage.read_only", # to read from artifact registry
       "https://www.googleapis.com/auth/logging.write",
@@ -99,7 +99,7 @@ module "gke" {
       "https://www.googleapis.com/auth/datastore", # is this necessary?
     ]
 
-    small-node-pool-2 = [
+    medium-node-pool = [
       "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/devstorage.read_only", # to read from artifact registry
       "https://www.googleapis.com/auth/logging.write",
@@ -118,14 +118,12 @@ module "gke" {
       node_type = "micro"
     }
 
-    small-node-pool-1 = {
+    small-node-pool = {
       node_type  = "small"
-      node_group = "small-1"
     }
 
-    small-node-pool-2 = {
-      node_type  = "small"
-      node_group = "small-2"
+    medium-node-pool = {
+      node_type  = "medium"
     }
   }
 }
