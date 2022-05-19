@@ -137,7 +137,7 @@ resource "kubernetes_deployment" "flink_taskmanager" {
 
           startup_probe {
             tcp_socket {
-              port = "6123"
+              port = "6122"
             }
 
             failure_threshold = 15
