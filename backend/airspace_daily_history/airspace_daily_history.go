@@ -3,14 +3,18 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"sync"
 
+	"cloud.google.com/go/logging"
 	"github.com/gin-gonic/gin"
 )
 
+const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
+const env_logName = "GOOGLE_LOG_NAME_AIRCRAFT_DAILY_HISTORY"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
@@ -43,9 +47,32 @@ var oneDayState = HistoryState{
 	val: "{}",
 }
 
+type LogType struct {
+	Debug    *log.Logger
+	Error    *log.Logger
+	Critical *log.Logger
+}
+
+var Log = LogType{}
+
 func main() {
 
 	var projectID = mustGetenv(env_projectID)
+	var logName = mustGetenv(env_logName)
+
+	ctx := context.Background()
+	loggerClient, err := logging.NewClient(ctx, projectID)
+	if err != nil {
+		panic(err)
+	}
+	defer loggerClient.Close()
+
+	Log.Debug = loggerClient.Logger(logName).StandardLogger(logging.Debug)
+	Log.Error = loggerClient.Logger(logName).StandardLogger(logging.Error)
+	Log.Critical = loggerClient.Logger(logName).StandardLogger(logging.Critical)
+
+	Log.Debug.Print("Starting Daily History Service.")
+	defer Log.Debug.Println("Stopping Daily History Service.")
 
 	go backgroundUpdateState(projectID, "1h-history", &oneHourState)
 	go backgroundUpdateState(projectID, "6h-history", &sixHoursState)
@@ -74,6 +101,8 @@ func main() {
 }
 
 func backgroundUpdateState(projectId string, documentID string, historyState *HistoryState) {
+	Log.Debug.Println("Starting background update thread (listening to changes to ", documentID, ")")
+	defer Log.Debug.Println("Stopping background update thread (listening to changes to ", documentID, ")")
 
 	client := FirestoreInit(projectId)
 	defer client.Close()
@@ -87,7 +116,8 @@ func backgroundUpdateState(projectId string, documentID string, historyState *Hi
 		checkErr(err)
 
 		if !snap.Exists() {
-			panic("Document no longer exists.")
+			Log.Critical.Println("Document doesn't exist, panicking: ", err)
+			panic("")
 		}
 
 		jsonData, err := json.Marshal(snap.Data())
@@ -99,6 +129,7 @@ func backgroundUpdateState(projectId string, documentID string, historyState *Hi
 
 func checkErr(err error) {
 	if err != nil {
+		Log.Critical.Println("Critical error, panicking: ", err)
 		panic(err)
 	}
 }
