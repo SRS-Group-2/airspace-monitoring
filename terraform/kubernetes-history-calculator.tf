@@ -17,8 +17,8 @@
 locals {
   # airspace_history_calculator_name = google_service_account.airspace_history_calculator.name
   # airspace_history_calculator_email = google_service_account.airspace_history_calculator.email
-  airspace_history_calculator_name  = "projects/master-choir-347215/serviceAccounts/airspace-history-calculator@master-choir-347215.iam.gserviceaccount.com"
-  airspace_history_calculator_email = "airspace-history-calculator@master-choir-347215.iam.gserviceaccount.com"
+  airspace_history_calculator_name  = "projects/${var.project_id}/serviceAccounts/airspace-history-calculator@${var.project_id}.iam.gserviceaccount.com"
+  airspace_history_calculator_email = "airspace-history-calculator@${var.project_id}.iam.gserviceaccount.com"
 }
 
 resource "google_service_account_key" "airspace_history_calculator_key" {
@@ -93,7 +93,7 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
 
         container {
           name  = "airspace-history-calculator"
-          image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_history_calculator:latest"
+          image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_history_calculator:latest"
 
           env {
             name  = "GOOGLE_CLOUD_PROJECT_ID"

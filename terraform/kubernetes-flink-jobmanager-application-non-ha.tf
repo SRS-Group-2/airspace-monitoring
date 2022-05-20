@@ -58,7 +58,7 @@ resource "kubernetes_deployment" "flink_jobmanager" {
 
         container {
           name  = "jobmanager"
-          image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/states_source:latest"
+          image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/states_source:latest"
           args  = ["standalone-job", "--job-classname", "it.unibo.states_source.Main"]
 
           env {

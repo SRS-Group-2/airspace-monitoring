@@ -7,7 +7,7 @@ resource "google_cloud_run_service" "aircraft_info" {
   template {
     spec {
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/aircraft_info:latest"
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/aircraft_info:latest"
       }
     }
     metadata {

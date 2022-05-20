@@ -16,8 +16,8 @@
 locals {
   # airspace_daily_history_sa_name = google_service_account.airspace_daily_history_sa.name
   # airspace_daily_history_sa_email = google_service_account.airspace_daily_history_sa.email
-  airspace_daily_history_sa_name  = "airspace-daily-history"
-  airspace_daily_history_sa_email = "airspace-daily-history@master-choir-347215.iam.gserviceaccount.com "
+  airspace_daily_history_sa_email = "airspace-daily-history@${var.project_id}.iam.gserviceaccount.com "
+  airspace_daily_history_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.airspace_daily_history_sa_email}"
 }
 
 resource "google_service_account_key" "airspace_daily_history_key" {
@@ -39,7 +39,7 @@ resource "google_cloud_run_service" "airspace_daily_history" {
     spec {
       # service_account_name = local.airspace_daily_history_sa_email
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_daily_history:latest"
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_daily_history:latest"
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id

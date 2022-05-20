@@ -16,8 +16,8 @@
 locals {
   # aircraft_list_sa_name = google_service_account.aircraft_list_sa.name
   # aircraft_list_sa_email = google_service_account.aircraft_list_sa.email
-  aircraft_list_sa_name  = "aircraft-list"
-  aircraft_list_sa_email = "aircraft-list@master-choir-347215.iam.gserviceaccount.com"
+  aircraft_list_sa_email = "aircraft-list@${var.project_id}.iam.gserviceaccount.com"
+  aircraft_list_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.aircraft_list_sa_email}"
 }
 
 resource "google_service_account_key" "aircraft_list_key" {
@@ -39,7 +39,7 @@ resource "google_cloud_run_service" "aircraft_list" {
     spec {
       # service_account_name = local.aircraft_list_sa_email
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/aircraft_list:latest"
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/aircraft_list:latest"
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id

@@ -26,7 +26,7 @@ resource "google_cloud_run_service" "aircraft_positions" {
     spec {
       service_account_name = google_service_account.aircraft_positions_sa.email
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/aircraft_positions:latest"
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/aircraft_positions:latest"
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id

@@ -1,5 +1,5 @@
 # # service account for flink
-# resource "google_service_account" "flink" {
+# resource "google_service_account" "flink_sa" {
 #   account_id   = "flink-source"
 #   display_name = "A service account for Flink"
 # }
@@ -10,7 +10,7 @@
 #   role    = "roles/datastore.owner"
 
 #   members = [
-#     "serviceAccount:${google_service_account.flink.email}",
+#     "serviceAccount:${google_service_account.flink_sa.email}",
 #   ]
 # }
 
@@ -18,9 +18,8 @@
 locals {
   # flink_sa_name = google_service_account.flink_sa.name
   # flink_sa_email = google_service_account.flink_sa.email
-  # flink_sa_name  = "flink-sa"
-  flink_sa_email = "flink-sa@master-choir-347215.iam.gserviceaccount.com"
-  flink_sa_name = "projects/master-choir-347215/serviceAccounts/flink-sa@master-choir-347215.iam.gserviceaccount.com"
+  flink_sa_email = "flink-sa@${var.project_id}.iam.gserviceaccount.com"
+  flink_sa_name  = "projects/${var.project_id}/serviceAccounts/flink-sa@${var.project_id}.iam.gserviceaccount.com"
 }
 
 resource "google_service_account_key" "flink_key" {
@@ -123,7 +122,7 @@ resource "kubernetes_deployment" "flink_taskmanager" {
         }
         container {
           name  = "taskmanager"
-          image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/states_source:latest"
+          image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/states_source:latest"
           args  = ["taskmanager"]
 
           env {
