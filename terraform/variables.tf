@@ -14,11 +14,6 @@ variable "docker_repo_name" {
   description = "The name of the Google Docker repository in which the images are stored"
 }
 
-variable "state_bucket" {
-  type        = string
-  description = "The name of the bucket in which the Terraform state will be saved"
-}
-
 # pubsub
 variable "vectors_topic" {
   type        = string

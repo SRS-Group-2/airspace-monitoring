@@ -97,11 +97,10 @@ Pre-deploy operations:
   - `airspace_history_calculator` 
   - `web_ui`
   - `flink_sa` 
-- create a Google Storage bucket and memorize its name
+- create a Google Storage bucket and write its name as the "bucket" value of the 'backend "gcs"' object into `terraform/main.tf`
 - create inside the `terraform` directory a file `terraform.tfvars` in which the following variables (described in `terraform/variables.tf`) are declared, one per line, with the `var_name = var_value` syntax:
   - `project_id`
   - `region`
-  - `state_bucket`
   - `vectors_topic`
   - `kube_cluster`
   - `kube_network`
