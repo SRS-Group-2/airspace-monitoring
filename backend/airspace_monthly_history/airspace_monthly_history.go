@@ -73,12 +73,14 @@ func main() {
 		ctx := context.Background()
 
 		var docIter *firestore.DocumentIterator
+		var fromUtc string
+		var toUtc string
 
 		switch resolution {
 
 		case "hour":
-			fromUtc := from.UTC().Format("2006-01-02-15")
-			toUtc := to.UTC().Format("2006-01-02-15")
+			fromUtc = from.UTC().Format("2006-01-02-15")
+			toUtc = to.UTC().Format("2006-01-02-15")
 
 			docIter = client.Collection("airspace/30d-history/1h-bucket").
 				Where("startTime", ">=", fromUtc).
@@ -90,8 +92,8 @@ func main() {
 			fallthrough
 
 		default:
-			fromUtc := from.UTC().Format("2006-01-02")
-			toUtc := to.UTC().Format("2006-01-02")
+			fromUtc = from.UTC().Format("2006-01-02")
+			toUtc = to.UTC().Format("2006-01-02")
 
 			docIter = client.Collection("airspace/30d-history/1d-bucket").
 				Where("startTime", ">=", fromUtc).
@@ -102,7 +104,8 @@ func main() {
 			resolution = "day"
 		}
 
-		var json = make(map[string]interface{})
+		var jsonResult = make(map[string]interface{})
+		var jsonHistory = make(map[string]interface{})
 
 		// Iterate over documents and create response
 		for i := 0; true; i++ {
@@ -113,14 +116,20 @@ func main() {
 			}
 
 			if err != nil {
-				Log.Error.Println("Error iterating over history documents with ", resolution, " resolution: ", err)
 				c.String(http.StatusInternalServerError, err.Error())
+				Log.Error.Println("Error iterating over history documents with ", resolution, " resolution: ", err)
 				return
 			}
 
-			json[doc.Ref.ID] = doc.Data()
+			jsonHistory[doc.Ref.ID] = doc.Data()
 		}
-		c.JSON(http.StatusOK, json)
+
+		jsonResult["from"] = fromUtc
+		jsonResult["to"] = toUtc
+		jsonResult["resolution"] = resolution
+		jsonResult["history"] = jsonHistory
+
+		c.JSON(http.StatusOK, jsonResult)
 	})
 	router.Run()
 }
