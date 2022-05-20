@@ -1,29 +1,35 @@
+# resource "google_service_account" "aircraft_list_sa" {
+#   account_id   = "aircraft-list"
+#   display_name = "A service account for the Aircraft List service"
+# }
 
-resource "google_service_account" "aircraft_list_sa" {
-  account_id   = "aircraft-list"
-  display_name = "A service account for the Aircraft List service"
-}
+# # bind the service account to the necessary roles
+# resource "google_project_iam_binding" "aircraft_list_binding" {
+#   project = var.project_id
+#   role    = "roles/datastore.user"
 
-# bind the service account to the necessary roles
-resource "google_project_iam_binding" "aircraft_list_binding" {
-  project = var.project_id
-  role    = "roles/datastore.viewer"
+#   members = [
+#     "serviceAccount:${google_service_account.aircraft_list_sa.email}",
+#   ]
+# }
 
-  members = [
-    "serviceAccount:${google_service_account.aircraft_list_sa.email}",
-  ]
+locals {
+  # aircraft_list_sa_name = google_service_account.aircraft_list_sa.name
+  # aircraft_list_sa_email = google_service_account.aircraft_list_sa.email
+  aircraft_list_sa_name  = "aircraft-list"
+  aircraft_list_sa_email = "aircraft-list@master-choir-347215.iam.gserviceaccount.com"
 }
 
 resource "google_service_account_key" "aircraft_list_key" {
-  service_account_id = google_service_account.aircraft_list_sa.name
+  service_account_id = local.aircraft_list_sa_name
   public_key_type    = "TYPE_X509_PEM_FILE"
 }
 
 # Aircraft List service
 resource "google_cloud_run_service" "aircraft_list" {
   depends_on = [
-    google_service_account.aircraft_list_sa,
-    google_project_iam_binding.aircraft_list_binding,
+    # google_service_account.aircraft_list_sa,
+    # google_project_iam_binding.aircraft_list_binding,
     google_service_account_key.aircraft_list_key,
   ]
   name     = "aircraft-list"
@@ -31,7 +37,7 @@ resource "google_cloud_run_service" "aircraft_list" {
 
   template {
     spec {
-      # service_account_name = google_service_account.aircraft_list_sa.email
+      # service_account_name = local.aircraft_list_sa_email
       containers {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/aircraft_list:latest"
         env {

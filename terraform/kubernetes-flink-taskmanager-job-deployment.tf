@@ -1,53 +1,62 @@
-# service account for flink
-resource "google_service_account" "flink" {
-  account_id   = "flink-source"
-  display_name = "A service account for Flink"
-}
+# # service account for flink
+# resource "google_service_account" "flink" {
+#   account_id   = "flink-source"
+#   display_name = "A service account for Flink"
+# }
 
-# bind the service account to the necessary roles
-resource "google_project_iam_binding" "flink_firestore_binding" {
-  project = var.project_id
-  role    = "roles/datastore.owner"
+# # bind the service account to the necessary roles
+# resource "google_project_iam_binding" "flink_firestore_binding" {
+#   project = var.project_id
+#   role    = "roles/datastore.owner"
 
-  members = [
-    "serviceAccount:${google_service_account.flink.email}",
-  ]
+#   members = [
+#     "serviceAccount:${google_service_account.flink.email}",
+#   ]
+# }
+
+
+locals {
+  # flink_sa_name = google_service_account.flink_sa.name
+  # flink_sa_email = google_service_account.flink_sa.email
+  # flink_sa_name  = "flink-sa"
+  flink_sa_email = "flink-sa@master-choir-347215.iam.gserviceaccount.com"
+  flink_sa_name = "projects/master-choir-347215/serviceAccounts/flink-sa@master-choir-347215.iam.gserviceaccount.com"
 }
 
 resource "google_service_account_key" "flink_key" {
-  service_account_id = google_service_account.flink.name
+  service_account_id = local.flink_sa_name
   public_key_type    = "TYPE_X509_PEM_FILE"
 }
 
-resource "google_project_iam_binding" "flink_pubsub_binding" {
-  project = var.project_id
-  role    = "roles/pubsub.publisher" // TODO check whether editor is necessary
+# resource "google_project_iam_binding" "flink_pubsub_binding" {
+#   project = var.project_id
+#   role    = "roles/pubsub.publisher"
 
-  members = [
-    "serviceAccount:${google_service_account.flink.email}",
-  ]
-}
+#   members = [
+#     "serviceAccount:${flink_sa_email}",
+#   ]
+# }
 
 # kubernetes service account for airspace history calculator
 resource "kubernetes_service_account" "flink_kube_account" {
   depends_on = [
     kubernetes_namespace.main_namespace,
-    google_service_account.flink,
-    google_project_iam_binding.flink_firestore_binding,
+    # google_service_account.flink,
+    # google_project_iam_binding.flink_firestore_binding,
     google_service_account_key.flink_key,
   ]
   metadata {
     name      = "flink-account"
     namespace = var.kube_namespace
     annotations = {
-      "iam.gke.io/gcp-service-account" = google_service_account.flink.email
+      "iam.gke.io/gcp-service-account" = local.flink_sa_email
     }
   }
 }
 
 # bind service account and kubernetes service account
 resource "google_service_account_iam_binding" "flink_accounts_binding" {
-  service_account_id = google_service_account.flink.name
+  service_account_id = local.flink_sa_name
   role               = "roles/iam.workloadIdentityUser"
 
   members = [
@@ -56,7 +65,9 @@ resource "google_service_account_iam_binding" "flink_accounts_binding" {
 }
 
 resource "kubernetes_deployment" "flink_taskmanager" {
-  depends_on = [kubernetes_namespace.main_namespace]
+  depends_on = [
+    kubernetes_namespace.main_namespace,
+  ]
   metadata {
     name      = "flink-taskmanager"
     namespace = var.kube_namespace

@@ -120,11 +120,13 @@ module "gke" {
     }
 
     small-node-pool = {
-      node_type = "small"
+      node_type   = "small"
+      node_memory = "1plus"
     }
 
     medium-node-pool = {
-      node_type = "medium"
+      node_type   = "medium"
+      node_memory = "1plus"
     }
   }
 }

@@ -1,28 +1,35 @@
-resource "google_service_account" "airspace_daily_history_sa" {
-  account_id   = "airspace-daily-history"
-  display_name = "A service account for the Airspace Daily History service"
-}
+# resource "google_service_account" "airspace_daily_history_sa" {
+#   account_id   = "airspace-daily-history"
+#   display_name = "A service account for the Airspace Daily History service"
+# }
 
-# bind the service account to the necessary roles
-resource "google_project_iam_binding" "airspace_daily_history_binding" {
-  project = var.project_id
-  role    = "roles/datastore.user"
+# # bind the service account to the necessary roles
+# resource "google_project_iam_binding" "airspace_daily_history_binding" {
+#   project = var.project_id
+#   role    = "roles/datastore.viewer"
 
-  members = [
-    "serviceAccount:${google_service_account.airspace_daily_history_sa.email}",
-  ]
+#   members = [
+#     "serviceAccount:${google_service_account.airspace_daily_history_sa.email}",
+#   ]
+# }
+
+locals {
+  # airspace_daily_history_sa_name = google_service_account.airspace_daily_history_sa.name
+  # airspace_daily_history_sa_email = google_service_account.airspace_daily_history_sa.email
+  airspace_daily_history_sa_name  = "airspace-daily-history"
+  airspace_daily_history_sa_email = "airspace-daily-history@master-choir-347215.iam.gserviceaccount.com "
 }
 
 resource "google_service_account_key" "airspace_daily_history_key" {
-  service_account_id = google_service_account.airspace_daily_history_sa.name
+  service_account_id = local.airspace_daily_history_sa_name
   public_key_type    = "TYPE_X509_PEM_FILE"
 }
 
 # Aircraft Daily History service
 resource "google_cloud_run_service" "airspace_daily_history" {
   depends_on = [
-    google_service_account.airspace_daily_history_sa,
-    google_project_iam_binding.airspace_daily_history_binding,
+    # google_service_account.airspace_daily_history_sa,
+    # google_project_iam_binding.airspace_daily_history_binding,
     google_service_account_key.airspace_daily_history_key,
   ]
   name     = "airspace-daily-history"
@@ -30,7 +37,7 @@ resource "google_cloud_run_service" "airspace_daily_history" {
 
   template {
     spec {
-      # service_account_name = google_service_account.airspace_daily_history_sa.email
+      # service_account_name = local.airspace_daily_history_sa_email
       containers {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_daily_history:latest"
         env {
