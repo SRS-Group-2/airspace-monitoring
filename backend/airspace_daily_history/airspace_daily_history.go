@@ -7,9 +7,11 @@ import (
 	"os"
 	"sync"
 
+	"cloud.google.com/go/firestore"
 	"github.com/gin-gonic/gin"
 )
 
+const env_authType = "AUTHENTICATION_METHOD"
 const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 
@@ -45,13 +47,20 @@ var oneDayState = HistoryState{
 }
 
 func main() {
-
-	var credJson = mustGetenv(env_credJson)
+	var authType = mustGetenv(env_authType)
 	var projectID = mustGetenv(env_projectID)
 
-	go backgroundUpdateState(credJson, projectID, "1h-history", &oneHourState)
-	go backgroundUpdateState(credJson, projectID, "6h-history", &sixHoursState)
-	go backgroundUpdateState(credJson, projectID, "24h-history", &oneDayState)
+	if authType == "ADC" {
+		go backgroundUpdateState(projectID, "1h-history", &oneHourState, FirestoreInit(projectID))
+		go backgroundUpdateState(projectID, "6h-history", &sixHoursState, FirestoreInit(projectID))
+		go backgroundUpdateState(projectID, "24h-history", &oneDayState, FirestoreInit(projectID))
+	} else {
+		var credJson = mustGetenv(env_credJson)
+		go backgroundUpdateState(projectID, "1h-history", &oneHourState, FirestoreInitWithCredentials(projectID, []byte(credJson)))
+		go backgroundUpdateState(projectID, "6h-history", &sixHoursState, FirestoreInitWithCredentials(projectID, []byte(credJson)))
+		go backgroundUpdateState(projectID, "24h-history", &oneDayState, FirestoreInitWithCredentials(projectID, []byte(credJson)))
+	}
+
 
 	router := gin.New()
 	router.SetTrustedProxies(nil)
@@ -75,9 +84,7 @@ func main() {
 	router.Run()
 }
 
-func backgroundUpdateState(credString string, projectId string, documentID string, historyState *HistoryState) {
-
-	client := FirestoreInit([]byte(credString), projectId)
+func backgroundUpdateState(projectId string, documentID string, historyState *HistoryState, client *firestore.Client) {
 	defer client.Close()
 
 	ctx := context.Background()

@@ -12,20 +12,26 @@ import (
 	"google.golang.org/api/iterator"
 )
 
+const env_authType = "AUTHENTICATION_METHOD"
 const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
-
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
 
 func main() {
-
-	var credString = mustGetenv(env_credJson)
+	var authType = mustGetenv(env_authType)
 	var projectID = mustGetenv(env_projectID)
 
+
+	var client *firestore.Client
 	//DB
-	client := FirestoreInit([]byte(credString), projectID)
+	if authType == "ADC" {
+		client = FirestoreInit(projectID)
+	} else {
+		var credJson = mustGetenv(env_credJson)
+		client = FirestoreInitWithCredentials(projectID, []byte(credJson))
+	}
 	defer client.Close()
 
 	router := gin.New()

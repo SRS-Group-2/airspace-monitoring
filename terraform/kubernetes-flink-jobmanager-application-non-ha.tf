@@ -65,7 +65,14 @@ resource "kubernetes_deployment" "flink_jobmanager" {
             name  = "GOOGLE_CLOUD_PROJECT_ID"
             value = var.project_id
           }
-
+          env {
+            name  = "FIRESTORE_AUTHENTICATION_METHOD"
+            value = "JSON"
+          }
+          env {
+            name  = "FIRESTORE_CREDENTIALS"
+            value = " ${base64decode(google_service_account_key.flink_key.private_key)} "
+          }
           env {
             name  = "GOOGLE_PUBSUB_VECTORS_TOPIC_ID"
             value = var.vectors_topic

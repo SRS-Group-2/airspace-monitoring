@@ -3,13 +3,16 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"sync"
 
+	"cloud.google.com/go/firestore"
 	"github.com/gin-gonic/gin"
 )
 
+const env_authType = "AUTHENTICATION_METHOD"
 const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 
@@ -42,11 +45,17 @@ var aircraftList = AircraftList{
 }
 
 func main() {
-
-	var credJson = mustGetenv(env_credJson)
+	var authType = mustGetenv(env_authType)
 	var projectID = mustGetenv(env_projectID)
-
-	go backgroundUpdateState(credJson, projectID, "aircraft-list", &aircraftList)
+	
+	if authType == "ADC" {
+		fmt.Println("Using ADC as authentication method")
+		go backgroundUpdateState(projectID, "aircraft-list", &aircraftList, FirestoreInit(projectID))
+	} else {
+		fmt.Println("Using JSON as authentication method")
+		var credJson = mustGetenv(env_credJson)
+		go backgroundUpdateState(projectID, "aircraft-list", &aircraftList, FirestoreInitWithCredentials(projectID, []byte(credJson)))
+	}
 
 	router := gin.New()
 
@@ -75,9 +84,7 @@ func mustGetenv(k string) string {
 	return v
 }
 
-func backgroundUpdateState(credString string, projectId string, documentID string, state *AircraftList) {
-
-	client := FirestoreInit([]byte(credString), projectId)
+func backgroundUpdateState(projectId string, documentID string, state *AircraftList, client *firestore.Client) {
 	defer client.Close()
 
 	ctx := context.Background()

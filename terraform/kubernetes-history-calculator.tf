@@ -1,5 +1,5 @@
 # service account for airspace history calculator
-resource "google_service_account" "airspace_history_calculator" {
+resource "google_service_account" "airspace_history_calculator_sa" {
   account_id   = "airspace-history-calculator"
   display_name = "A service account for the Airspace History Calculator"
 }
@@ -7,11 +7,16 @@ resource "google_service_account" "airspace_history_calculator" {
 # bind the service account to the necessary roles
 resource "google_project_iam_binding" "airspace_history_calculator_binding" {
   project = var.project_id
-  role    = "roles/datastore.user"
+  role    = "roles/datastore.owner"
 
   members = [
-    "serviceAccount:${google_service_account.airspace_history_calculator.email}",
+    "serviceAccount:${google_service_account.airspace_history_calculator_sa.email}",
   ]
+}
+
+resource "google_service_account_key" "airspace_history_calculator_key" {
+  service_account_id = google_service_account.airspace_history_calculator_sa.name
+  public_key_type    = "TYPE_X509_PEM_FILE"
 }
 
 # kubernetes service account for airspace history calculator
@@ -21,14 +26,14 @@ resource "kubernetes_service_account" "airspace_history_calculator_kube_account"
     name      = "airspace-history-calculator-account"
     namespace = var.kube_namespace
     annotations = {
-      "iam.gke.io/gcp-service-account" = google_service_account.airspace_history_calculator.email
+      "iam.gke.io/gcp-service-account" = google_service_account.airspace_history_calculator_sa.email
     }
   }
 }
 
 # bind service account and kubernetes service account
 resource "google_service_account_iam_binding" "airspace_history_calculator_accounts_binding" {
-  service_account_id = google_service_account.airspace_history_calculator.name
+  service_account_id = google_service_account.airspace_history_calculator_sa.name
   role               = "roles/iam.workloadIdentityUser"
 
   members = [
@@ -37,7 +42,12 @@ resource "google_service_account_iam_binding" "airspace_history_calculator_accou
 }
 
 resource "kubernetes_deployment" "airspace_history_calculator" {
-  depends_on = [kubernetes_namespace.main_namespace]
+  depends_on = [
+    kubernetes_namespace.main_namespace,
+    google_service_account.airspace_history_calculator_sa,
+    google_project_iam_binding.airspace_history_calculator_binding,
+    google_service_account_key.airspace_history_calculator_key,
+  ]
   metadata {
     name      = "airspace-history-calculator"
     namespace = var.kube_namespace
@@ -60,7 +70,7 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
       }
 
       spec {
-        service_account_name = kubernetes_service_account.airspace_history_calculator_kube_account.metadata[0].name
+        # service_account_name = kubernetes_service_account.airspace_history_calculator_kube_account.metadata[0].name
 
         init_container {
           name  = "workload-identity-initcontainer"
@@ -79,6 +89,14 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
           env {
             name  = "GOOGLE_CLOUD_PROJECT_ID"
             value = var.project_id
+          }
+          env {
+            name  = "AUTHENTICATION_METHOD"
+            value = "JSON"
+          }
+          env {
+            name  = "GOOGLE_APPLICATION_CREDENTIALS"
+            value = " ${base64decode(google_service_account_key.airspace_history_calculator_key.private_key)} "
           }
           env {
             name  = "GIN_MODE"

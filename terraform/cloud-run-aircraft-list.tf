@@ -7,7 +7,7 @@ resource "google_service_account" "aircraft_list_sa" {
 # bind the service account to the necessary roles
 resource "google_project_iam_binding" "aircraft_list_binding" {
   project = var.project_id
-  role    = "roles/datastore.user"
+  role    = "roles/datastore.viewer"
 
   members = [
     "serviceAccount:${google_service_account.aircraft_list_sa.email}",
@@ -21,6 +21,11 @@ resource "google_service_account_key" "aircraft_list_key" {
 
 # Aircraft List service
 resource "google_cloud_run_service" "aircraft_list" {
+  depends_on = [
+    google_service_account.aircraft_list_sa,
+    google_project_iam_binding.aircraft_list_binding,
+    google_service_account_key.aircraft_list_key,
+  ]
   name     = "aircraft-list"
   location = var.region
 
@@ -33,7 +38,10 @@ resource "google_cloud_run_service" "aircraft_list" {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id
         }
-
+        env {
+          name  = "AUTHENTICATION_METHOD"
+          value = "JSON"
+        }
         env {
           name  = "GOOGLE_APPLICATION_CREDENTIALS"
           value = " ${base64decode(google_service_account_key.aircraft_list_key.private_key)} "

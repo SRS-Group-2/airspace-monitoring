@@ -20,6 +20,11 @@ resource "google_service_account_key" "airspace_monthly_history_key" {
 
 # Airspace Monthly History service
 resource "google_cloud_run_service" "airspace_monthly_history" {
+  depends_on = [
+    google_service_account.airspace_monthly_history_sa,
+    google_project_iam_binding.airspace_monthly_history_binding,
+    google_service_account_key.airspace_monthly_history_key,
+  ]
   name     = "airspace-monthly-history"
   location = var.region
 
@@ -31,6 +36,10 @@ resource "google_cloud_run_service" "airspace_monthly_history" {
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id
+        }
+        env {
+          name  = "AUTHENTICATION_METHOD"
+          value = "JSON"
         }
         env {
           name  = "GOOGLE_APPLICATION_CREDENTIALS"

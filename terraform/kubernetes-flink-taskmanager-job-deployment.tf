@@ -14,6 +14,11 @@ resource "google_project_iam_binding" "flink_firestore_binding" {
   ]
 }
 
+resource "google_service_account_key" "flink_key" {
+  service_account_id = google_service_account.flink.name
+  public_key_type    = "TYPE_X509_PEM_FILE"
+}
+
 resource "google_project_iam_binding" "flink_pubsub_binding" {
   project = var.project_id
   role    = "roles/pubsub.publisher" // TODO check whether editor is necessary
@@ -25,7 +30,12 @@ resource "google_project_iam_binding" "flink_pubsub_binding" {
 
 # kubernetes service account for airspace history calculator
 resource "kubernetes_service_account" "flink_kube_account" {
-  depends_on = [kubernetes_namespace.main_namespace]
+  depends_on = [
+    kubernetes_namespace.main_namespace,
+    google_service_account.flink,
+    google_project_iam_binding.flink_firestore_binding,
+    google_service_account_key.flink_key,
+  ]
   metadata {
     name      = "flink-account"
     namespace = var.kube_namespace
@@ -109,7 +119,14 @@ resource "kubernetes_deployment" "flink_taskmanager" {
             name  = "GOOGLE_CLOUD_PROJECT_ID"
             value = var.project_id
           }
-
+          env {
+            name  = "FIRESTORE_AUTHENTICATION_METHOD"
+            value = "JSON"
+          }
+          env {
+            name  = "FIRESTORE_CREDENTIALS"
+            value = " ${base64decode(google_service_account_key.flink_key.private_key)} "
+          }
           env {
             name  = "GOOGLE_PUBSUB_VECTORS_TOPIC_ID"
             value = var.vectors_topic

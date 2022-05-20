@@ -15,6 +15,8 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
+const env_authType = "AUTHENTICATION_METHOD"
+const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 
 const env_port = "PORT"
@@ -91,9 +93,17 @@ var oneDayState = &HistoryState{
 }
 
 func main() {
+	var authType = mustGetenv(env_authType)
 	var projectID = mustGetenv(env_projectID)
-
-	client := FirestoreInit(projectID)
+	
+	var client *firestore.Client
+	//DB
+	if authType == "ADC" {
+		client = FirestoreInit(projectID)
+	} else {
+		var credJson = mustGetenv(env_credJson)
+		client = FirestoreInitWithCredentials(projectID, []byte(credJson))
+	}
 	defer client.Close()
 
 	// Service just woke up, initialize the values of the states to the sum of what is in the DB
