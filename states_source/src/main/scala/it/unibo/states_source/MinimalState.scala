@@ -14,7 +14,7 @@ class MinimalState(val icao: String, val latitude: Double, val longitude: Double
   }
 
   def toJSONString(): String = {
-    return "{ \"icao24\": " + icao + 
+    return "{ \"icao24\": " +"\""+ icao +"\""+  
            ", \"lat\": " + latitude +
            ", \"lon\": " + longitude +
            ", \"timestamp\": " + timestamp +            

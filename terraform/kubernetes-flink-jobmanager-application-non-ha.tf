@@ -48,7 +48,6 @@ resource "kubernetes_deployment" "flink_jobmanager" {
             }
           }
         }
-
         init_container {
           name  = "workload-identity-initcontainer"
           image = "alpine/curl:3.14" // "gcr.io/google.com/cloudsdktool/cloud-sdk:385.0.0-alpine" //  

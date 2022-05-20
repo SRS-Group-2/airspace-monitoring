@@ -14,7 +14,6 @@
 #   ]
 # }
 
-
 locals {
   # flink_sa_name = google_service_account.flink_sa.name
   # flink_sa_email = google_service_account.flink_sa.email

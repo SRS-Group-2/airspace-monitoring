@@ -80,7 +80,6 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
 
       spec {
         service_account_name = kubernetes_service_account.airspace_history_calculator_kube_account.metadata[0].name
-
         init_container {
           name  = "workload-identity-initcontainer"
           image = "alpine/curl:3.14" // "gcr.io/google.com/cloudsdktool/cloud-sdk:385.0.0-alpine" //  
@@ -90,7 +89,6 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
             "echo Going to sleep it out && sleep 20 && (curl -s -H 'Metadata-Flavor: Google' 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token' --retry 30 --retry-connrefused --retry-max-time 30 > /dev/null && echo Metadata server working) || exit 1"
           ]
         }
-
         container {
           name  = "airspace-history-calculator"
           image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_history_calculator:latest"

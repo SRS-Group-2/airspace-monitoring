@@ -13,11 +13,11 @@ resource "google_project_iam_binding" "aircraft_positions_binding" {
   ]
 }
 
-# Aircraft Positions service
+# Aircraft Daily History service
 resource "google_cloud_run_service" "aircraft_positions" {
   depends_on = [
     google_service_account.aircraft_positions_sa,
-    google_pubsub_topic.pubsub_positions,
+    google_pubsub_topic.pubsub_positions
   ]
   name     = "aircraft-positions"
   location = var.region

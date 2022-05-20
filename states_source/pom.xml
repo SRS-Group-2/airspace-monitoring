@@ -142,6 +142,12 @@ under the License.
     		<artifactId>netty-codec</artifactId>
     		<version>4.1.77.Final</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.netty/netty-codec-http -->
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-codec-http</artifactId>
+			<version>4.1.77.Final</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
 		<dependency>
     		<groupId>org.apache.httpcomponents</groupId>

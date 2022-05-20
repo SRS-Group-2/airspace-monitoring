@@ -56,5 +56,4 @@ class FiveMinutesFirebaseSink[IN] extends RichSinkFunction[(Int,Int,String)] (){
       LOG.error("FiveMins could not be written to firestore")
     }
   }
-
 }

@@ -45,5 +45,4 @@ class AircraftsFirebaseSink[IN] extends RichSinkFunction[Aircrafts] () {
       LOG.error("Aircrafts could not be written to firestore")
     }
   }
-
 }

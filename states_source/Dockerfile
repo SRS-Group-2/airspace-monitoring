@@ -4,7 +4,7 @@ COPY src /home/app/src
 COPY pom.xml /home/app
 
 RUN git clone https://github.com/openskynetwork/opensky-api.git \
- && mvn -f ./opensky-api/java/pom.xml install
+ && mvn -f ./opensky-api/java/pom.xml install -DskipTests -Dmaven.javadoc.skip=true
 
 RUN mvn -f /home/app/pom.xml clean package
 
