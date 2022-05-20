@@ -13,8 +13,8 @@ import (
 	"cloud.google.com/go/logging"
 	"github.com/go-co-op/gocron"
 	"google.golang.org/api/iterator"
-	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
@@ -139,7 +139,8 @@ func main() {
 }
 
 func coldLoadFromDb(client *firestore.Client) string {
-	Log.Debug.Println("Initializing from database values.")
+	Log.Debug.Println("Starting cold initialization from database.")
+	defer Log.Debug.Println("Completed cold initialization from database.")
 
 	docIter := getAllFromDb(client)
 	var lastUpdateTime = "2006-01-01-00-00"
@@ -149,16 +150,16 @@ func coldLoadFromDb(client *firestore.Client) string {
 		doc, err := docIter.Next()
 
 		if err == iterator.Done {
-
 			break
 		}
 
 		if err != nil {
 			code := status.Code(err)
 			if code == codes.PermissionDenied || code == codes.Unauthenticated {
+				Log.Critical.Println("Permission error accessing database values: ", err)
 				panic(err)
 			} else {
-				fmt.Println("Error calculating initial state, iterating documents:", err)
+				Log.Error.Println("Error calculating initial state, iterating documents:", err)
 				continue
 			}
 		}
@@ -205,7 +206,8 @@ func waitForNewSnapshot(docSnap *firestore.DocumentSnapshot, err error) *firesto
 	checkErr(err)
 
 	if !docSnap.Exists() {
-		panic("Document no longer exists.")
+		Log.Critical.Println("Critical error: 5m-history document no longer exists.")
+		panic("Critical error: 5m-history document no longer exists.")
 	}
 
 	return docSnap
@@ -230,6 +232,7 @@ func isValidNewDocument(timestamp string, lastUpdateTime string) bool {
 	_, err := parseDate(timestamp)
 
 	if err != nil {
+		Log.Error.Println("Invalid timestamp in document: ", timestamp, ", err: ", err)
 		return false
 	}
 
@@ -297,27 +300,42 @@ func saveStateToDb(client *firestore.Client) {
 
 	ctx := context.Background()
 
-	client.Collection("airspace").Doc("24h-history").Update(ctx, []firestore.Update{
+	var err error
+
+	_, err = client.Collection("airspace").Doc("24h-history").Update(ctx, []firestore.Update{
 		{Path: "CO2t", Value: oneDayState.ReadCO2()},
 		{Path: "distanceKm", Value: oneDayState.ReadDistance()},
 		{Path: "timestamp", Value: oneDayState.ReadTimestamp()},
 	})
 
-	client.Collection("airspace").Doc("6h-history").Update(ctx, []firestore.Update{
+	if err != nil {
+		Log.Error.Println("Error updating 24h-history values: ", err)
+	}
+
+	_, err = client.Collection("airspace").Doc("6h-history").Update(ctx, []firestore.Update{
 		{Path: "CO2t", Value: sixHoursState.ReadCO2()},
 		{Path: "distanceKm", Value: sixHoursState.ReadDistance()},
 		{Path: "timestamp", Value: sixHoursState.ReadTimestamp()},
 	})
 
-	client.Collection("airspace").Doc("1h-history").Update(ctx, []firestore.Update{
+	if err != nil {
+		Log.Error.Println("Error updating 6h-history values: ", err)
+	}
+
+	_, err = client.Collection("airspace").Doc("1h-history").Update(ctx, []firestore.Update{
 		{Path: "CO2t", Value: oneHourState.ReadCO2()},
 		{Path: "distanceKm", Value: oneHourState.ReadDistance()},
 		{Path: "timestamp", Value: oneHourState.ReadTimestamp()},
 	})
+
+	if err != nil {
+		Log.Error.Println("Error updating 1h-history values: ", err)
+	}
 }
 
 func checkErr(err error) {
 	if err != nil {
+		Log.Critical.Println("Critical error, panicking: ", err)
 		panic(err)
 	}
 }
@@ -409,11 +427,15 @@ func cronjobHandler1hour(client *firestore.Client) {
 	documentID := time.Now().UTC().Format("2006-01-02-15")
 	startTime := time.Now().UTC().Add(-time.Hour).Format("2006-01-02-15")
 
-	client.Collection("airspace").Doc("30d-history").Collection("1h-bucket").Doc(documentID).Set(ctx, map[string]interface{}{
+	_, err := client.Collection("airspace").Doc("30d-history").Collection("1h-bucket").Doc(documentID).Set(ctx, map[string]interface{}{
 		"CO2t":       oneHourState.ReadCO2(),
 		"distanceKm": oneHourState.ReadDistance(),
 		"startTime":  startTime,
 	})
+
+	if err != nil {
+		Log.Error.Println("Error writing document to 30d-history/1h-bucket: ", err)
+	}
 }
 
 func cronjobHandler1day(client *firestore.Client) {
@@ -424,11 +446,15 @@ func cronjobHandler1day(client *firestore.Client) {
 	// We are recording the data of the previous day
 	documentID := time.Now().UTC().AddDate(0, 0, -1).Format("2006-01-02")
 
-	client.Collection("airspace").Doc("30d-history").Collection("1d-bucket").Doc(documentID).Set(ctx, map[string]interface{}{
+	_, err := client.Collection("airspace").Doc("30d-history").Collection("1d-bucket").Doc(documentID).Set(ctx, map[string]interface{}{
 		"CO2t":       oneHourState.ReadCO2(),
 		"distanceKm": oneHourState.ReadDistance(),
 		"startTime":  documentID,
 	})
+
+	if err != nil {
+		Log.Error.Println("Error writing document to 30d-history/1d-bucket: ", err)
+	}
 
 	// Cleanup some old documents from the collection
 	go cleanupDb(client)
@@ -450,6 +476,7 @@ func cleanupDb(client *firestore.Client) {
 }
 
 func deleteOlderThanFrom(client *firestore.Client, threshold time.Time, collectionPath string) {
+	Log.Debug.Println("Starting history database cleanup of old values.")
 
 	ctx := context.Background()
 	docIter := client.Collection("airspace/"+collectionPath).
@@ -457,6 +484,8 @@ func deleteOlderThanFrom(client *firestore.Client, threshold time.Time, collecti
 		Documents(ctx)
 
 	batchOp := client.Batch()
+
+	deleteCounter := 0
 
 	for {
 		doc, err := docIter.Next()
@@ -466,16 +495,20 @@ func deleteOlderThanFrom(client *firestore.Client, threshold time.Time, collecti
 		}
 
 		if err != nil {
-			continue
+			Log.Error.Println("Error iterating documents to delete from database: ", err)
+			break
 		}
 
 		batchOp.Delete(doc.Ref)
+		deleteCounter++
 	}
 
-	_, err := batchOp.Commit(ctx)
+	if deleteCounter > 0 {
+		_, err := batchOp.Commit(ctx)
 
-	if err != nil {
-		fmt.Println("Error deleting documents: ", err)
+		if err != nil {
+			Log.Error.Println("Error batch deleting documents: ", err)
+		}
 	}
 }
 
@@ -487,7 +520,6 @@ func truncTo5Min(dateTime time.Time) time.Time {
 }
 
 func startCronJobs(client *firestore.Client) {
-
 	startTime5min := time.Now().UTC().Truncate(5 * time.Minute)
 	startTime5min.Add(time.Minute * 5).Add(time.Minute)
 
@@ -495,6 +527,8 @@ func startCronJobs(client *firestore.Client) {
 	startTime1Day := time.Now().UTC().Truncate(time.Hour*24).AddDate(0, 0, 1).Add(time.Minute * 3)
 
 	scheduler := gocron.NewScheduler(time.UTC)
+
+	Log.Debug.Println("Starting cronJobs at: ", startTime1Day, startTime1Hour, startTime5min)
 
 	scheduler.Every(5).Minutes().StartAt(startTime5min).Do(cronjobHandler5min, client)
 	scheduler.Every(1).Hour().StartAt(startTime1Hour).Do(cronjobHandler1hour, client)
