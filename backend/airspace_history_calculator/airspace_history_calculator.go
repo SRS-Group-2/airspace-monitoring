@@ -4,20 +4,23 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"sync"
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"cloud.google.com/go/logging"
 	"github.com/go-co-op/gocron"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/codes"
 )
 
-const env_authType = "AUTHENTICATION_METHOD"
 const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
+const env_logName = "GOOGLE_LOG_NAME_HISTORY_CALCULATOR"
+const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
@@ -92,18 +95,33 @@ var oneDayState = &HistoryState{
 	},
 }
 
+type LogType struct {
+	Debug    *log.Logger
+	Error    *log.Logger
+	Critical *log.Logger
+}
+
+var Log = LogType{}
+
 func main() {
-	var authType = mustGetenv(env_authType)
 	var projectID = mustGetenv(env_projectID)
-	
-	var client *firestore.Client
-	//DB
-	if authType == "ADC" {
-		client = FirestoreInit(projectID)
-	} else {
-		var credJson = mustGetenv(env_credJson)
-		client = FirestoreInitWithCredentials(projectID, []byte(credJson))
+	var logName = mustGetenv(env_logName)
+
+	ctx := context.Background()
+	loggerClient, err := logging.NewClient(ctx, projectID)
+	if err != nil {
+		panic(err)
 	}
+	defer loggerClient.Close()
+
+	Log.Debug = loggerClient.Logger(logName).StandardLogger(logging.Debug)
+	Log.Error = loggerClient.Logger(logName).StandardLogger(logging.Error)
+	Log.Critical = loggerClient.Logger(logName).StandardLogger(logging.Critical)
+
+	Log.Debug.Print("Starting History Calculator Service.")
+	defer Log.Debug.Println("Stopping History Calculator Service.")
+
+	client := FirestoreInit(projectID)
 	defer client.Close()
 
 	// Service just woke up, initialize the values of the states to the sum of what is in the DB
@@ -121,6 +139,7 @@ func main() {
 }
 
 func coldLoadFromDb(client *firestore.Client) string {
+	Log.Debug.Println("Initializing from database values.")
 
 	docIter := getAllFromDb(client)
 	var lastUpdateTime = "2006-01-01-00-00"
