@@ -21,10 +21,10 @@ locals {
   airspace_history_calculator_email = "airspace-history-calculator@${var.project_id}.iam.gserviceaccount.com"
 }
 
-resource "google_service_account_key" "airspace_history_calculator_key" {
-  service_account_id = local.airspace_history_calculator_name
-  public_key_type    = "TYPE_X509_PEM_FILE"
-}
+# resource "google_service_account_key" "airspace_history_calculator_key" {
+#   service_account_id = local.airspace_history_calculator_name
+#   public_key_type    = "TYPE_X509_PEM_FILE"
+# }
 
 # kubernetes service account for airspace history calculator
 resource "kubernetes_service_account" "airspace_history_calculator_kube_account" {
@@ -55,7 +55,7 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
     kubernetes_namespace.main_namespace,
     # google_service_account.airspace_history_calculator_sa,
     # google_project_iam_binding.airspace_history_calculator_binding,
-    google_service_account_key.airspace_history_calculator_key,
+    # google_service_account_key.airspace_history_calculator_key,
   ]
   metadata {
     name      = "airspace-history-calculator"
@@ -79,7 +79,7 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
       }
 
       spec {
-        # service_account_name = kubernetes_service_account.airspace_history_calculator_kube_account.metadata[0].name
+        service_account_name = kubernetes_service_account.airspace_history_calculator_kube_account.metadata[0].name
 
         init_container {
           name  = "workload-identity-initcontainer"
@@ -101,12 +101,12 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
           }
           env {
             name  = "AUTHENTICATION_METHOD"
-            value = "JSON"
+            value = "ADC"
           }
-          env {
-            name  = "GOOGLE_APPLICATION_CREDENTIALS"
-            value = " ${base64decode(google_service_account_key.airspace_history_calculator_key.private_key)} "
-          }
+          # env {
+          #   name  = "GOOGLE_APPLICATION_CREDENTIALS"
+          #   value = " ${base64decode(google_service_account_key.airspace_history_calculator_key.private_key)} "
+          # }
           env {
             name  = "GIN_MODE"
             value = "release"

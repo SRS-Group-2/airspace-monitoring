@@ -1,6 +1,9 @@
 # using deployment instead of Job because we don't expect it to end (it's a continuous job for us)
 resource "kubernetes_deployment" "flink_jobmanager" {
-  depends_on = [kubernetes_namespace.main_namespace]
+  depends_on = [
+    kubernetes_namespace.main_namespace,
+    # google_service_account_key.flink_key.private_key,
+  ]
   metadata {
     name      = "flink-jobmanager"
     namespace = var.kube_namespace
@@ -67,12 +70,12 @@ resource "kubernetes_deployment" "flink_jobmanager" {
           }
           env {
             name  = "FIRESTORE_AUTHENTICATION_METHOD"
-            value = "JSON"
+            value = "ADC"
           }
-          env {
-            name  = "FIRESTORE_CREDENTIALS"
-            value = " ${base64decode(google_service_account_key.flink_key.private_key)} "
-          }
+          # env {
+          #   name  = "FIRESTORE_CREDENTIALS"
+          #   value = " ${base64decode(google_service_account_key.flink_key.private_key)} "
+          # }
           env {
             name  = "GOOGLE_PUBSUB_VECTORS_TOPIC_ID"
             value = var.vectors_topic

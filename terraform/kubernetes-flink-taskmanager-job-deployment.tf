@@ -22,10 +22,10 @@ locals {
   flink_sa_name  = "projects/${var.project_id}/serviceAccounts/flink-sa@${var.project_id}.iam.gserviceaccount.com"
 }
 
-resource "google_service_account_key" "flink_key" {
-  service_account_id = local.flink_sa_name
-  public_key_type    = "TYPE_X509_PEM_FILE"
-}
+# resource "google_service_account_key" "flink_key" {
+#   service_account_id = local.flink_sa_name
+#   public_key_type    = "TYPE_X509_PEM_FILE"
+# }
 
 # resource "google_project_iam_binding" "flink_pubsub_binding" {
 #   project = var.project_id
@@ -42,7 +42,7 @@ resource "kubernetes_service_account" "flink_kube_account" {
     kubernetes_namespace.main_namespace,
     # google_service_account.flink,
     # google_project_iam_binding.flink_firestore_binding,
-    google_service_account_key.flink_key,
+    # google_service_account_key.flink_key,
   ]
   metadata {
     name      = "flink-account"
@@ -131,12 +131,12 @@ resource "kubernetes_deployment" "flink_taskmanager" {
           }
           env {
             name  = "FIRESTORE_AUTHENTICATION_METHOD"
-            value = "JSON"
+            value = "ADC"
           }
-          env {
-            name  = "FIRESTORE_CREDENTIALS"
-            value = " ${base64decode(google_service_account_key.flink_key.private_key)} "
-          }
+          # env {
+          #   name  = "FIRESTORE_CREDENTIALS"
+          #   value = " ${base64decode(google_service_account_key.flink_key.private_key)} "
+          # }
           env {
             name  = "GOOGLE_PUBSUB_VECTORS_TOPIC_ID"
             value = var.vectors_topic

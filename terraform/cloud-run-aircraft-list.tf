@@ -20,24 +20,24 @@ locals {
   aircraft_list_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.aircraft_list_sa_email}"
 }
 
-resource "google_service_account_key" "aircraft_list_key" {
-  service_account_id = local.aircraft_list_sa_name
-  public_key_type    = "TYPE_X509_PEM_FILE"
-}
+# resource "google_service_account_key" "aircraft_list_key" {
+#   service_account_id = local.aircraft_list_sa_name
+#   public_key_type    = "TYPE_X509_PEM_FILE"
+# }
 
 # Aircraft List service
 resource "google_cloud_run_service" "aircraft_list" {
   depends_on = [
     # google_service_account.aircraft_list_sa,
     # google_project_iam_binding.aircraft_list_binding,
-    google_service_account_key.aircraft_list_key,
+    # google_service_account_key.aircraft_list_key,
   ]
   name     = "aircraft-list"
   location = var.region
 
   template {
     spec {
-      # service_account_name = local.aircraft_list_sa_email
+      service_account_name = local.aircraft_list_sa_email
       containers {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/aircraft_list:latest"
         env {
@@ -46,12 +46,12 @@ resource "google_cloud_run_service" "aircraft_list" {
         }
         env {
           name  = "AUTHENTICATION_METHOD"
-          value = "JSON"
+          value = "ADC"
         }
-        env {
-          name  = "GOOGLE_APPLICATION_CREDENTIALS"
-          value = " ${base64decode(google_service_account_key.aircraft_list_key.private_key)} "
-        }
+        # env {
+        #   name  = "GOOGLE_APPLICATION_CREDENTIALS"
+        #   value = " ${base64decode(google_service_account_key.aircraft_list_key.private_key)} "
+        # }
       }
     }
 

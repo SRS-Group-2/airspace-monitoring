@@ -16,28 +16,28 @@
 locals {
   # airspace_monthly_history_sa_name = google_service_account.airspace_monthly_history_sa.name
   # airspace_monthly_history_sa_email = google_service_account.airspace_monthly_history_sa.email
-  airspace_monthly_history_sa_email = "airspace-monthly-history@${var.project_id}.iam.gserviceaccount.com "
+  airspace_monthly_history_sa_email = "airspace-monthly-history@${var.project_id}.iam.gserviceaccount.com"
   airspace_monthly_history_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.airspace_monthly_history_sa_email}"
 }
 
-resource "google_service_account_key" "airspace_monthly_history_key" {
-  service_account_id = local.airspace_monthly_history_sa_name
-  public_key_type    = "TYPE_X509_PEM_FILE"
-}
+# resource "google_service_account_key" "airspace_monthly_history_key" {
+#   service_account_id = local.airspace_monthly_history_sa_name
+#   public_key_type    = "TYPE_X509_PEM_FILE"
+# }
 
 # Airspace Monthly History service
 resource "google_cloud_run_service" "airspace_monthly_history" {
   depends_on = [
     # google_service_account.airspace_monthly_history_sa,
     # google_project_iam_binding.airspace_monthly_history_binding,
-    google_service_account_key.airspace_monthly_history_key,
+    # google_service_account_key.airspace_monthly_history_key,
   ]
   name     = "airspace-monthly-history"
   location = var.region
 
   template {
     spec {
-      # service_account_name = local.airspace_monthly_history_sa_email
+      service_account_name = local.airspace_monthly_history_sa_email
       containers {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_monthly_history:latest"
         env {
@@ -46,12 +46,12 @@ resource "google_cloud_run_service" "airspace_monthly_history" {
         }
         env {
           name  = "AUTHENTICATION_METHOD"
-          value = "JSON"
+          value = "ADC"
         }
-        env {
-          name  = "GOOGLE_APPLICATION_CREDENTIALS"
-          value = " ${base64decode(google_service_account_key.airspace_monthly_history_key.private_key)} "
-        }
+        # env {
+        #   name  = "GOOGLE_APPLICATION_CREDENTIALS"
+        #   value = " ${base64decode(google_service_account_key.airspace_monthly_history_key.private_key)} "
+        # }
         env {
           name  = "GIN_MODE"
           value = "release"

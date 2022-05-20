@@ -16,28 +16,28 @@
 locals {
   # airspace_daily_history_sa_name = google_service_account.airspace_daily_history_sa.name
   # airspace_daily_history_sa_email = google_service_account.airspace_daily_history_sa.email
-  airspace_daily_history_sa_email = "airspace-daily-history@${var.project_id}.iam.gserviceaccount.com "
+  airspace_daily_history_sa_email = "airspace-daily-history@${var.project_id}.iam.gserviceaccount.com"
   airspace_daily_history_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.airspace_daily_history_sa_email}"
 }
 
-resource "google_service_account_key" "airspace_daily_history_key" {
-  service_account_id = local.airspace_daily_history_sa_name
-  public_key_type    = "TYPE_X509_PEM_FILE"
-}
+# resource "google_service_account_key" "airspace_daily_history_key" {
+#   service_account_id = local.airspace_daily_history_sa_name
+#   public_key_type    = "TYPE_X509_PEM_FILE"
+# }
 
 # Aircraft Daily History service
 resource "google_cloud_run_service" "airspace_daily_history" {
   depends_on = [
     # google_service_account.airspace_daily_history_sa,
     # google_project_iam_binding.airspace_daily_history_binding,
-    google_service_account_key.airspace_daily_history_key,
+    # google_service_account_key.airspace_daily_history_key,
   ]
   name     = "airspace-daily-history"
   location = var.region
 
   template {
     spec {
-      # service_account_name = local.airspace_daily_history_sa_email
+      service_account_name = local.airspace_daily_history_sa_email
       containers {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_daily_history:latest"
         env {
@@ -46,12 +46,12 @@ resource "google_cloud_run_service" "airspace_daily_history" {
         }
         env {
           name  = "AUTHENTICATION_METHOD"
-          value = "JSON"
+          value = "ADC"
         }
-        env {
-          name  = "GOOGLE_APPLICATION_CREDENTIALS"
-          value = " ${base64decode(google_service_account_key.airspace_daily_history_key.private_key)} "
-        }
+        # env {
+        #   name  = "GOOGLE_APPLICATION_CREDENTIALS"
+        #   value = " ${base64decode(google_service_account_key.airspace_daily_history_key.private_key)} "
+        # }
         env {
           name  = "GIN_MODE"
           value = "release"
