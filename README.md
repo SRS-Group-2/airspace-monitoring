@@ -87,7 +87,7 @@ Pre-deploy operations:
   - `airspace-daily-history` with role "Cloud Datastore Viewer"
   - `airspace-monthly-history` with role "Cloud Datastore Viewer"
   - `airspace-history-calculator` with role "Cloud Datastore User"
-  - `flink-sa` with role "Cloud Datastore User"
+  - `flink-sa` with role "Cloud Datastore User" and role "Pub/Sub Publisher"
 - push the following Docker images to a Google Cloud Repository, in the same region as the where the system will be deployed:
   - `aircraft_info`
   - `aircraft_list`
