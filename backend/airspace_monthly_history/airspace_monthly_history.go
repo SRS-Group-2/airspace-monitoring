@@ -2,24 +2,51 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"cloud.google.com/go/logging"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/api/iterator"
 )
 
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
+const env_logName = "GOOGLE_LOG_NAME_AIRCRAFT_MONTHLY_HISTORY"
+const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
 
+type LogType struct {
+	Debug    *log.Logger
+	Error    *log.Logger
+	Critical *log.Logger
+}
+
+var Log = LogType{}
+
 func main() {
 
 	var projectID = mustGetenv(env_projectID)
+	var logName = mustGetenv(env_logName)
+
+	ctx := context.Background()
+	loggerClient, err := logging.NewClient(ctx, projectID)
+	if err != nil {
+		panic(err)
+	}
+	defer loggerClient.Close()
+
+	Log.Debug = loggerClient.Logger(logName).StandardLogger(logging.Debug)
+	Log.Error = loggerClient.Logger(logName).StandardLogger(logging.Error)
+	Log.Critical = loggerClient.Logger(logName).StandardLogger(logging.Critical)
+
+	Log.Debug.Print("Starting Monthly History Service.")
+	defer Log.Debug.Println("Stopping Monthly History Service.")
 
 	//DB
 	client := FirestoreInit(projectID)
@@ -71,6 +98,8 @@ func main() {
 				Where("startTime", "<=", toUtc).
 				OrderBy("startTime", firestore.Desc).
 				Documents(ctx)
+
+			resolution = "day"
 		}
 
 		var json = make(map[string]interface{})
@@ -84,6 +113,7 @@ func main() {
 			}
 
 			if err != nil {
+				Log.Error.Println("Error iterating over history documents with ", resolution, " resolution: ", err)
 				c.String(http.StatusInternalServerError, err.Error())
 				return
 			}
@@ -97,6 +127,7 @@ func main() {
 
 func checkErr(err error) {
 	if err != nil {
+		Log.Critical.Println("Critical error, panicking: ", err)
 		panic(err)
 	}
 }
