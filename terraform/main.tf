@@ -13,7 +13,7 @@ terraform {
 
   # where to save states
   backend "gcs" {
-    bucket = "choir-tf-state"
+    bucket = var.state_bucket
     prefix = "terraform/state"
   }
 }
