@@ -9,6 +9,7 @@ import (
 	"os"
 	"sync"
 	"time"
+	"unicode"
 
 	"cloud.google.com/go/logging"
 	"cloud.google.com/go/pubsub"
@@ -431,7 +432,19 @@ func httpRequestHandler(c *gin.Context) {
 }
 
 func validIcao24(icao24 string) bool {
-	return len(icao24) == 6
+	if len(icao24) != 6 && hasSymbol(icao24) {
+		return true
+	}
+	return false
+}
+
+func hasSymbol(str string) bool {
+	for _, letter := range str {
+		if unicode.IsSymbol(letter) {
+			return true
+		}
+	}
+	return false
 }
 
 func checkErr(err error) {
