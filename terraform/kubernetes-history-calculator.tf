@@ -1,34 +1,48 @@
-# service account for airspace history calculator
-resource "google_service_account" "airspace_history_calculator" {
-  account_id   = "airspace-history-calculator"
-  display_name = "A service account for the Airspace History Calculator"
+# # service account for airspace history calculator
+# resource "google_service_account" "airspace_history_calculator_sa" {
+#   account_id   = "airspace-history-calculator"
+#   display_name = "A service account for the Airspace History Calculator"
+# }
+
+# # bind the service account to the necessary roles
+# resource "google_project_iam_binding" "airspace_history_calculator_binding" {
+#   project = var.project_id
+#   role    = "roles/datastore.user"
+
+#   members = [
+#     "serviceAccount:${google_service_account.airspace_history_calculator_sa.email}",
+#   ]
+# }
+
+locals {
+  # airspace_history_calculator_name = google_service_account.airspace_history_calculator.name
+  # airspace_history_calculator_email = google_service_account.airspace_history_calculator.email
+  airspace_history_calculator_name  = "projects/${var.project_id}/serviceAccounts/airspace-history-calculator@${var.project_id}.iam.gserviceaccount.com"
+  airspace_history_calculator_email = "airspace-history-calculator@${var.project_id}.iam.gserviceaccount.com"
 }
 
-# bind the service account to the necessary roles
-resource "google_project_iam_binding" "airspace_history_calculator_binding" {
-  project = var.project_id
-  role    = "roles/datastore.user"
-
-  members = [
-    "serviceAccount:${google_service_account.airspace_history_calculator.email}",
-  ]
-}
+# resource "google_service_account_key" "airspace_history_calculator_key" {
+#   service_account_id = local.airspace_history_calculator_name
+#   public_key_type    = "TYPE_X509_PEM_FILE"
+# }
 
 # kubernetes service account for airspace history calculator
 resource "kubernetes_service_account" "airspace_history_calculator_kube_account" {
-  depends_on = [kubernetes_namespace.main_namespace]
+  depends_on = [
+    kubernetes_namespace.main_namespace,
+  ]
   metadata {
     name      = "airspace-history-calculator-account"
     namespace = var.kube_namespace
     annotations = {
-      "iam.gke.io/gcp-service-account" = google_service_account.airspace_history_calculator.email
+      "iam.gke.io/gcp-service-account" = local.airspace_history_calculator_email
     }
   }
 }
 
 # bind service account and kubernetes service account
 resource "google_service_account_iam_binding" "airspace_history_calculator_accounts_binding" {
-  service_account_id = google_service_account.airspace_history_calculator.name
+  service_account_id = local.airspace_history_calculator_name
   role               = "roles/iam.workloadIdentityUser"
 
   members = [
@@ -37,7 +51,12 @@ resource "google_service_account_iam_binding" "airspace_history_calculator_accou
 }
 
 resource "kubernetes_deployment" "airspace_history_calculator" {
-  depends_on = [kubernetes_namespace.main_namespace]
+  depends_on = [
+    kubernetes_namespace.main_namespace,
+    # google_service_account.airspace_history_calculator_sa,
+    # google_project_iam_binding.airspace_history_calculator_binding,
+    # google_service_account_key.airspace_history_calculator_key,
+  ]
   metadata {
     name      = "airspace-history-calculator"
     namespace = var.kube_namespace
@@ -72,12 +91,20 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
         }
         container {
           name  = "airspace-history-calculator"
-          image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/airspace_history_calculator:latest"
+          image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_history_calculator:latest"
 
           env {
             name  = "GOOGLE_CLOUD_PROJECT_ID"
             value = var.project_id
           }
+          env {
+            name  = "AUTHENTICATION_METHOD"
+            value = "ADC"
+          }
+          # env {
+          #   name  = "GOOGLE_APPLICATION_CREDENTIALS"
+          #   value = " ${base64decode(google_service_account_key.airspace_history_calculator_key.private_key)} "
+          # }
           env {
             name  = "GIN_MODE"
             value = "release"

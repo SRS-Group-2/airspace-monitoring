@@ -9,6 +9,11 @@ variable "region" {
   description = "The region where to deploy"
 }
 
+variable "docker_repo_name" {
+  type        = string
+  description = "The name of the Google Docker repository in which the images are stored"
+}
+
 # pubsub
 variable "vectors_topic" {
   type        = string

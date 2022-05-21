@@ -26,6 +26,7 @@ jobs:
       - run: echo Working on ${{ matrix.service.directory }} directory, for ${{ matrix.service.name }} service
       - name: Check out the repo
         uses: actions/checkout@v3
+      - run: echo us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA $GITHUB_WORKSPACE/${{ matrix.service.directory }}
       - name: Build image
         run: |-
           docker build \

@@ -62,16 +62,66 @@ A useful tool to locally test workflows is [`act`](https://github.com/nektos/act
 `act` shows different behaviours than Github Actions when using matrixes and checks if matrixes are empty and for the values of `${{ github.event.before }}` for new branches.
 
 ### Terraform
+Manual deploy requires `terraform` and `gcloud` installed.
+
+Pre-deploy operations:
+- create a project on Google Cloud, memorize the id of the project
+- abilitate the following Google APIs (more may be required):
+  - artifactregistry.googleapis.com
+  - autoscaling.googleapis.com
+  - compute.googleapis.com
+  - container.googleapis.com
+  - containerfilesystem.googleapis.com
+  - datastore.googleapis.com
+  - firestore.googleapis.com
+  - iam.googleapis.com
+  - iamcredentials.googleapis.com
+  - monitoring.googleapis.com
+  - pubsub.googleapis.com
+  - run.googleapis.com
+  - storage-api.googleapis.com
+  - storage-component.googleapis.com
+  - storage.googleapis.com
+- create the following service accounts, with the relative permissions:
+  - `aircraft-list` with role "Cloud Datastore Viewer"
+  - `airspace-daily-history` with role "Cloud Datastore Viewer"
+  - `airspace-monthly-history` with role "Cloud Datastore Viewer"
+  - `airspace-history-calculator` with role "Cloud Datastore User"
+  - `flink-sa` with role "Cloud Datastore User" and role "Pub/Sub Publisher"
+- push the following Docker images to a Google Cloud Repository, in the same region as the where the system will be deployed:
+  - `aircraft_info`
+  - `aircraft_list`
+  - `aircraft_positions` 
+  - `airspace_daily_history` 
+  - `airspace_monthly_history` 
+  - `airspace_history_calculator` 
+  - `web_ui`
+  - `flink_sa` 
+- create a Google Storage bucket and write its name as the "bucket" value of the 'backend "gcs"' object into `terraform/main.tf`
+- create inside the `terraform` directory a file `terraform.tfvars` in which the following variables (described in `terraform/variables.tf`) are declared, one per line, with the `var_name = var_value` syntax:
+  - `project_id`
+  - `region`
+  - `vectors_topic`
+  - `kube_cluster`
+  - `kube_network`
+  - `kube_subnetwork`
+  - `kube_pods_range`
+  - `kube_services_range`
+  - `kube_namespace`
+  - `opensky_bb`
+  - `docker_repo_name`
+
+Once the pre-deploy operations are done, execute:
 ```
-gcloud init
-terraform -chdir=terraform fmt
-terraform -chdir=terraform validate
-terraform -chdir=terraform plan
-terraform -chdir=terraform apply
-terraform -chdir=terraform destroy
+gcloud init # to log in into Google Cloud
+terraform -chdir=terraform fmt # to correctly format the terraform files, not strictly necessary
+terraform -chdir=terraform validate # to check the syntax of the Terraform files
+terraform -chdir=terraform plan # to elaborate what the apply command will do
+terraform -chdir=terraform apply # to deploy the system
+terraform -chdir=terraform destroy # to destroy every change done by the apply command to the cloud
 ```
 
-To configure `kubectl` (see https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#apt_1):
+To configure `kubectl` and explore the cluster state (see https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#apt_1):
 ```
 gcloud container clusters get-credentials gke-1 --zone "us-central1"
 ```
