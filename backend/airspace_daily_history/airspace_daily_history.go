@@ -14,7 +14,7 @@ import (
 
 const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
-const env_logName = "GOOGLE_LOG_NAME_AIRCRAFT_DAILY_HISTORY"
+const logName = "REALTIME_HISTORY_LOG"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
@@ -58,7 +58,6 @@ var Log = LogType{}
 func main() {
 
 	var projectID = mustGetenv(env_projectID)
-	var logName = mustGetenv(env_logName)
 
 	ctx := context.Background()
 	loggerClient, err := logging.NewClient(ctx, projectID)
