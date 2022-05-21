@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"unicode"
 
 	"cloud.google.com/go/logging"
 	"github.com/bvinc/go-sqlite-lite/sqlite3"
@@ -97,7 +98,7 @@ func main() {
 	router.GET("/airspace/aircraft/:icao24/info", func(c *gin.Context) {
 		var icao24 = c.Param("icao24")
 
-		if len(icao24) != 6 {
+		if len(icao24) != 6 && hasSymbol(icao24) {
 			c.String(http.StatusNotAcceptable, "Invalid icao24")
 			return
 		}
@@ -147,4 +148,13 @@ func mustGetenv(k string) string {
 		panic("Environment variable not set: " + k)
 	}
 	return v
+}
+
+func hasSymbol(str string) bool {
+	for _, letter := range str {
+		if unicode.IsSymbol(letter) {
+			return true
+		}
+	}
+	return false
 }
