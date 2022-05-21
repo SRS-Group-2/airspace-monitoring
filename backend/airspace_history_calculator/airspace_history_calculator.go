@@ -110,6 +110,7 @@ func main() {
 	ctx := context.Background()
 	loggerClient, err := logging.NewClient(ctx, projectID)
 	if err != nil {
+		log.Println("Failed to initialize centralized logging, panicking.")
 		panic(err)
 	}
 	defer loggerClient.Close()
@@ -160,7 +161,7 @@ func coldLoadFromDb(client *firestore.Client) string {
 				panic(err)
 			} else {
 				Log.Error.Println("Error calculating initial state, iterating documents:", err)
-				continue
+				break
 			}
 		}
 
