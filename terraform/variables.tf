@@ -20,7 +20,7 @@ variable "vectors_topic" {
   description = "The name of the PubSub topic with the state vectors"
 }
 
-# kubernetes
+#kubernetes
 variable "kube_cluster" {
   type        = string
   description = "Name of the kubernetes cluster being deployed"

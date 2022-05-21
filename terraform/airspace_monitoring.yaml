@@ -1,0 +1,126 @@
+swagger: '2.0'
+info:
+  title: api-gateway
+  description: API Gateway
+  version: 1.0.0
+schemes:
+  - https
+produces:
+  - application/json
+x-google-backend:
+  address: ${airspace_web_ui}
+paths:
+  /airspace/aircraft/{icao24}/info:
+    get:
+      parameters:
+        - in: path
+          name: icao24
+          type: string
+          required: true
+          description: Icao24 of the aircraft.
+      summary: aircraft-info
+      operationId: aircraft-info
+      x-google-backend:
+        address: ${aircraft_info_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '400':
+          description: "Something missing."
+  /airspace/aircraft/list:
+    get:
+      summary: aircraft-list
+      operationId: aircraft-list
+      x-google-backend:
+        address: ${aircraft_list_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '400':
+          description: "List missing."
+  /airspace/history/realtime/{interval}:
+    get:
+      parameters:
+        - in: path
+          name: interval
+          type: string
+          required: true
+          description: Interval hour.
+      summary: history-realtime
+      operationId: history-realtime-daily
+      x-google-backend:
+        address: ${airspace_daily_history_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+  /airspace/history:
+    get:
+      parameters:
+        - in: query
+          name: from
+          type: integer
+          description: starting point
+        - in: query
+          name: to
+          type: integer
+          description: ending point
+        - in: query
+          name: resolution
+          type: string
+          required: true
+          description: resolution in hours.
+      summary: history-realtime
+      operationId: history-realtime-monthly
+      x-google-backend:
+        address: ${airspace_monthly_history_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '400':
+          description: "error."
+  /:
+    get:
+      summary: web_ui
+      operationId: web_ui
+      x-google-backend:
+        address: ${airspace_web_ui}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '400':
+          description: "web-ui not allowed"
+  /airspace/aircraft/{icao24}/position:
+    get:
+      parameters:
+        - in: path
+          name: icao24
+          type: string
+          required: true
+          description: Icao24 of the aircraft.
+      summary: aircraft-position
+      operationId: aircraft-position
+      x-google-backend:
+        address: ${airspace_positions_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '400':
+          description: "Something missing."
