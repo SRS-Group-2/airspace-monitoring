@@ -6,11 +6,7 @@ resource "google_cloud_run_service" "web_ui" {
   template {
     spec {
       containers {
-<<<<<<< HEAD
         image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/web_ui:latest"
-=======
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/web_ui:latest"
->>>>>>> feature/dev-gateway
       }
     }
     metadata {
