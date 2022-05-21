@@ -163,6 +163,7 @@ resource "google_cloud_run_service" "airspace_monthly_history" {
     latest_revision = true
   }
 }
+
 resource "google_cloud_run_service_iam_policy" "noauth_airspace_monthly_history" {
   location    = google_cloud_run_service.airspace_monthly_history.location
   project     = google_cloud_run_service.airspace_monthly_history.project
@@ -170,3 +171,37 @@ resource "google_cloud_run_service_iam_policy" "noauth_airspace_monthly_history"
   policy_data = data.google_iam_policy.noauth.policy_data
 }
 
+# # # aircraft positions
+
+resource "google_cloud_run_service" "aircraft_positions" {
+  name     = "aircraft-positions"
+  location = var.region
+
+  template {
+    spec {
+      containers {
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/aircraft_positions:latest"
+      }
+    }
+    metadata {
+      annotations = {
+        "autoscaling.knative.dev/maxScale" = "15"
+        "autoscaling.knative.dev/minScale" = "0"
+      }
+    }
+  }
+
+  # direct all traffic toward latest revision
+  traffic {
+    percent         = 100
+    latest_revision = true
+  }
+}
+
+resource "google_cloud_run_service_iam_policy" "noauth_aircraft_positions" {
+  location = google_cloud_run_service.aircraft_positions.location
+  project  = google_cloud_run_service.aircraft_positions.project
+  service  = google_cloud_run_service.aircraft_positions.name
+
+  policy_data = data.google_iam_policy.noauth.policy_data
+}

@@ -14,8 +14,9 @@ data "template_file" "aircraft_info" {
     airspace_daily_history_url   = "${google_cloud_run_service.airspace_daily_history.status[0].url}"
     airspace_monthly_history_url = "${google_cloud_run_service.airspace_monthly_history.status[0].url}"
     airspace_web_ui              = "${google_cloud_run_service.web_ui.status[0].url}"
+    airspace_positions_url       = "${google_cloud_run_service.aircraft_positions.status[0].url}"
   }
-  depends_on = [google_cloud_run_service.aircraft_info, google_cloud_run_service.aircraft_list, google_cloud_run_service.airspace_daily_history, google_cloud_run_service.airspace_monthly_history, google_cloud_run_service.web_ui]
+  depends_on = [google_cloud_run_service.aircraft_info, google_cloud_run_service.aircraft_list, google_cloud_run_service.airspace_daily_history, google_cloud_run_service.airspace_monthly_history, google_cloud_run_service.web_ui, google_cloud_run_service.aircraft_positions]
 }
 
 
@@ -34,9 +35,9 @@ resource "google_api_gateway_api_config" "api_cfg" {
 
   openapi_documents {
     document {
-      path     = "aircraft_info.yaml"
+      path     = "airspace_monitoring.yaml"
+      #aircraft_info.yaml
       contents = base64encode(data.template_file.aircraft_info.rendered)
-
     }
 
   }
