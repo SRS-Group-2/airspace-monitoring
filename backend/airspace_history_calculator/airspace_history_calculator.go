@@ -19,7 +19,7 @@ import (
 
 const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
-const env_logName = "GOOGLE_LOG_NAME_HISTORY_CALCULATOR"
+const logName = "HISTORY_CALCULATOR_LOG"
 const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 
 const env_port = "PORT"
@@ -105,7 +105,6 @@ var Log = LogType{}
 
 func main() {
 	var projectID = mustGetenv(env_projectID)
-	var logName = mustGetenv(env_logName)
 
 	ctx := context.Background()
 	loggerClient, err := logging.NewClient(ctx, projectID)

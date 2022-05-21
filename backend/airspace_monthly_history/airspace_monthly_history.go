@@ -17,7 +17,7 @@ import (
 const env_authType = "AUTHENTICATION_METHOD"
 const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
-const env_logName = "GOOGLE_LOG_NAME_AIRCRAFT_MONTHLY_HISTORY"
+const logName = "MONTHLY_HISTORY_LOG"
 const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 
 const env_port = "PORT"
@@ -34,7 +34,6 @@ var Log = LogType{}
 func main() {
 	var authType = mustGetenv(env_authType)
 	var projectID = mustGetenv(env_projectID)
-	var logName = mustGetenv(env_logName)
 
 	ctx := context.Background()
 	loggerClient, err := logging.NewClient(ctx, projectID)
@@ -49,7 +48,6 @@ func main() {
 
 	Log.Debug.Print("Starting Monthly History Service.")
 	defer Log.Debug.Println("Stopping Monthly History Service.")
-
 
 	var client *firestore.Client
 	//DB
