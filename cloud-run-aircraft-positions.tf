@@ -6,29 +6,31 @@ resource "google_service_account" "aircraft_positions_sa" {
 # bind the service account to the necessary roles
 resource "google_project_iam_binding" "aircraft_positions_binding" {
   project = var.project_id
-  role    = "roles/pubsub.editor"
- 
-  members = [
-    "serviceAccount:${google_service_account.aircraft_positions_sa.email}",
-  ]
-}
-resource "google_project_iam_binding" "aircraft_positions_binding_log" {
-  project = var.project_id
-  role    = "roles/logging.logWriter"
- 
+  role    = "roles/pubsub.editor,"
+
   members = [
     "serviceAccount:${google_service_account.aircraft_positions_sa.email}",
   ]
 }
 
+resource "google_service_account" "aircraft_position_log_user" {
+  account_id   = "log-user"
+  display_name = "Logging User"
+}
+
+resource "google_project_iam_binding" "log_user" {
+  project = "arcadia-apps-237918"
+  role    = "roles/logging.logWriter"
+  members = [
+    "serviceAccount:${google_service_account.log_user.email}"
+  ]
+}
 
 # Aircraft Daily History service
 resource "google_cloud_run_service" "aircraft_positions" {
   depends_on = [
     google_service_account.aircraft_positions_sa,
-    google_pubsub_topic.pubsub_positions,
-    google_project_iam_binding.aircraft_positions_binding_log,
-    google_project_iam_binding.aircraft_positions_binding,
+    google_pubsub_topic.pubsub_positions
   ]
   name     = "aircraft-positions"
   location = var.region
@@ -41,11 +43,6 @@ resource "google_cloud_run_service" "aircraft_positions" {
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id
-        }
-
-        env {
-          name  = "GOOGLE_LOG_NAME_AIRCRAFT_POSITIONS"
-          value = "aircraft-position"
         }
 
         env {

@@ -20,6 +20,26 @@ locals {
   aircraft_list_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.aircraft_list_sa_email}"
 }
 
+
+resource "google_service_account" "aircraft_list_sa" {
+  account_id   = "aircraft-list"
+  display_name = "A service account for the Aircraft List service"
+}
+
+resource "google_project_iam_binding" "aircraft_list_binding_log" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+ 
+  members = [
+    "serviceAccount:${google_service_account.aircraft_list_sa.email}",
+  ]
+}
+
+# 
+# 
+# 
+# 
+
 # resource "google_service_account_key" "aircraft_list_key" {
 #   service_account_id = local.aircraft_list_sa_name
 #   public_key_type    = "TYPE_X509_PEM_FILE"
@@ -28,8 +48,8 @@ locals {
 # Aircraft List service
 resource "google_cloud_run_service" "aircraft_list" {
   depends_on = [
-    # google_service_account.aircraft_list_sa,
-    # google_project_iam_binding.aircraft_list_binding,
+     google_service_account.aircraft_list_sa,
+     google_project_iam_binding.aircraft_list_binding_log,
     # google_service_account_key.aircraft_list_key,
   ]
   name     = "aircraft-list"
@@ -48,10 +68,7 @@ resource "google_cloud_run_service" "aircraft_list" {
           name  = "AUTHENTICATION_METHOD"
           value = "ADC"
         }
-        # env {
-        #   name  = "GOOGLE_APPLICATION_CREDENTIALS"
-        #   value = " ${base64decode(google_service_account_key.aircraft_list_key.private_key)} "
-        # }
+
       }
     }
 

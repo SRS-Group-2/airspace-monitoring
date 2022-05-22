@@ -1,6 +1,30 @@
+resource "google_service_account" "aircraft_info_sa" {
+  account_id   = "aircraft-info"
+  display_name = "A service account for the Aircraft-info service"
+}
+
+resource "google_project_iam_binding" "aircraft_info_binding_log" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+ 
+  members = [
+    "serviceAccount:${google_service_account.aircraft_info_sa.email}",
+  ]
+}
+
+# 
+# 
+# 
+# 
 
 # Aircraft Info service
 resource "google_cloud_run_service" "aircraft_info" {
+   depends_on = [
+     google_service_account.aircraft_info_sa,
+     google_project_iam_binding.aircraft_info_binding_log,
+    # google_service_account_key.aircraft_list_key,
+  ]
+
   name     = "aircraft-info"
   location = var.region
 
@@ -8,6 +32,14 @@ resource "google_cloud_run_service" "aircraft_info" {
     spec {
       containers {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/aircraft_info:latest"
+        env {
+          name  = "GOOGLE_CLOUD_PROJECT_ID"
+          value = var.project_id
+        }
+        env {
+          name  = "GOOGLE_LOG_NAME_AIRCRAFT_INFO"
+          value = "aircraft-info"
+        }
       }
     }
     metadata {

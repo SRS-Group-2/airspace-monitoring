@@ -25,11 +25,26 @@ locals {
 #   public_key_type    = "TYPE_X509_PEM_FILE"
 # }
 
+resource "google_service_account" "airspace_daily_history_sa" {
+  account_id   = "aircraft-daily-history"
+  display_name = "A service account for the Aircraft-daily-history service"
+}
+
+resource "google_project_iam_binding" "airspace_daily_history_binding_log" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+ 
+  members = [
+    "serviceAccount:${google_service_account.airspace_daily_history_sa.email}",
+  ]
+}
+
+
 # Aircraft Daily History service
 resource "google_cloud_run_service" "airspace_daily_history" {
   depends_on = [
-    # google_service_account.airspace_daily_history_sa,
-    # google_project_iam_binding.airspace_daily_history_binding,
+     google_service_account.airspace_daily_history_sa,
+     google_project_iam_binding.airspace_daily_history_binding_log,
     # google_service_account_key.airspace_daily_history_key,
   ]
   name     = "airspace-daily-history"
@@ -48,10 +63,6 @@ resource "google_cloud_run_service" "airspace_daily_history" {
           name  = "AUTHENTICATION_METHOD"
           value = "ADC"
         }
-        # env {
-        #   name  = "GOOGLE_APPLICATION_CREDENTIALS"
-        #   value = " ${base64decode(google_service_account_key.airspace_daily_history_key.private_key)} "
-        # }
         env {
           name  = "GIN_MODE"
           value = "release"

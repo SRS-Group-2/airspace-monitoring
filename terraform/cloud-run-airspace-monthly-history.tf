@@ -24,12 +24,24 @@ locals {
 #   service_account_id = local.airspace_monthly_history_sa_name
 #   public_key_type    = "TYPE_X509_PEM_FILE"
 # }
+resource "google_service_account" "airspace_monthly_history_sa" {
+  account_id   = "aircraft-monthly-history"
+  display_name = "A service account for the Aircraft-monthly-history service"
+}
 
+resource "google_project_iam_binding" "airspace_monthly_history_log" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+ 
+  members = [
+    "serviceAccount:${google_service_account.airspace_monthly_history_sa.email}",
+  ]
+}
 # Airspace Monthly History service
 resource "google_cloud_run_service" "airspace_monthly_history" {
   depends_on = [
-    # google_service_account.airspace_monthly_history_sa,
-    # google_project_iam_binding.airspace_monthly_history_binding,
+     google_service_account.airspace_monthly_history_sa,
+     google_project_iam_binding.airspace_monthly_history_log,
     # google_service_account_key.airspace_monthly_history_key,
   ]
   name     = "airspace-monthly-history"

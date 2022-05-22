@@ -30,3 +30,7 @@ provider "google-beta" {
   region  = var.region
   zone    = "${var.region}-c"
 }
+
+data "google_project" "project" {
+}
+

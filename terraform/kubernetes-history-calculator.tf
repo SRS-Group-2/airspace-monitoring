@@ -21,6 +21,20 @@ locals {
   airspace_history_calculator_email = "airspace-history-calculator@${var.project_id}.iam.gserviceaccount.com"
 }
 
+resource "google_service_account" "airspace_history_calculator_sa" {
+  account_id   = "airspace_history_calculator"
+  display_name = "A service account for the airspace_history_calculator service"
+}
+
+resource "google_project_iam_binding" "airspace_history_calculator_binding_log" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+ 
+  members = [
+    "serviceAccount:${google_service_account.airspace_history_calculator_sa.email}",
+  ]
+}
+
 # resource "google_service_account_key" "airspace_history_calculator_key" {
 #   service_account_id = local.airspace_history_calculator_name
 #   public_key_type    = "TYPE_X509_PEM_FILE"

@@ -115,6 +115,7 @@ Pre-deploy operations:
 Once the pre-deploy operations are done, execute:
 ```
 gcloud init # to log in into Google Cloud
+terraform -chdir=terraform init # to initialize the terraform state, necessary
 terraform -chdir=terraform fmt # to correctly format the terraform files, not strictly necessary
 terraform -chdir=terraform validate # to check the syntax of the Terraform files
 terraform -chdir=terraform plan # to elaborate what the apply command will do
