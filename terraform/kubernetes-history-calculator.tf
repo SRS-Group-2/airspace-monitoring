@@ -30,6 +30,8 @@ locals {
 resource "kubernetes_service_account" "airspace_history_calculator_kube_account" {
   depends_on = [
     kubernetes_namespace.main_namespace,
+    kubernetes_deployment.flink_jobmanager, # requires the data from these two to work
+    kubernetes_deployment.flink_taskmanager # requires the data from these two to work
   ]
   metadata {
     name      = "airspace-history-calculator-account"
