@@ -1,0 +1,4 @@
+fileignoreconfig:
+- filename: threat-model.json
+  checksum: 425ee0562b797d7965ca244abbf9e32e0619dda8d18a36cfea3af4940a299f96
+version: ""

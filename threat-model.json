@@ -23,7 +23,7 @@
               },
               "position": {
                 "x": 12,
-                "y": 238
+                "y": 303
               },
               "angle": 0,
               "id": "31b73915-82f1-4e49-ad9e-221fcdac3e41",
@@ -51,7 +51,7 @@
                   "status": "Open",
                   "severity": "Medium",
                   "description": "A generic DoS threat",
-                  "mitigation": "",
+                  "mitigation": "- Increment scalability, to support requests\n- Filter requests, recognizing illegal/improper ones",
                   "threatId": "cbd5c2c9-f0bc-4c93-817f-2ec1b53af33a",
                   "$$hashKey": "object:671"
                 }
@@ -75,8 +75,8 @@
                 "height": 100
               },
               "position": {
-                "x": 156,
-                "y": 312
+                "x": 404,
+                "y": 302
               },
               "angle": 0,
               "id": "7ff4a2d3-090c-4f23-aa25-2b65dbc87599",
@@ -116,8 +116,8 @@
                 "height": 100
               },
               "position": {
-                "x": 339,
-                "y": 304
+                "x": 145,
+                "y": 359
               },
               "angle": 0,
               "id": "72267033-05e7-461a-9253-40a300b6b20b",
@@ -166,16 +166,15 @@
               "hasOpenThreats": true,
               "threats": [
                 {
-                  "ruleId": "52453492-f49f-411e-a59d-5fc2dd98664b",
-                  "title": "Generic threat to Availability",
-                  "type": "Availability",
-                  "modelType": "CIA",
                   "status": "Open",
-                  "severity": "High",
-                  "description": "A generic threat to availability",
-                  "mitigation": "Mitigation or prevention for the threat",
-                  "threatId": "b046a748-0c21-4619-b184-2f10bbe442e4",
-                  "$$hashKey": "object:984"
+                  "severity": "Low",
+                  "modelType": "STRIDE",
+                  "title": "Generic threat to Integrity",
+                  "type": "Tampering",
+                  "description": "The data requested to the OpenSky APIs could be tampered with.",
+                  "mitigation": "Find assurations the data is being received from the right source",
+                  "threatId": "52f0ddff-02b7-4023-834b-d020889cc964",
+                  "$$hashKey": "object:56"
                 }
               ],
               "attrs": {
@@ -265,8 +264,8 @@
                 "height": 80
               },
               "position": {
-                "x": 241,
-                "y": 1
+                "x": 229,
+                "y": 143
               },
               "angle": 0,
               "id": "bdc570c0-b14e-48ca-b9ab-3c7d396816b0",
@@ -291,8 +290,8 @@
                 "height": 80
               },
               "position": {
-                "x": 358,
-                "y": 534
+                "x": 128,
+                "y": 533
               },
               "angle": 0,
               "id": "cd0243de-c248-444d-81a9-dc5e9035fd8c",
@@ -325,8 +324,8 @@
               },
               "vertices": [
                 {
-                  "x": 69,
-                  "y": 33
+                  "x": 76,
+                  "y": 167
                 }
               ],
               "id": "dda2372c-35f3-47d2-8f83-f2c5b96ecc43",
@@ -373,8 +372,8 @@
               },
               "vertices": [
                 {
-                  "x": 117,
-                  "y": 76
+                  "x": 116,
+                  "y": 198
                 }
               ],
               "id": "e10fa118-bbc7-4768-8f2b-66859b649f32",
@@ -418,8 +417,8 @@
               },
               "vertices": [
                 {
-                  "x": 446,
-                  "y": 654
+                  "x": 282,
+                  "y": 705
                 }
               ],
               "id": "cfcc8633-03d2-413d-b8e0-b212a30dd8a4",
@@ -464,8 +463,8 @@
               },
               "vertices": [
                 {
-                  "x": 235,
-                  "y": 693
+                  "x": 488,
+                  "y": 647
                 }
               ],
               "id": "d86f9e0d-f98e-4ce3-b9ba-652fc79ceee2",
@@ -507,8 +506,8 @@
               },
               "vertices": [
                 {
-                  "x": 142,
-                  "y": 129
+                  "x": 348,
+                  "y": 311
                 }
               ],
               "id": "1d0b845d-9dd8-40ea-a0dd-e05219d2b4ac",
@@ -552,8 +551,8 @@
               },
               "vertices": [
                 {
-                  "x": 227,
-                  "y": 167
+                  "x": 430,
+                  "y": 266
                 }
               ],
               "id": "c927a73f-f763-4cf3-9b5d-9fc3239bd2e8",
@@ -638,16 +637,16 @@
               },
               "vertices": [
                 {
-                  "x": 304,
-                  "y": 151
+                  "x": 227,
+                  "y": 263
                 }
               ],
               "id": "568dbbfd-f385-44c8-9de5-04f1e24d5528",
               "labels": [
                 {
                   "position": {
-                    "distance": 0.6071029270937185,
-                    "offset": 1.3844765612828263
+                    "distance": 0.4257959766857843,
+                    "offset": -31.52334612201325
                   },
                   "attrs": {
                     "text": {
@@ -686,8 +685,8 @@
               },
               "vertices": [
                 {
-                  "x": 380,
-                  "y": 173
+                  "x": 140,
+                  "y": 232
                 }
               ],
               "id": "31035a84-b4fc-4e5f-b621-4ef8182df3fd",
@@ -723,8 +722,8 @@
                 "height": 100
               },
               "position": {
-                "x": 515,
-                "y": 205
+                "x": 536,
+                "y": 277
               },
               "angle": 0,
               "id": "c450f700-9ae0-4a96-9cec-2b0997eea63f",
@@ -772,8 +771,8 @@
               },
               "vertices": [
                 {
-                  "x": 424,
-                  "y": 163
+                  "x": 454,
+                  "y": 197
                 }
               ],
               "id": "e3b4a8fa-ae6e-42df-854e-6e13691a5573",
@@ -854,8 +853,8 @@
                 "height": 100
               },
               "position": {
-                "x": 819,
-                "y": 484
+                "x": 886,
+                "y": 526
               },
               "angle": 0,
               "id": "79719f47-306d-4dc7-8320-f41efbae2dae",
@@ -880,8 +879,8 @@
                 "height": 80
               },
               "position": {
-                "x": 810,
-                "y": 268
+                "x": 747,
+                "y": 300
               },
               "angle": 0,
               "id": "db0e7f01-3338-4dd7-a93e-5ce3274393c8",
@@ -932,8 +931,8 @@
                 "height": 80
               },
               "position": {
-                "x": 162,
-                "y": 530
+                "x": 362,
+                "y": 493
               },
               "angle": 0,
               "id": "5b5d8c94-d5d3-4940-b529-cf834437c93a",
@@ -944,7 +943,7 @@
                   "class": "element-shape hasNoOpenThreats isInScope"
                 },
                 "text": {
-                  "text": "Aircraft list"
+                  "text": "Aircraft list store"
                 },
                 ".element-text": {
                   "class": "element-text hasNoOpenThreats isInScope"
@@ -969,8 +968,8 @@
               "labels": [
                 {
                   "position": {
-                    "distance": 0.5015013762293163,
-                    "offset": 1.579646447512009
+                    "distance": 0.6412421988873112,
+                    "offset": 2.4693536729166157
                   },
                   "attrs": {
                     "text": {
@@ -999,8 +998,8 @@
                 "height": 100
               },
               "position": {
-                "x": 660,
-                "y": 12
+                "x": 631,
+                "y": 124
               },
               "angle": 0,
               "id": "2265665e-c123-4ed8-9068-5eca7e5f51aa",
@@ -1125,8 +1124,8 @@
                 "height": 80
               },
               "position": {
-                "x": 570,
-                "y": 569
+                "x": 608,
+                "y": 595
               },
               "angle": 0,
               "id": "18f38da2-c1ec-4ec4-84db-2700f037384b",
@@ -1194,8 +1193,8 @@
                 "height": 80
               },
               "position": {
-                "x": 552,
-                "y": 405
+                "x": 585,
+                "y": 480
               },
               "angle": 0,
               "id": "f33aad25-d1e2-41f2-b25e-2396704d27f6",
@@ -1206,7 +1205,7 @@
                   "class": "element-shape hasNoOpenThreats isInScope"
                 },
                 "text": {
-                  "text": "Current distance/CO2\ndata"
+                  "text": "Current distance/CO2\ndata store"
                 },
                 ".element-text": {
                   "class": "element-text hasNoOpenThreats isInScope"
@@ -1230,7 +1229,10 @@
               "id": "065be4d1-6439-4801-ad85-73377e8cb0b8",
               "labels": [
                 {
-                  "position": 0.5,
+                  "position": {
+                    "distance": 0.6381510069540942,
+                    "offset": -11.979060831663089
+                  },
                   "attrs": {
                     "text": {
                       "text": "Receives updated\ndata",
@@ -1266,8 +1268,8 @@
               },
               "vertices": [
                 {
-                  "x": 786,
-                  "y": 472
+                  "x": 871,
+                  "y": 489
                 }
               ],
               "id": "85a744d8-2188-461e-9e5c-91fe463c27bf",
@@ -1307,7 +1309,12 @@
               "target": {
                 "id": "79719f47-306d-4dc7-8320-f41efbae2dae"
               },
-              "vertices": [],
+              "vertices": [
+                {
+                  "x": 937,
+                  "y": 678
+                }
+              ],
               "id": "d3183872-524b-479d-bd1d-ca991e7e21a3",
               "labels": [
                 {
@@ -1340,8 +1347,7 @@
               },
               "smooth": true,
               "source": {
-                "x": 897,
-                "y": 492
+                "id": "79719f47-306d-4dc7-8320-f41efbae2dae"
               },
               "target": {
                 "id": "db0e7f01-3338-4dd7-a93e-5ce3274393c8"
@@ -1413,12 +1419,202 @@
                   "class": "connection hasNoOpenThreats isInScope"
                 }
               }
+            },
+            {
+              "type": "tm.Boundary",
+              "size": {
+                "width": 10,
+                "height": 10
+              },
+              "smooth": true,
+              "source": {
+                "x": 374,
+                "y": 685
+              },
+              "target": {
+                "x": 474,
+                "y": 763
+              },
+              "vertices": [
+                {
+                  "x": 342,
+                  "y": 493
+                },
+                {
+                  "x": 572,
+                  "y": 449
+                },
+                {
+                  "x": 709,
+                  "y": 405
+                },
+                {
+                  "x": 735,
+                  "y": 279
+                },
+                {
+                  "x": 938,
+                  "y": 291
+                },
+                {
+                  "x": 913,
+                  "y": 409
+                },
+                {
+                  "x": 759,
+                  "y": 441
+                },
+                {
+                  "x": 776,
+                  "y": 714
+                }
+              ],
+              "id": "5f0f75cd-f422-473d-aa4c-378f27907f46",
+              "z": 38,
+              "attrs": {}
+            },
+            {
+              "type": "tm.Process",
+              "size": {
+                "width": 100,
+                "height": 100
+              },
+              "position": {
+                "x": 12,
+                "y": 29
+              },
+              "angle": 0,
+              "id": "7f648aa2-34df-44af-bf0f-86aa92331989",
+              "z": 39,
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "ruleId": "b2a6d40d-d3f8-4750-8e4d-c02cc84b13dc",
+                  "title": "Generic spoofing threat",
+                  "type": "Spoofing",
+                  "modelType": "STRIDE",
+                  "status": "Open",
+                  "severity": "Low",
+                  "description": "A generic spoofing threat",
+                  "mitigation": "Mitigation or prevention for the threat",
+                  "threatId": "2f9c1450-d17e-471d-af2e-9551f24ae367",
+                  "$$hashKey": "object:86"
+                },
+                {
+                  "ruleId": "edb05d76-a695-455f-947b-7d67b78bc31d",
+                  "title": "Generic DoS threat",
+                  "type": "Denial of service",
+                  "modelType": "STRIDE",
+                  "status": "Mitigated",
+                  "severity": "Medium",
+                  "description": "A generic DoS threat",
+                  "mitigation": "Infrastructure level mitigations",
+                  "threatId": "d6ef54fc-0b39-4983-b21d-426265232b7d",
+                  "$$hashKey": "object:116"
+                }
+              ],
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "Websocket\nendpoints"
+                },
+                ".element-text": {
+                  "class": "element-text hasOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "size": {
+                "width": 10,
+                "height": 10
+              },
+              "smooth": true,
+              "source": {
+                "id": "bdc570c0-b14e-48ca-b9ab-3c7d396816b0"
+              },
+              "target": {
+                "id": "7f648aa2-34df-44af-bf0f-86aa92331989"
+              },
+              "vertices": [
+                {
+                  "x": 203,
+                  "y": 42
+                }
+              ],
+              "id": "3866580f-725c-42b9-a473-06c28ecdd8ff",
+              "labels": [
+                {
+                  "position": {
+                    "distance": 0.3581045567776435,
+                    "offset": 13.376098751637805
+                  },
+                  "attrs": {
+                    "text": {
+                      "text": "Request endpoint url",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 40,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "size": {
+                "width": 10,
+                "height": 10
+              },
+              "smooth": true,
+              "source": {
+                "x": 106,
+                "y": 108
+              },
+              "target": {
+                "id": "bdc570c0-b14e-48ca-b9ab-3c7d396816b0"
+              },
+              "vertices": [],
+              "id": "631a4d49-939d-4e81-bd34-47f024ab97ca",
+              "labels": [
+                {
+                  "position": 0.5,
+                  "attrs": {
+                    "text": {
+                      "text": "Endpoint url",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 41,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
             }
           ]
         },
         "size": {
           "height": 905,
-          "width": 1000
+          "width": 1040
         }
       }
     ]
