@@ -104,18 +104,12 @@ paths:
             type: string
         '400':
           description: "web-ui not allowed"
-  /airspace/aircraft/{icao24}/position:
+  /endpoints/position/url:
     get:
-      parameters:
-        - in: path
-          name: icao24
-          type: string
-          required: true
-          description: Icao24 of the aircraft.
-      summary: aircraft-position
-      operationId: aircraft-position
+      summary: aircraft-position-url
+      operationId: aircraft-position-url
       x-google-backend:
-        address: ${airspace_positions_url}
+        address: ${websocket_endpoints_url}
         path_translation: APPEND_PATH_TO_ADDRESS
       responses:
         '200':

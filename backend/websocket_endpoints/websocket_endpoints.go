@@ -18,7 +18,7 @@ func main() {
 	router := gin.New()
 
 	router.SetTrustedProxies(nil)
-	router.GET("/endpoint/position/url", getWebsocketEndpoint)
+	router.GET("/endpoints/position/url", getWebsocketEndpoint)
 
 	router.Run()
 }

@@ -6,14 +6,14 @@ terraform {
       version = "4.20.0"
     }
     kubernetes = {
-     source  = "hashicorp/kubernetes"
-    version = "2.11.0"
+      source  = "hashicorp/kubernetes"
+      version = "2.11.0"
     }
   }
 
   # where to save states
   backend "gcs" {
-    bucket = "choir-tf-state3"
+    bucket = "choir-tf-state"
     prefix = "terraform/state"
   }
 }
