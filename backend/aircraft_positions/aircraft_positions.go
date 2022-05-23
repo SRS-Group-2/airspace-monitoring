@@ -19,7 +19,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const env_topicID = "GOOGLE_PUBSUB_AIRCRAFT_POSITIONS_TOPIC_ID"
 const logName = "AIRCRAFT_POSITIONS_LOG"

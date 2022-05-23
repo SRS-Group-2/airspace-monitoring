@@ -17,10 +17,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const logName = "HISTORY_CALCULATOR_LOG"
-const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"

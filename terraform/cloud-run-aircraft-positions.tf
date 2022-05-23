@@ -42,17 +42,10 @@ resource "google_cloud_run_service" "aircraft_positions" {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id
         }
-
-        env {
-          name  = "GOOGLE_LOG_NAME_AIRCRAFT_POSITIONS"
-          value = "aircraft-position"
-        }
-
         env {
           name  = "GOOGLE_PUBSUB_AIRCRAFT_POSITIONS_TOPIC_ID"
           value = var.vectors_topic
         }
-
         env {
           name  = "GIN_MODE"
           value = "release"

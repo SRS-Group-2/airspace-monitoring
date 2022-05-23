@@ -45,10 +45,6 @@ resource "google_cloud_run_service" "airspace_daily_history" {
           value = var.project_id
         }
         env {
-          name  = "AUTHENTICATION_METHOD"
-          value = "ADC"
-        }
-        env {
           name  = "GIN_MODE"
           value = "release"
         }

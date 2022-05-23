@@ -68,14 +68,6 @@ resource "kubernetes_deployment" "flink_jobmanager" {
             value = var.project_id
           }
           env {
-            name  = "FIRESTORE_AUTHENTICATION_METHOD"
-            value = "ADC"
-          }
-          # env {
-          #   name  = "FIRESTORE_CREDENTIALS"
-          #   value = " ${base64decode(google_service_account_key.flink_key.private_key)} "
-          # }
-          env {
             name  = "GOOGLE_PUBSUB_VECTORS_TOPIC_ID"
             value = var.vectors_topic
           }

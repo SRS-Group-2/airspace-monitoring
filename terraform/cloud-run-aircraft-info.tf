@@ -31,10 +31,6 @@ resource "google_cloud_run_service" "aircraft_info" {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id
         }
-        env {
-          name  = "GOOGLE_LOG_NAME_AIRCRAFT_INFO"
-          value = "aircraft-info"
-        }
       }
     }
     metadata {

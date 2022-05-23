@@ -43,14 +43,6 @@ resource "google_cloud_run_service" "airspace_monthly_history" {
           value = var.project_id
         }
         env {
-          name  = "AUTHENTICATION_METHOD"
-          value = "ADC"
-        }
-        # env {
-        #   name  = "GOOGLE_APPLICATION_CREDENTIALS"
-        #   value = " ${base64decode(google_service_account_key.airspace_monthly_history_key.private_key)} "
-        # }
-        env {
           name  = "GIN_MODE"
           value = "release"
         }

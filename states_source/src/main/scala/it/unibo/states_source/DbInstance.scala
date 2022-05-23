@@ -13,14 +13,7 @@ object  DbInstance {
   def getInstance() : Firestore = {
     synchronized {
       if (this.instance == null) {
-        val credentials: Credentials = 
-          if (System.getenv("FIRESTORE_AUTHENTICATION_METHOD") == "ADC") {
-            GoogleCredentials.getApplicationDefault()
-          } else {
-            val json = System.getenv("FIRESTORE_CREDENTIALS")
-            val jsonCredentials = new ByteArrayInputStream(json.getBytes())
-            GoogleCredentials.fromStream(jsonCredentials)
-          }
+        val credentials: Credentials = GoogleCredentials.getApplicationDefault()
         val options: FirestoreOptions = 
           FirestoreOptions.getDefaultInstance().toBuilder()
           // .setCredentials(GoogleCredentials.getApplicationDefault())

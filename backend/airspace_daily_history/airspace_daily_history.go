@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const logName = "REALTIME_HISTORY_LOG"
 

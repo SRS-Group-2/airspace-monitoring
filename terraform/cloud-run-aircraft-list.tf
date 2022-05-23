@@ -44,11 +44,6 @@ resource "google_cloud_run_service" "aircraft_list" {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id
         }
-        env {
-          name  = "AUTHENTICATION_METHOD"
-          value = "ADC"
-        }
-
       }
     }
 
