@@ -28,7 +28,7 @@ const max_db_connections = 25
 const database_path = "file:./resources/aircraft_info.db"
 const database_config = "?immutable=1&mode=ro"
 
-const env_logName = "GOOGLE_LOG_NAME_AIRCRAFT_INFO"
+const logName = "AIRCRAFT_INFO_LOG"
 const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 
@@ -42,7 +42,6 @@ var Log = LogType{}
 
 func main() {
 	var projectID = mustGetenv(env_projectID)
-	var logName = mustGetenv(env_logName)
 
 	ctx := context.Background()
 	loggerClient, err := logging.NewClient(ctx, projectID)

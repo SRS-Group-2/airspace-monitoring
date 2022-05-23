@@ -19,7 +19,7 @@ import (
 
 const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
-const env_logName = "GOOGLE_LOG_NAME_HISTORY_CALCULATOR"
+const logName = "HISTORY_CALCULATOR_LOG"
 const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 
 const env_port = "PORT"
@@ -105,7 +105,6 @@ var Log = LogType{}
 
 func main() {
 	var projectID = mustGetenv(env_projectID)
-	var logName = mustGetenv(env_logName)
 
 	ctx := context.Background()
 	loggerClient, err := logging.NewClient(ctx, projectID)
@@ -129,6 +128,10 @@ func main() {
 	lastUpdateTime := coldLoadFromDb(client)
 
 	// Update the database entries for 1h, 6h 24h sums with initial values
+	checkAndInitDoc(client, "24h-history")
+	checkAndInitDoc(client, "6h-history")
+	checkAndInitDoc(client, "1h-history")
+
 	saveStateToDb(client)
 
 	//decrease states values, update 1h, 1d, values, cleanup db.
@@ -295,6 +298,30 @@ func isAfter(timestamp string, threshold time.Time) bool {
 	dateTime.Add(time.Minute)
 
 	return dateTime.After(threshold)
+}
+
+func checkAndInitDoc(client *firestore.Client, documentID string) {
+
+	ctx := context.Background()
+
+	_, err := client.Collection("airspace").Doc(documentID).Get(ctx)
+
+	code := status.Code(err)
+
+	if err != nil {
+		switch code {
+		case codes.NotFound:
+			Log.Debug.Println("Document ", documentID, " doesn't exist, generating new one.")
+			_, err = client.Collection("airspace").Doc(documentID).Set(ctx, map[string]interface{}{})
+			if err != nil {
+				Log.Critical.Println("Error creating ", documentID, " document: ", err)
+				panic(err)
+			}
+		default:
+			Log.Critical.Println("Error accessing ", documentID, " document: ", err)
+			panic(err)
+		}
+	}
 }
 
 func saveStateToDb(client *firestore.Client) {
