@@ -1,3 +1,10 @@
+resource "google_project_service" "api_gateway" {
+  project = var.project_id
+  service = "apigateway.googleapis.com"
+
+  disable_dependent_services = true
+}
+
 resource "google_project_service" "artifact_registry" {
   project = var.project_id
   service = "artifactregistry.googleapis.com"

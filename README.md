@@ -67,6 +67,7 @@ Manual deploy requires `terraform` and `gcloud` installed.
 Pre-deploy operations:
 - create a project on Google Cloud, memorize the id of the project
 - abilitate the following Google APIs (more may be required):
+  - apigateway.googleapis.com
   - artifactregistry.googleapis.com
   - autoscaling.googleapis.com
   - compute.googleapis.com
