@@ -3,7 +3,7 @@ resource "google_cloud_run_service" "websocket_endpoints" {
   depends_on = [
     google_cloud_run_service.aircraft_positions
   ]
-  name     = "aircraft-list"
+  name     = "websocket-endpoints"
   location = var.region
 
   template {
