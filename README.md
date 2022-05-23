@@ -100,6 +100,7 @@ Pre-deploy operations:
   - `web_ui`
   - `states_source` 
 - create a Google Storage bucket and write its name as the "bucket" value of the 'backend "gcs"' object into `terraform/main.tf`
+- create the default project in Firestore
 - create inside the `terraform` directory a file `terraform.tfvars` in which the following variables (described in `terraform/variables.tf`) are declared, one per line, with the `var_name = var_value` syntax:
   - `project_id`
   - `region`

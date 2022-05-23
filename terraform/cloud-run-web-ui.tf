@@ -6,7 +6,7 @@ resource "google_cloud_run_service" "web_ui" {
   template {
     spec {
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/web_ui:latest"
+        image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/web_ui:latest"
       }
     }
     metadata {

@@ -14,6 +14,11 @@ variable "docker_repo_name" {
   description = "The name of the Google Docker repository in which the images are stored"
 }
 
+variable "docker_repo_region" {
+  type        = string
+  description = "The region of the Google Docker repository in which the images are stored"
+}
+
 # pubsub
 variable "vectors_topic" {
   type        = string
