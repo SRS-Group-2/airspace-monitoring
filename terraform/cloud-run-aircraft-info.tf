@@ -12,11 +12,6 @@ resource "google_project_iam_binding" "aircraft_info_binding_log" {
   ]
 }
 
-# 
-# 
-# 
-# 
-
 # Aircraft Info service
 resource "google_cloud_run_service" "aircraft_info" {
   depends_on = [

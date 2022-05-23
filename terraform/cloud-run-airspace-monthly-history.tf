@@ -28,7 +28,6 @@ locals {
 # Airspace Monthly History service
 resource "google_cloud_run_service" "airspace_monthly_history" {
   depends_on = [
-
     # google_service_account_key.airspace_monthly_history_key,
   ]
   name     = "airspace-monthly-history"
