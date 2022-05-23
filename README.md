@@ -83,12 +83,11 @@ Pre-deploy operations:
   - storage-component.googleapis.com
   - storage.googleapis.com
 - create the following service accounts, with the relative permissions:
-  - `aircraft-list` with role "Cloud Datastore Viewer"
-  - `airspace-daily-history` with role "Cloud Datastore Viewer"
-  - `airspace-monthly-history` with role "Cloud Datastore Viewer"
-  - `airspace-history-calculator` with role "Cloud Datastore User"
-  - `flink-sa` with role "Cloud Datastore User" and role "Pub/Sub Publisher"
-  - add "Log Writer" role for each service(excluding `aircraft-info`)
+  - `aircraft-list` with role "Cloud Datastore Viewer" and role "Log Writer"
+  - `airspace-daily-history` with role "Cloud Datastore Viewer" and role "Log Writer"
+  - `airspace-monthly-history` with role "Cloud Datastore Viewer" and role "Log Writer"
+  - `airspace-history-calculator` with role "Cloud Datastore User" and role "Log Writer"
+  - `flink-sa` with role "Cloud Datastore User", role "Pub/Sub Publisher" and role "Log Writer"
 - push the following Docker images to a Google Cloud Repository, in the same region as the where the system will be deployed:
   - `aircraft_info`
   - `aircraft_list`
