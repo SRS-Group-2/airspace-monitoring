@@ -21,19 +21,7 @@ locals {
 }
 
 
-resource "google_service_account" "aircraft_list_sa" {
-  account_id   = "aircraft-list"
-  display_name = "A service account for the Aircraft List service"
-}
 
-resource "google_project_iam_binding" "aircraft_list_binding_log" {
-  project = var.project_id
-  role    = "roles/logging.logWriter"
- 
-  members = [
-    "serviceAccount:${google_service_account.aircraft_list_sa.email}",
-  ]
-}
 
 # 
 # 
@@ -48,8 +36,8 @@ resource "google_project_iam_binding" "aircraft_list_binding_log" {
 # Aircraft List service
 resource "google_cloud_run_service" "aircraft_list" {
   depends_on = [
-     google_service_account.aircraft_list_sa,
-     google_project_iam_binding.aircraft_list_binding_log,
+   # google_service_account.aircraft_list_sa,
+    #google_project_iam_binding.aircraft_list_binding_log,
     # google_service_account_key.aircraft_list_key,
   ]
   name     = "aircraft-list"

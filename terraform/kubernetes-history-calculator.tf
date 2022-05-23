@@ -21,19 +21,7 @@ locals {
   airspace_history_calculator_email = "airspace-history-calculator@${var.project_id}.iam.gserviceaccount.com"
 }
 
-resource "google_service_account" "airspace_history_calculator_sa" {
-  account_id   = "airspace_history_calculator"
-  display_name = "A service account for the airspace_history_calculator service"
-}
 
-resource "google_project_iam_binding" "airspace_history_calculator_binding_log" {
-  project = var.project_id
-  role    = "roles/logging.logWriter"
- 
-  members = [
-    "serviceAccount:${google_service_account.airspace_history_calculator_sa.email}",
-  ]
-}
 
 # resource "google_service_account_key" "airspace_history_calculator_key" {
 #   service_account_id = local.airspace_history_calculator_name
@@ -45,7 +33,8 @@ resource "kubernetes_service_account" "airspace_history_calculator_kube_account"
   depends_on = [
     kubernetes_namespace.main_namespace,
     kubernetes_deployment.flink_jobmanager, # requires the data from these two to work
-    kubernetes_deployment.flink_taskmanager # requires the data from these two to work
+    kubernetes_deployment.flink_taskmanager, # requires the data from these two to work
+    #google_project_iam_binding.airspace_daily_history_binding_log
   ]
   metadata {
     name      = "airspace-history-calculator-account"

@@ -7,15 +7,7 @@ resource "google_service_account" "aircraft_positions_sa" {
 resource "google_project_iam_binding" "aircraft_positions_binding" {
   project = var.project_id
   role    = "roles/pubsub.editor"
- 
-  members = [
-    "serviceAccount:${google_service_account.aircraft_positions_sa.email}",
-  ]
-}
-resource "google_project_iam_binding" "aircraft_positions_binding_log" {
-  project = var.project_id
-  role    = "roles/logging.logWriter"
- 
+
   members = [
     "serviceAccount:${google_service_account.aircraft_positions_sa.email}",
   ]
@@ -25,9 +17,9 @@ resource "google_project_iam_binding" "aircraft_positions_binding_log" {
 # Aircraft Daily History service
 resource "google_cloud_run_service" "aircraft_positions" {
   depends_on = [
-    google_service_account.aircraft_positions_sa,
+    #google_service_account.aircraft_positions_sa,
     google_pubsub_topic.pubsub_positions,
-    google_project_iam_binding.aircraft_positions_binding_log,
+   # google_project_iam_binding.aircraft_positions_binding_log,
     google_project_iam_binding.aircraft_positions_binding,
   ]
   name     = "aircraft-positions"
