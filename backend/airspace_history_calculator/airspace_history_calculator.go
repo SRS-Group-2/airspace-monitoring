@@ -129,6 +129,8 @@ func main() {
 	checkAndInitDoc(client, "24h-history")
 	checkAndInitDoc(client, "6h-history")
 	checkAndInitDoc(client, "1h-history")
+	checkAndInitDoc(client, "5m-history")
+
 
 	saveStateToDb(client)
 
