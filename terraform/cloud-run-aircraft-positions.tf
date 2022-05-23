@@ -27,8 +27,8 @@ resource "google_cloud_run_service" "aircraft_positions" {
   depends_on = [
     #google_service_account.aircraft_positions_sa,
     google_pubsub_topic.pubsub_positions,
-    # google_project_iam_binding.aircraft_positions_binding_log,
-    google_project_iam_binding.aircraft_positions_binding,
+    google_project_iam_binding.aircraft_positions_binding_log,
+    google_project_iam_binding.aircraft_positions_binding_pubsub,
   ]
   name     = "aircraft-positions"
   location = var.region
