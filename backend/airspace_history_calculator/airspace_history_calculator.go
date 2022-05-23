@@ -128,6 +128,10 @@ func main() {
 	lastUpdateTime := coldLoadFromDb(client)
 
 	// Update the database entries for 1h, 6h 24h sums with initial values
+	checkAndInitDoc(client, "24h-history")
+	checkAndInitDoc(client, "6h-history")
+	checkAndInitDoc(client, "1h-history")
+
 	saveStateToDb(client)
 
 	//decrease states values, update 1h, 1d, values, cleanup db.
@@ -294,6 +298,30 @@ func isAfter(timestamp string, threshold time.Time) bool {
 	dateTime.Add(time.Minute)
 
 	return dateTime.After(threshold)
+}
+
+func checkAndInitDoc(client *firestore.Client, documentID string) {
+
+	ctx := context.Background()
+
+	_, err := client.Collection("airspace").Doc(documentID).Get(ctx)
+
+	code := status.Code(err)
+
+	if err != nil {
+		switch code {
+		case codes.NotFound:
+			Log.Debug.Println("Document ", documentID, " doesn't exist, generating new one.")
+			_, err = client.Collection("airspace").Doc(documentID).Set(ctx, map[string]interface{}{})
+			if err != nil {
+				Log.Critical.Println("Error creating ", documentID, " document: ", err)
+				panic(err)
+			}
+		default:
+			Log.Critical.Println("Error accessing ", documentID, " document: ", err)
+			panic(err)
+		}
+	}
 }
 
 func saveStateToDb(client *firestore.Client) {
