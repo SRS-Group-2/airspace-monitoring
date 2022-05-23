@@ -3,6 +3,6 @@ scopeconfig:
   - scope: node
 
 fileignoreconfig:
-- filename: terraform/.terraform.lock.hcl
-  checksum: cb667f1bf9bbf82ca472aed21b78f4330454331228a53fad35d982467bde115a
+- filename: terraform/image-versions.auto.tfvars
+  checksum: 171f89bd9ace714d29805a0e255929498ce21f7605ae5670f5e88de07432c4d6
 version: ""

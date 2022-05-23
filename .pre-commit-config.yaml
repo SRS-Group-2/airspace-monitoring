@@ -13,3 +13,9 @@ repos:
     hooks:
     -   id: talisman-commit
         entry: cmd --githook pre-commit
+-   repo: local
+    hooks:
+    -   id: update-images-versions
+        name: Update the Docker image versions to be deployed
+        entry: ./pre-commit-exe/update-images-versions.sh
+        language: script

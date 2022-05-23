@@ -1,4 +1,4 @@
-region     = "us-central1"
+region = "us-central1"
 
 vectors_topic = "stateTopic"
 
@@ -11,5 +11,5 @@ kube_namespace      = "airspace-monitoring"
 
 opensky_bb = "36.619987291,47.1153931748,6.7499552751,18.4802470232"
 
-docker_repo_name = "docker-repo"
+docker_repo_name   = "docker-repo"
 docker_repo_region = "us-central1"
