@@ -116,6 +116,7 @@ Pre-deploy operations:
 Once the pre-deploy operations are done, execute:
 ```
 gcloud init # to log in into Google Cloud
+gcloud auth application-default login # to set up credentials for terraform
 terraform -chdir=terraform init # to initialize the terraform state, necessary
 terraform -chdir=terraform fmt # to correctly format the terraform files, not strictly necessary
 terraform -chdir=terraform validate # to check the syntax of the Terraform files
