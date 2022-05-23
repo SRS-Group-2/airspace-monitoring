@@ -10,6 +10,7 @@ class ListPositionSimulation extends Simulation {
   val N_USERS = Integer.getInteger("users", 20)
   val RAMP = java.lang.Long.getLong("ramp", 0)
   val WS_CONNECTION_TIME = 100
+  val EXPLORE_API_USER_TIME = 60
 
   val httpProtocol = http
     .baseUrl(BASE_URL)
@@ -25,9 +26,17 @@ class ListPositionSimulation extends Simulation {
         .get("/airspace/aircraft/list")
         .check(jsonPath("$.list").saveAs("icao24"))
     )
-    .pause(5)
     .exec(
-      ws("Connect WS").connect(s"/airspace/aircraft/${session("icao24")}/position").await(WS_CONNECTION_TIME).close
+      http("Position endpoint url request")
+        .get("/endpoints/position/url")
+        .check(bodyString.saveAs("url"))
+    )
+    .exec(
+      ws("Connect WS").connect("#{url}/airspace/aircraft/#{icao24(0)}/position").await(WS_CONNECTION_TIME)()
+    )
+    .pause(EXPLORE_API_USER_TIME)
+    .exec(
+      ws("Close WS").close
     )
     .pause(5)
 
