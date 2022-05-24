@@ -121,7 +121,7 @@ resource "kubernetes_deployment" "flink_taskmanager" {
         }
         container {
           name  = "taskmanager"
-          image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/states_source:latest"
+          image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/states_source:${var.states_source_tag}"
           args  = ["taskmanager"]
 
           env {
