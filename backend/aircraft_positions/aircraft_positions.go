@@ -430,10 +430,10 @@ func httpRequestHandler(c *gin.Context) {
 }
 
 func validIcao24(icao24 string) bool {
-	if len(icao24) != 6 && hasSymbol(icao24) {
-		return true
+	if len(icao24) != 6 || hasSymbol(icao24) {
+		return false
 	}
-	return false
+	return true
 }
 
 func hasSymbol(str string) bool {
