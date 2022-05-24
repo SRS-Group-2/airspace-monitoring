@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Get last commit that changed things
         id: last_change
-        run: echo ::set-output name=commit::`git-log -n 1 --pretty=format:%H -- ${{ matrix.service.directory }}`
+        run: echo ::set-output name=commit::`git log -n 1 --pretty=format:%H -- ${{ matrix.service.directory }}`
       - run: echo us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }} $GITHUB_WORKSPACE/${{ matrix.service.directory }}
       - name: Build image
         run: |-
