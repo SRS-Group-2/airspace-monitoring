@@ -9,6 +9,10 @@ function request_value(url, value_callback) {
     if (this.readyState == 4 && this.status == 200) {
       value_callback(xhttp.responseText)
     }
+    else if (this.readyState == 4 && this.status == 404)
+    {
+      value_callback("not found")
+    }
   }
   xhttp.open("GET", url)
   xhttp.send()
@@ -58,30 +62,67 @@ function get_timestamp(date_selector, time_selector) {
   if (time_selector !== null) {
     time = time_selector.valueAsNumber
   }
-  return date_selector.valueAsNumber + time
+
+  return (date_selector.valueAsNumber + time)/1000
 }
 
 function set_realtime_history(timeframe) {
   request_value(base_history_route + "/realtime/" + timeframe, v => {
     console.log(v)
     var json = JSON.parse(v) // strange error here
-    const current_distance = document.getElementById("current_distance")
-    const current_co2 = document.getElementById("current_co2")
-    document.getElementById("current_update") = "Data last updated at " + get_date_string(json.timestamp)
-    current_distance.innerHTML = "Distance travelled in the last " + timeframe + " is " + json["distanceKm"]
-    current_co2.innerHTML = "CO2 emitted in the last " + timeframe + " is " + json["CO2t"]
+    const current_distance = document.getElementById("km")
+    const current_co2 = document.getElementById("co2")
+    document.getElementById("current_update").innerHTML =  get_date_string(json.startTime)
+    current_distance.innerText = json.distanceKm
+    current_co2.innerText = json.CO2t
   })
 }
 
-function show_history(history) {
+function show_daily_history(history) {
   var json = JSON.parse(history)
-  var table = document.createElement(table)
+
+  table = document.getElementById("historic_distance")
+  table.innerHTML=""
+  table= document.createElement("table")
+  table.setAttribute('id','historical-data')
   var h_row = document.createElement("tr")
-  var h_time = document.createElement("td")
+  var h_time = document.createElement("th")
   h_time.innerHTML = "Time"
-  var h_distance = document.createElement("td")
+  var h_distance = document.createElement("th")
   h_distance.innerHTML = "Distance (km)"
-  var h_co2 = document.createElement("td")
+  var h_co2 = document.createElement("th")
+  h_co2.innerHTML = "CO2 (t)"
+  h_row.append(h_time, h_distance, h_co2)
+  table.append(h_row)
+  Object.entries(json).forEach(element => {
+    var row = document.createElement("tr")
+    var time = document.createElement("td")
+    time.innerHTML = get_onlydate_string(element[1]["startTime"])
+    var distance = document.createElement("td")
+    distance.innerHTML = element[1]["distanceKm"]
+    var co2 = document.createElement("td")
+    co2.innerHTML = element[1]["CO2t"]
+    row.append(time, distance, co2)
+    table.append(row)
+  })
+  // document.getElementById("historic_distance").innerHTML = ""
+  document.getElementById("historic_distance").append(table)
+}
+
+
+function show_hourly_history(history) {
+  var json = JSON.parse(history)
+
+  table = document.getElementById("historic_distance")
+  table.innerHTML=""
+  table= document.createElement("table")
+  table.setAttribute('id','historical-data')
+  var h_row = document.createElement("tr")
+  var h_time = document.createElement("th")
+  h_time.innerHTML = "Time"
+  var h_distance = document.createElement("th")
+  h_distance.innerHTML = "Distance (km)"
+  var h_co2 = document.createElement("th")
   h_co2.innerHTML = "CO2 (t)"
   h_row.append(h_time, h_distance, h_co2)
   table.append(h_row)
@@ -96,13 +137,19 @@ function show_history(history) {
     row.append(time, distance, co2)
     table.append(row)
   })
-  document.getElementById("historic_distance").innerHTML = ""
+  // document.getElementById("historic_distance").innerHTML = ""
   document.getElementById("historic_distance").append(table)
 }
 
 function get_date_string(timestamp) {
+  console.log(timestamp)
   var args = timestamp.split("-").map(s => parseInt(s))
   return (new Date(...args)).toLocaleString()
+}
+
+function get_onlydate_string(timestamp) {
+  var args = timestamp.split("-").map(s => parseInt(s))
+  return (new Date(...args)).toLocaleDateString()
 }
 
 function set_selectable_italian_flights() {
@@ -125,19 +172,29 @@ function set_selectable_italian_flights() {
 }
 
 function set_aircraft_info(info) {
+  if(info=="not found") {
+    document.getElementById("notFound").innerText="Information about this icao24 was not found in our database"
+    document.getElementById("icao").innerText=""
+    document.getElementById("manufacturer").innerText=""
+    document.getElementById("model").innerText = ""
+    document.getElementById("registration-n").innerText=""
+    document.getElementById("serial-number").innerText = ""
+  }
   var json = JSON.parse(info)
-  document.getElementById("info").innerHTML = "Manufacturer: " + json.manufacturer + "<br>"
-                                            + "Model: " + json.model + "<br>"
-                                            + "Registration number: " + json.registration + "<br>"
-                                            + "Serial number: " + json.serialnumber
+  document.getElementById("icao").innerText=json.icao24
+  document.getElementById("manufacturer").innerText=json.manufacturer
+  document.getElementById("model").innerText = json.model
+  document.getElementById("registration-n").innerText=json.registration
+  document.getElementById("serial-number").innerText = json.serialnumber  
 }
 
 function update_aircraft_position(data) {
   var json = JSON.parse(data)
   var time = new Date(json.timestamp * 1000).toLocaleString()
-  document.getElementById("coordinates_data").innerHTML = "Position updated at " + time + "<br>"
-                                                        + "Latitude: " + json.lat + "<br>"
-                                                        + "Longitude: " + json.lon
+  document.getElementById("icao24").innerText=json.icao24
+  document.getElementById("latitude").innerText = json.lat
+  document.getElementById("longitude").innerText=json.lon
+  document.getElementById("updatetime").innerText = time  
 }
 
 window.onload = _ => {
@@ -149,10 +206,18 @@ window.onload = _ => {
     set_selectable_italian_flights()
   }
   flight_selector.onchange = _ev => {
-    document.getElementById("coordinates_data").innerHTML =""
+    document.getElementById("notFound").innerText=""
+    document.getElementById("icao24").innerText=""
+    document.getElementById("latitude").innerText=""
+    document.getElementById("longitude").innerText=""
+    document.getElementById("updatetime").innerText=""
     
     if (flight_selector.value === " ") {
-      document.getElementById("info").innerHTML = ""
+      document.getElementById("icao").innerText=""
+      document.getElementById("manufacturer").innerText=""
+      document.getElementById("model").innerText=""
+      document.getElementById("registration-n").innerText=""
+      document.getElementById("serial-number").innerText=""
       if (websocket !== null) {
         websocket.close()
       }
@@ -160,23 +225,22 @@ window.onload = _ => {
       flight=flight_selector.value
       request_value(base_aircraft_route + "/" + flight + "/info", v => {
         set_aircraft_info(v)})
-      document.getElementById("coordinates_title").innerHTML = "Current position of aircraft " + flight
-      // TODO: improve websocket and websocket error management
-      var url = window.location.href.slice(0, -1).replace("https://", "ws://") + base_aircraft_route + "/" + flight + "/position"
-      websocket = new WebSocket(url)
-      websocket.addEventListener('message', ev =>  {
-      update_aircraft_position(ev.data)
-        })
-      websocket.onclose = function (event) {
-        if(event.code == 1006){
-          alert("The connection was closed abnormally: code 1006")
+      request_value("/endpoints/position/url",v => {
+        var url = v.replace("https://", "wss://") + base_aircraft_route + "/" + flight + "/position"
+        websocket = new WebSocket(url)
+       websocket.addEventListener('message', ev =>  {
+        update_aircraft_position(ev.data)
+          })
+        websocket.onclose = function (event) {
+          if(event.code == 1006){
+            alert("The connection was closed abnormally: code 1006")
+          }
         }
-      }
+      })
     }
   }
   /* set up current distance, co2 */
   const current_timeframe_selector = document.getElementById("current_timeframe")
-  set_realtime_history(current_timeframe_selector.value)
   current_timeframe_selector.onchange = _ev => {
     set_realtime_history(current_timeframe_selector.value)
   }
@@ -221,7 +285,12 @@ window.onload = _ => {
         "to": get_end_timestamp(),
         "resolution": historic_resolution_selector.value
       }
-      request_value_with_params(base_history_route + "/history", show_history, params)
+      if (historic_resolution_selector.value === "hour") {
+        request_value_with_params(base_history_route, show_hourly_history, params)
+      }
+      else if (historic_resolution_selector.value === "day") {
+        request_value_with_params(base_history_route, show_daily_history, params)
+      }
     } else {
       const error_paragraph = document.createElement("p")
       error_paragraph.id = "form_error"

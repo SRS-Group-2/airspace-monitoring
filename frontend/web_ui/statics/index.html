@@ -4,47 +4,142 @@
         <title>Flight Radar</title>
         <link rel="stylesheet" href="index.css">
         <script src="index.js"></script>
+        <link href="airspace.css" rel="stylesheet" />
     </head>
-    <body>
-        <div id="flights">
-            <p id="flights_list_update"></p>
-            <select id="flight">
-            </select>
-            <div id="info"></div>
-            <div id="coordinates">
-                <p id="coordinates_title"></p>
-                <p id="coordinates_data"></p>
+    <body >
+        <p class="navbar-brand">
+            <img src="plane.png" alt="">
+            <span>
+            AIRSPACE MONITORING
+            </span>
+        </p>
+        <p id="flights_list_update" class="text"></p>
+        <div class="detail-box">
+            <div class="custom-select" style="width:200px;">
+                <select id="flight" >
+                    <option selected disabled hidden>Choose your icao24</option>
+                </select>
             </div>
         </div>
-        <div id="cumulative_data">
-            <div id="current">
-                <select id="current_timeframe">
-                    <option value="1h">1h</option>
-                    <option value="6h">6h</option>
-                    <option value="24h">24h</option>
-                </select>
-                <p id="current_update"></p>
-                <p id="current_distance"></p>
-                <p id="current_co2"></p>
+        <p class="title">Aircraft Info</p>
+
+        <div class="detail-box">
+            <div id="info">
+                <p id="notFound" class="text"></p>
+                <table id="aircraft-info" >
+                    <tr>
+                        <th>Icao24</th>
+                        <th>Manufacturer</th>
+                        <th>Model</th>
+                        <th>Registration n</th>
+                        <th>Serial number</th>
+                    </tr>
+                    <tr>
+                        <td id="icao"></td>
+                        <td id="manufacturer"></td>
+                        <td id="model"></td>
+                        <td id="registration-n"> </td>
+                        <td id="serial-number"></td>
+                    </tr>
+                </table>
+           </div> 
+        </div>
+        <p class="title">Aircraft Position</p> 
+        <div class="detail-box">
+            <div id="position">
+           
+                <table id="aircraft-position" >
+                    <tr>
+                        <th>Icao24</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Update time</th>
+                    </tr>
+                    <tr>
+                        <td id="icao24"></td>
+                        <td id="latitude"></td>
+                        <td id="longitude"> </td>
+                        <td id="updatetime"></td>
+                    </tr>
+                </table>
+           
+            </div> 
+        </div>
+    
+
+        
+        <p class="title">Current data</p>
+
+        
+        <div class="detail-box">
+            <div class="father">
+                <div class="child">
+                    <div id="frame-select" class="custom-select" style="width:200px;">
+                        <select id="current_timeframe" >
+                            <option selected disabled hidden>Select your timeframe</option>
+                            <option value="1h">1h</option>
+                            <option value="6h">6h</option>
+                            <option value="24h">24h</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="child" id="info">
+                
+                    <table id="current-data" >
+                        <tr>
+                            <th>Distance (km)</th>
+                            <th>CO2 (t)</th>  
+                            <th>Update time</th>
+                        </tr>
+                        <tr>
+                            <td id="km"></td>
+                            <td id="co2"></td>
+                            <td id="current_update"></td>
+                        </tr>
+                    </table>
+                </div> 
             </div>
-            <div id="historic">
-                <form id="historic_data_form">
-                    <div id="historic_begin_section">
-                        <label for="historic_begin_date">Begin date</label>
-                        <input type="date" id="historic_begin_date" name="begin_date" required>
+        </div>
+
+
+       <div class="detail-box">
+       
+            <p class="title">Historical data</p>
+
+            <div class="father">
+                <div class="child">
+                    <div id="historic">
+                        <form id="historic_data_form">
+                            <div id="historic_begin_section">
+                                <label for="historic_begin_date" class="text">Begin date</label>
+                                <input type="date" id="historic_begin_date" name="begin_date" required>
+                            </div>
+                            <div id="historic_end_section" class="text">
+                                <label for="historic_end_date">End date</label>
+                                <input type="date" id="historic_end_date" name="end_date" required>
+                            </div>
+                            <select id="historic_resolution">
+                                <option value="hour">1h</option>
+                                <option value="day" selected>1d</option>
+                            </select>
+                            <input id="historic_data_submit" type="submit" value="Show">
+                        </form>
                     </div>
-                    <div id="historic_end_section">
-                        <label for="historic_end_date">End date</label>
-                        <input type="date" id="historic_end_date" name="end_date" required>
-                    </div>
-                    <select id="historic_resolution">
-                        <option value="hour">1h</option>
-                        <option value="day" selected>1d</option>
-                    </select>
-                    <input id="historic_data_submit" type="submit" value="Ok">
-                </form>
-                <p id="historic_distance"></p>
-                <p id="historic_co2"></p>
+                </div>
+                <div class="child" id="historic_distance">
+                    <table id="historical-data">
+                        <tr>
+                            <th>Time</th>  
+                            <th>Distance (km)</th>
+                            <th>CO2 (t)</th>                     
+                        </tr>
+                            <tr id="toDelete">
+                            <td id="time"></td>
+                            <td id="km"></td>
+                            <td id="co2"></td>                      
+                        </tr> 
+                    </table>
+                </div>
             </div>
         </div>
     </body>
