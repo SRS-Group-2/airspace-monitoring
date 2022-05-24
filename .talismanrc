@@ -3,6 +3,6 @@ scopeconfig:
   - scope: node
 
 fileignoreconfig:
-- filename: terraform/image-versions.auto.tfvars
-  checksum: 4523a40ba976f1e2a540f842c43da79e8c6e01770158742df12ecc8d128abc91
+- filename: README.md
+  checksum: 588e5eebe424ce6db7fbf15a0b88b43ec06a8498523c61e5e028334f0d436cdc
 version: ""

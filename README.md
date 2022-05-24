@@ -70,30 +70,15 @@ Manual deploy requires `terraform` and `gcloud` installed.
 
 Pre-deploy operations:
 - create a project on Google Cloud, memorize the id of the project
-- abilitate the following Google APIs (more may be required):
-  - apigateway.googleapis.com
-  - artifactregistry.googleapis.com
-  - autoscaling.googleapis.com
-  - compute.googleapis.com
-  - container.googleapis.com
-  - containerfilesystem.googleapis.com
-  - datastore.googleapis.com
-  - firestore.googleapis.com
-  - iam.googleapis.com
-  - iamcredentials.googleapis.com
-  - monitoring.googleapis.com
-  - pubsub.googleapis.com
-  - run.googleapis.com
-  - storage-api.googleapis.com
-  - storage-component.googleapis.com
-  - storage.googleapis.com
+- login to `gcloud`
+- run the `act-gcp-apis.sh` script to abilitate the necessary Google APIs: `./scripts/act-on-gcp-apis.sh enable <project_id>`
 - create the following service accounts, with the relative permissions:
   - `aircraft-list` with role "Cloud Datastore Viewer" and role "Log Writer"
   - `airspace-daily-history` with role "Cloud Datastore Viewer" and role "Log Writer"
   - `airspace-monthly-history` with role "Cloud Datastore Viewer" and role "Log Writer"
   - `airspace-history-calculator` with role "Cloud Datastore User" and role "Log Writer"
   - `flink-sa` with role "Cloud Datastore User", role "Pub/Sub Publisher" and role "Log Writer"
-- push the following Docker images to a Google Cloud Repository, in the same region as the where the system will be deployed:
+- push the following Docker images to a Google Cloud Repository, in the same region as the where the system will be deployed, using `./scripts/build-everything.sh <project_id> <region> <docker_repo_name>`, after having set gcloud as the credential helper for docker:
   - `aircraft_info`
   - `aircraft_list`
   - `aircraft_positions` 
@@ -105,23 +90,14 @@ Pre-deploy operations:
   - `states_source` 
 - create a Google Storage bucket and write its name as the "bucket" value of the 'backend "gcs"' object into `terraform/main.tf`
 - create the default project in Firestore
-- create inside the `terraform` directory a file `terraform.tfvars` in which the following variables (described in `terraform/variables.tf`) are declared, one per line, with the `var_name = var_value` syntax:
+- create inside the `terraform` directory a file `secrets.auto.tfvars` in which the following variables (described in `terraform/variables.tf`) are declared, one per line, with the `var_name = var_value` syntax:
   - `project_id`
-  - `region`
-  - `vectors_topic`
-  - `kube_cluster`
-  - `kube_network`
-  - `kube_subnetwork`
-  - `kube_pods_range`
-  - `kube_services_range`
-  - `kube_namespace`
-  - `opensky_bb`
-  - `docker_repo_name`
+- change the variables declared in `terraform/variables.auto.tfvars` as necessary
 
 
 Once the pre-deploy operations are done, execute:
 ```
-gcloud init # to log in into Google Cloud
+gcloud init # to log in into Google Cloud, should already have done this
 gcloud auth application-default login # to set up credentials for terraform
 terraform -chdir=terraform init # to initialize the terraform state, necessary
 terraform -chdir=terraform fmt # to correctly format the terraform files, not strictly necessary
