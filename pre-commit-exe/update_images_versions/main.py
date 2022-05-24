@@ -28,7 +28,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                                         stderr=subprocess.PIPE)
             commit_bytes, stderr = process2.communicate()
             process2.kill()
-            service = directory.split('/')[-1]
+            if "/" in directory:
+                # unix based
+                service = directory.split('/')[-1]
+            else:
+                # windows
+                service = directory.split('\\')[-1]
             commit = commit_bytes.decode('utf-8')
             new_line = service + "_tag = \"" + commit + "\""
             if new_line in original_file_lines:
