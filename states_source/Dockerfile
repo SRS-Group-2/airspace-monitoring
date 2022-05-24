@@ -8,5 +8,5 @@ RUN git clone https://github.com/openskynetwork/opensky-api.git \
 
 RUN mvn -f /home/app/pom.xml clean package
 
-FROM flink:1.15.0-scala_2.12
+FROM flink:1.14.4-scala_2.12
 COPY --from=builder /home/app/target/states_source-0.1.jar /opt/flink/usrlib/job.jar
