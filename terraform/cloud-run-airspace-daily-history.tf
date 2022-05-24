@@ -29,7 +29,7 @@ locals {
 resource "google_cloud_run_service" "airspace_daily_history" {
   depends_on = [
     # google_service_account.airspace_daily_history_sa,
-    # google_project_iam_binding.airspace_daily_history_binding,
+    # google_project_iam_binding.airspace_daily_history_binding_log,
     # google_service_account_key.airspace_daily_history_key,
   ]
   name     = "airspace-daily-history"
@@ -39,19 +39,11 @@ resource "google_cloud_run_service" "airspace_daily_history" {
     spec {
       service_account_name = local.airspace_daily_history_sa_email
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_daily_history:latest"
+        image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_daily_history:${var.airspace_daily_history_tag}"
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id
         }
-        env {
-          name  = "AUTHENTICATION_METHOD"
-          value = "ADC"
-        }
-        # env {
-        #   name  = "GOOGLE_APPLICATION_CREDENTIALS"
-        #   value = " ${base64decode(google_service_account_key.airspace_daily_history_key.private_key)} "
-        # }
         env {
           name  = "GIN_MODE"
           value = "release"

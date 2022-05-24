@@ -20,11 +20,11 @@ jobs:
       PROJECT: ${{ secrets.PROJECT_ID }}
       GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
 
-  deploy:
-    name: Deploy service on Google Cloud
-    needs: build_scan_push
-    if: ${{ always() }}
-    uses: ./.github/workflows/terraform.yaml
-    secrets: 
-      PROJECT: ${{ secrets.PROJECT_ID }}
-      TERRAFORM_GCP_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
+  # deploy:
+  #   name: Deploy service on Google Cloud
+  #   needs: build_scan_push
+  #   if: ${{ always() }}
+  #   uses: ./.github/workflows/terraform.yaml
+  #   secrets: 
+  #     PROJECT: ${{ secrets.PROJECT_ID }}
+  #     TERRAFORM_GCP_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}

@@ -29,7 +29,7 @@ locals {
 resource "google_cloud_run_service" "aircraft_list" {
   depends_on = [
     # google_service_account.aircraft_list_sa,
-    # google_project_iam_binding.aircraft_list_binding,
+    # google_project_iam_binding.aircraft_list_binding_log,
     # google_service_account_key.aircraft_list_key,
   ]
   name     = "aircraft-list"
@@ -39,19 +39,11 @@ resource "google_cloud_run_service" "aircraft_list" {
     spec {
       service_account_name = local.aircraft_list_sa_email
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/aircraft_list:latest"
+        image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/aircraft_list:${var.aircraft_list_tag}"
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id
         }
-        env {
-          name  = "AUTHENTICATION_METHOD"
-          value = "ADC"
-        }
-        # env {
-        #   name  = "GOOGLE_APPLICATION_CREDENTIALS"
-        #   value = " ${base64decode(google_service_account_key.aircraft_list_key.private_key)} "
-        # }
       }
     }
 

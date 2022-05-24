@@ -29,3 +29,6 @@ ENV GIN_MODE release
 USER nonroot:nonroot
 
 ENTRYPOINT ["/app.exe"]
+
+## docker build . --tag aircraft_list
+## docker run --publish 8080:8080 --env-file ./env.env aircraft_list

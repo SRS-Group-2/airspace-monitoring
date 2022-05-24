@@ -126,7 +126,7 @@ resource "google_monitoring_dashboard" "api_gateway_dashboard" {
       }
     ]
   },
-  "name": "projects/477074905358/dashboards/539cc6fa-6a2e-4727-bbba-1d5bbcc385e1"
+  "name": "projects/${data.google_project.project.number}/dashboards/539cc6fa-6a2e-4727-bbba-1d5bbcc385e1"
 }
 
 EOF

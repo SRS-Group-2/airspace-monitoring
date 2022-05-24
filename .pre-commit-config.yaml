@@ -1,15 +1,27 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
-    hooks:
-#    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-#    -   id: check-yaml
-#    -   id: check-added-large-files
 -   repo: https://github.com/thoughtworks/talisman
     rev: 'v1.26.0'
     hooks:
     -   id: talisman-commit
         entry: cmd --githook pre-commit
+-   repo: local
+    hooks:
+    -   id: update-images-versions
+        name: Update the Docker image versions to be deployed
+        entry: update-tags
+        language: python
+        pass_filenames: false
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+#    -   id: trailing-whitespace
+     -   id: end-of-file-fixer
+#    -   id: check-yaml
+#    -   id: check-added-large-files
+-   repo: https://github.com/antonbabenko/pre-commit-terraform 
+    rev: 'v1.71.0'
+    hooks:
+    -   id: terraform_fmt
+    -   id: terraform_validate

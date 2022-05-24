@@ -147,7 +147,7 @@ resource "google_monitoring_dashboard" "pubsub_dashboard" {
       }
     ]
   },
-  "name": "projects/477074905358/dashboards/1a38814a-5a39-4a8f-93da-e02063d11725"
+  "name": "projects/${data.google_project.project.number}/dashboards/1a38814a-5a39-4a8f-93da-e02063d11725"
 }
 
 EOF
