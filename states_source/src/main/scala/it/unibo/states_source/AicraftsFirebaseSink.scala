@@ -1,7 +1,7 @@
 package it.unibo.states_source
 
 
-import com.google.firebase.cloud.FirestoreClient
+import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.DocumentReference
 import java.util.HashMap
 import java.util.Map
@@ -32,17 +32,17 @@ class AircraftsFirebaseSink[IN] extends RichSinkFunction[Aircrafts] () {
   }
 
   override def invoke(aircraft: Aircrafts, context: SinkFunction.Context) : Unit = {
-
-    val instance = DbInstance.getInstance()
-    val db = FirestoreClient.getFirestore()
+    // val instance = DbInstance.getInstance()
+    val db = DbInstance.getInstance()
     val docRef : DocumentReference  = db.collection("airspace").document("aircraft-list")
     val data : Map[String, Object]  = new HashMap[String, Object]()
-    data.put("timestamp",aircraft.getTimestamp())
-    data.put("icao24",aircraft.getList().asJava)
+    data.put("timestamp", aircraft.getTimestamp())
+    data.put("icao24", aircraft.getList().asJava)
     val result : ApiFuture[WriteResult] = docRef.set(data)
     if(result.get()!=null){
       LOG.info("Aircrafts written on firestore")
+    } else {
+      LOG.error("Aircrafts could not be written to firestore")
     }
   }
-
 }

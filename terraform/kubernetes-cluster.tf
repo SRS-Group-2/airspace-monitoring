@@ -18,11 +18,12 @@ module "gke" {
   subnetwork                 = var.kube_subnetwork
   ip_range_pods              = var.kube_pods_range
   ip_range_services          = var.kube_services_range
+  logging_service            = "none"
   http_load_balancing        = false
   network_policy             = false
   horizontal_pod_autoscaling = true
   filestore_csi_driver       = false
-  default_max_pods_per_node  = 32 # using a /24 subnet per pool, so actually a /26 per node, so https://cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr#cidr_ranges_for_clusters says max 32
+  default_max_pods_per_node  = 32 # using a /24 subnet per pool, so actually a /26 per node, considering 4 nodes, so https://cloud.google.com/kubernetes-engine/docs/how-to/flexible-pod-cidr#cidr_ranges_for_clusters says max 32
 
   node_pools = [
     {
@@ -38,11 +39,26 @@ module "gke" {
       auto_repair        = true
       auto_upgrade       = true
       preemptible        = false
-      initial_node_count = 2
+      initial_node_count = 1
     },
     {
       name               = "small-node-pool"
       machine_type       = "e2-small"
+      node_locations     = "${var.region}-c"
+      min_count          = 1
+      max_count          = 2
+      local_ssd_count    = 0
+      disk_size_gb       = 10
+      disk_type          = "pd-standard"
+      image_type         = "COS_CONTAINERD"
+      auto_repair        = true
+      auto_upgrade       = true
+      preemptible        = false
+      initial_node_count = 1
+    },
+    {
+      name               = "medium-node-pool"
+      machine_type       = "e2-medium"
       node_locations     = "${var.region}-c"
       min_count          = 1
       max_count          = 1
@@ -70,6 +86,7 @@ module "gke" {
       "https://www.googleapis.com/auth/service.management.readonly",
       "https://www.googleapis.com/auth/servicecontrol",
       "https://www.googleapis.com/auth/trace.append",
+      "https://www.googleapis.com/auth/datastore", # is this necessary?
     ]
 
     small-node-pool = [
@@ -80,6 +97,18 @@ module "gke" {
       "https://www.googleapis.com/auth/service.management.readonly",
       "https://www.googleapis.com/auth/servicecontrol",
       "https://www.googleapis.com/auth/trace.append",
+      "https://www.googleapis.com/auth/datastore", # is this necessary?
+    ]
+
+    medium-node-pool = [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/devstorage.read_only", # to read from artifact registry
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+      "https://www.googleapis.com/auth/service.management.readonly",
+      "https://www.googleapis.com/auth/servicecontrol",
+      "https://www.googleapis.com/auth/trace.append",
+      "https://www.googleapis.com/auth/datastore", # is this necessary?
     ]
   }
 
@@ -91,7 +120,13 @@ module "gke" {
     }
 
     small-node-pool = {
-      node_type = "small"
+      node_type   = "small"
+      node_memory = "1plus"
+    }
+
+    medium-node-pool = {
+      node_type   = "medium"
+      node_memory = "1plus"
     }
   }
 }

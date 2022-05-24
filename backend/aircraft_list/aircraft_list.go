@@ -3,14 +3,18 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"sync"
 
+	"cloud.google.com/go/logging"
 	"github.com/gin-gonic/gin"
 )
 
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
+const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
+const logName = "AIRCRAFT_LIST_LOG"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
@@ -40,8 +44,30 @@ var aircraftList = AircraftList{
 }`,
 }
 
+type LogType struct {
+	Debug    *log.Logger
+	Error    *log.Logger
+	Critical *log.Logger
+}
+
+var Log = LogType{}
+
 func main() {
 	var projectID = mustGetenv(env_projectID)
+
+	ctx := context.Background()
+	loggerClient, err := logging.NewClient(ctx, projectID)
+	if err != nil {
+		panic(err)
+	}
+	defer loggerClient.Close()
+
+	Log.Debug = loggerClient.Logger(logName).StandardLogger(logging.Debug)
+	Log.Error = loggerClient.Logger(logName).StandardLogger(logging.Error)
+	Log.Critical = loggerClient.Logger(logName).StandardLogger(logging.Critical)
+
+	Log.Debug.Print("Starting Aircraft List Service.")
+	defer Log.Debug.Println("Stopping Aircraft List Service.")
 
 	go backgroundUpdateState(projectID, "aircraft-list", &aircraftList)
 
@@ -60,6 +86,7 @@ func getList(c *gin.Context) {
 
 func checkErr(err error) {
 	if err != nil {
+		Log.Critical.Println("A critical error occurred causing a panic: ", err)
 		panic(err)
 	}
 }
@@ -73,6 +100,8 @@ func mustGetenv(k string) string {
 }
 
 func backgroundUpdateState(projectId string, documentID string, state *AircraftList) {
+	Log.Debug.Println("Starting background update thread (listen to db changes).")
+	Log.Debug.Println("Stopping background update thread.")
 
 	client := FirestoreInit(projectId)
 	defer client.Close()
@@ -86,6 +115,7 @@ func backgroundUpdateState(projectId string, documentID string, state *AircraftL
 		checkErr(err)
 
 		if !snap.Exists() {
+			Log.Critical.Println("Aircraft list db document no longer exists, panicking with err: ", err)
 			panic("Document no longer exists.")
 		}
 

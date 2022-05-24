@@ -1,6 +1,9 @@
 # using deployment instead of Job because we don't expect it to end (it's a continuous job for us)
 resource "kubernetes_deployment" "flink_jobmanager" {
-  depends_on = [kubernetes_namespace.main_namespace]
+  depends_on = [
+    kubernetes_namespace.main_namespace,
+    # google_service_account_key.flink_key.private_key,
+  ]
   metadata {
     name      = "flink-jobmanager"
     namespace = var.kube_namespace
@@ -54,16 +57,24 @@ resource "kubernetes_deployment" "flink_jobmanager" {
             "echo Going to sleep it out && sleep 20 && (curl -s -H 'Metadata-Flavor: Google' 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token' --retry 30 --retry-connrefused --retry-max-time 30 > /dev/null && echo Metadata server working) || exit 1"
           ]
         }
+
         container {
           name  = "jobmanager"
-          image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/states_source:latest"
+          image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/states_source:latest"
           args  = ["standalone-job", "--job-classname", "it.unibo.states_source.Main"]
 
           env {
             name  = "GOOGLE_CLOUD_PROJECT_ID"
             value = var.project_id
           }
-
+          env {
+            name  = "FIRESTORE_AUTHENTICATION_METHOD"
+            value = "ADC"
+          }
+          # env {
+          #   name  = "FIRESTORE_CREDENTIALS"
+          #   value = " ${base64decode(google_service_account_key.flink_key.private_key)} "
+          # }
           env {
             name  = "GOOGLE_PUBSUB_VECTORS_TOPIC_ID"
             value = var.vectors_topic
@@ -94,6 +105,15 @@ resource "kubernetes_deployment" "flink_jobmanager" {
             mount_path = "/opt/flink/conf"
           }
 
+          startup_probe {
+            tcp_socket {
+              port = "6123"
+            }
+
+            failure_threshold = 15
+            period_seconds    = 60
+          }
+
           liveness_probe {
             tcp_socket {
               port = "6123"
@@ -106,9 +126,16 @@ resource "kubernetes_deployment" "flink_jobmanager" {
           security_context {
             run_as_user = 9999
           }
+
+          resources {
+            limits = {
+              memory = "625Mi"
+            }
+          }
         }
 
         node_selector = {
+          node_type                                = "small"
           "iam.gke.io/gke-metadata-server-enabled" = "true"
         }
       }

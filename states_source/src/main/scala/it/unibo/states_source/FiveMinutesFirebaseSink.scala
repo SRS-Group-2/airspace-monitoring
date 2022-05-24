@@ -1,6 +1,6 @@
 package it.unibo.states_source
 
-import com.google.firebase.cloud.FirestoreClient
+import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.DocumentReference
 import java.util.HashMap
 import java.util.Map
@@ -31,8 +31,8 @@ class FiveMinutesFirebaseSink[IN] extends RichSinkFunction[(Int,Int,String)] (){
 
   override def invoke(res:(Int,Int,String), context: SinkFunction.Context) : Unit = {
 
-    val instance = DbInstance.getInstance()
-    val db = FirestoreClient.getFirestore()
+    // val instance = DbInstance.getInstance()
+    val db = DbInstance.getInstance()
 
     val docRef : DocumentReference  = 
       db.collection("airspace")
@@ -50,9 +50,10 @@ class FiveMinutesFirebaseSink[IN] extends RichSinkFunction[(Int,Int,String)] (){
     data.put("startTime",res._3)
     val result1 : ApiFuture[WriteResult] = docRef1.set(data)
     val result : ApiFuture[WriteResult] = docRef.set(data)
-    if(result.get()!=null && result1.get!=null) {
+    if (result.get()!=null && result1.get()!=null) {
       LOG.info("FiveMins written on firestore")
+    } else {
+      LOG.error("FiveMins could not be written to firestore")
     }
   }
-
 }

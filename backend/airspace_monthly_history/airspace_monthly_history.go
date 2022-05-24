@@ -2,27 +2,61 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"cloud.google.com/go/logging"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/api/iterator"
 )
 
+const env_authType = "AUTHENTICATION_METHOD"
+const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
+const logName = "MONTHLY_HISTORY_LOG"
+const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
 
-func main() {
+type LogType struct {
+	Debug    *log.Logger
+	Error    *log.Logger
+	Critical *log.Logger
+}
 
+var Log = LogType{}
+
+func main() {
+	var authType = mustGetenv(env_authType)
 	var projectID = mustGetenv(env_projectID)
 
+	ctx := context.Background()
+	loggerClient, err := logging.NewClient(ctx, projectID)
+	if err != nil {
+		panic(err)
+	}
+	defer loggerClient.Close()
+
+	Log.Debug = loggerClient.Logger(logName).StandardLogger(logging.Debug)
+	Log.Error = loggerClient.Logger(logName).StandardLogger(logging.Error)
+	Log.Critical = loggerClient.Logger(logName).StandardLogger(logging.Critical)
+
+	Log.Debug.Print("Starting Monthly History Service.")
+	defer Log.Debug.Println("Stopping Monthly History Service.")
+
+	var client *firestore.Client
 	//DB
-	client := FirestoreInit(projectID)
+	if authType == "ADC" {
+		client = FirestoreInit(projectID)
+	} else {
+		var credJson = mustGetenv(env_credJson)
+		client = FirestoreInitWithCredentials(projectID, []byte(credJson))
+	}
 	defer client.Close()
 
 	router := gin.New()
@@ -46,12 +80,14 @@ func main() {
 		ctx := context.Background()
 
 		var docIter *firestore.DocumentIterator
+		var fromUtc string
+		var toUtc string
 
 		switch resolution {
 
 		case "hour":
-			fromUtc := from.UTC().Format("2006-01-02-15")
-			toUtc := to.UTC().Format("2006-01-02-15")
+			fromUtc = from.UTC().Format("2006-01-02-15")
+			toUtc = to.UTC().Format("2006-01-02-15")
 
 			docIter = client.Collection("airspace/30d-history/1h-bucket").
 				Where("startTime", ">=", fromUtc).
@@ -63,17 +99,20 @@ func main() {
 			fallthrough
 
 		default:
-			fromUtc := from.UTC().Format("2006-01-02")
-			toUtc := to.UTC().Format("2006-01-02")
+			fromUtc = from.UTC().Format("2006-01-02")
+			toUtc = to.UTC().Format("2006-01-02")
 
 			docIter = client.Collection("airspace/30d-history/1d-bucket").
 				Where("startTime", ">=", fromUtc).
 				Where("startTime", "<=", toUtc).
 				OrderBy("startTime", firestore.Desc).
 				Documents(ctx)
+
+			resolution = "day"
 		}
 
-		var json = make(map[string]interface{})
+		var jsonResult = make(map[string]interface{})
+		var jsonHistory = make(map[string]interface{})
 
 		// Iterate over documents and create response
 		for i := 0; true; i++ {
@@ -85,18 +124,26 @@ func main() {
 
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
+				Log.Error.Println("Error iterating over history documents with ", resolution, " resolution: ", err)
 				return
 			}
 
-			json[doc.Ref.ID] = doc.Data()
+			jsonHistory[doc.Ref.ID] = doc.Data()
 		}
-		c.JSON(http.StatusOK, json)
+
+		jsonResult["from"] = fromUtc
+		jsonResult["to"] = toUtc
+		jsonResult["resolution"] = resolution
+		jsonResult["history"] = jsonHistory
+
+		c.JSON(http.StatusOK, jsonResult)
 	})
 	router.Run()
 }
 
 func checkErr(err error) {
 	if err != nil {
+		Log.Critical.Println("Critical error, panicking: ", err)
 		panic(err)
 	}
 }

@@ -1,43 +1,60 @@
-# service account for flink
-resource "google_service_account" "flink" {
-  account_id   = "flink-source"
-  display_name = "A service account for Flink"
+# # service account for flink
+# resource "google_service_account" "flink_sa" {
+#   account_id   = "flink-source"
+#   display_name = "A service account for Flink"
+# }
+
+# # bind the service account to the necessary roles
+# resource "google_project_iam_binding" "flink_firestore_binding" {
+#   project = var.project_id
+#   role    = "roles/datastore.owner"
+
+#   members = [
+#     "serviceAccount:${google_service_account.flink_sa.email}",
+#   ]
+# }
+
+locals {
+  # flink_sa_name = google_service_account.flink_sa.name
+  # flink_sa_email = google_service_account.flink_sa.email
+  flink_sa_email = "flink-sa@${var.project_id}.iam.gserviceaccount.com"
+  flink_sa_name  = "projects/${var.project_id}/serviceAccounts/flink-sa@${var.project_id}.iam.gserviceaccount.com"
 }
 
-# bind the service account to the necessary roles
-resource "google_project_iam_binding" "flink_firestore_binding" {
-  project = var.project_id
-  role    = "roles/datastore.user"
+# resource "google_service_account_key" "flink_key" {
+#   service_account_id = local.flink_sa_name
+#   public_key_type    = "TYPE_X509_PEM_FILE"
+# }
 
-  members = [
-    "serviceAccount:${google_service_account.flink.email}",
-  ]
-}
+# resource "google_project_iam_binding" "flink_pubsub_binding" {
+#   project = var.project_id
+#   role    = "roles/pubsub.publisher"
 
-resource "google_project_iam_binding" "flink_pubsub_binding" {
-  project = var.project_id
-  role    = "roles/pubsub.publisher" // TODO check whether editor is necessary
-
-  members = [
-    "serviceAccount:${google_service_account.flink.email}",
-  ]
-}
+#   members = [
+#     "serviceAccount:${flink_sa_email}",
+#   ]
+# }
 
 # kubernetes service account for airspace history calculator
 resource "kubernetes_service_account" "flink_kube_account" {
-  depends_on = [kubernetes_namespace.main_namespace]
+  depends_on = [
+    kubernetes_namespace.main_namespace,
+    # google_service_account.flink,
+    # google_project_iam_binding.flink_firestore_binding,
+    # google_service_account_key.flink_key,
+  ]
   metadata {
     name      = "flink-account"
     namespace = var.kube_namespace
     annotations = {
-      "iam.gke.io/gcp-service-account" = google_service_account.flink.email
+      "iam.gke.io/gcp-service-account" = local.flink_sa_email
     }
   }
 }
 
 # bind service account and kubernetes service account
 resource "google_service_account_iam_binding" "flink_accounts_binding" {
-  service_account_id = google_service_account.flink.name
+  service_account_id = local.flink_sa_name
   role               = "roles/iam.workloadIdentityUser"
 
   members = [
@@ -46,7 +63,9 @@ resource "google_service_account_iam_binding" "flink_accounts_binding" {
 }
 
 resource "kubernetes_deployment" "flink_taskmanager" {
-  depends_on = [kubernetes_namespace.main_namespace]
+  depends_on = [
+    kubernetes_namespace.main_namespace,
+  ]
   metadata {
     name      = "flink-taskmanager"
     namespace = var.kube_namespace
@@ -102,14 +121,21 @@ resource "kubernetes_deployment" "flink_taskmanager" {
         }
         container {
           name  = "taskmanager"
-          image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/states_source:latest"
+          image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/states_source:latest"
           args  = ["taskmanager"]
 
           env {
             name  = "GOOGLE_CLOUD_PROJECT_ID"
             value = var.project_id
           }
-
+          env {
+            name  = "FIRESTORE_AUTHENTICATION_METHOD"
+            value = "ADC"
+          }
+          # env {
+          #   name  = "FIRESTORE_CREDENTIALS"
+          #   value = " ${base64decode(google_service_account_key.flink_key.private_key)} "
+          # }
           env {
             name  = "GOOGLE_PUBSUB_VECTORS_TOPIC_ID"
             value = var.vectors_topic
@@ -135,6 +161,15 @@ resource "kubernetes_deployment" "flink_taskmanager" {
             mount_path = "/opt/flink/conf/"
           }
 
+          startup_probe {
+            tcp_socket {
+              port = "6122"
+            }
+
+            failure_threshold = 15
+            period_seconds    = 60
+          }
+
           liveness_probe {
             tcp_socket {
               port = "6122"
@@ -147,10 +182,16 @@ resource "kubernetes_deployment" "flink_taskmanager" {
           security_context {
             run_as_user = 9999
           }
+
+          resources {
+            limits = {
+              memory = "1025Mi"
+            }
+          }
         }
 
         node_selector = {
-          node_type                                = "small"
+          node_type                                = "medium"
           "iam.gke.io/gke-metadata-server-enabled" = "true"
         }
       }

@@ -3,11 +3,14 @@ scopeconfig:
   - scope: node
 
 fileignoreconfig:
-- filename: frontend/web_ui/statics/index.js
-  checksum: b8dc8f600cb06517a1901003afddadf61afa0b2915f94ac25e40ecc2bfe651b1
-version: ""
-
-fileignoreconfig:
-- filename: states_source/src/main/scala/it/unibo/states_source/Main.scala
-  checksum: 6c24f4f44adbebd10b90459c218fb1c2f44395c97a7a8160213fb38370bbe3ae
+- filename: terraform/cloud-run-airspace-monthly-history.tf
+  checksum: cbff22fbc2fb30da88cd6d3ecdf20d51683146eb14ecd9a647fd455b936dffc0
+- filename: terraform/cloud-run-aircraft-list.tf
+  checksum: 1d70aa1f208aa0bf076122f46d0ed2518f4da273298a2ef7ce59411bb7803697
+- filename: terraform/cloud-run-airspace-daily-history.tf
+  checksum: eddcc77f2b86aac73141c3fd8a2416903fc59f6eb310d2970860094a26792cbb
+- filename: terraform/kubernetes-flink-taskmanager-job-deployment.tf
+  checksum: a6dc1b158338554a46685c7e97116a200e12a4875b1386bf63f76ee6cac9209d
+- filename: terraform/kubernetes-history-calculator.tf
+  checksum: ecf62b416a201fa23e478152ab9edcf5d2916a9f06fb2da73cabcf7253a68f32
 version: ""
