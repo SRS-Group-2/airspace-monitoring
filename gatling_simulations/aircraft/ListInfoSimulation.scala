@@ -19,17 +19,19 @@ class ListInfoSimulation extends Simulation {
     .userAgentHeader("Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0")
 
   val scn = scenario("ListInfoSimulation")
-    .exec(
-      http("Aircraft list request")
-        .get("/airspace/aircraft/list")
-        .check(jsonPath("$.list").saveAs("icao24"))
-    )
-    .pause(5)
-    .exec(
-      http("Aircraft info request")
-        .get(session => s"/airspace/aircraft/${session("icao24")}/info")
-    )
-    .pause(5)
+    .during(RAMP) {
+      exec(
+        http("Aircraft list request")
+          .get("/airspace/aircraft/list")
+          .check(jsonPath("$.list").saveAs("icao24"))
+      )
+      .pause(5)
+      .exec(
+        http("Aircraft info request")
+          .get("/airspace/aircraft/#{icao24(0)}/info")
+      )
+      .pause(5)
+    }
 
   setUp(
     scn.inject(atOnceUsers(N_USERS))
