@@ -1,4 +1,4 @@
-aircraft_list_tag               = "1e0ae3f1072431fcc7fc7d5ee1efa1383220fedc"
+aircraft_list_tag               = "d247b3cd000258c56fe7b1d27016c62cb11bddf6"
 airspace_daily_history_tag      = "1e0ae3f1072431fcc7fc7d5ee1efa1383220fedc"
 websocket_endpoints_tag         = "6f2a9398455faad963864f75185f0082fda9a158"
 airspace_history_calculator_tag = "90a7caa2f79a488c42322644b32f855a61d2d88b"

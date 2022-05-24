@@ -12,7 +12,6 @@ repos:
         name: Update the Docker image versions to be deployed
         entry: update-tags
         language: python
-        types: [python]
         pass_filenames: false
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0

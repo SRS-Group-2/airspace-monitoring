@@ -31,11 +31,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             service = directory.split('/')[-1]
             commit = commit_bytes.decode('utf-8')
             new_line = service + "_tag = \"" + commit + "\""
-            new_lines.append(new_line)
             if new_line in original_file_lines:
                 original_file_lines.remove(new_line)
+            new_line = new_line + "\n"
+            new_lines.append(new_line)
         
-        print(len(original_file_lines))
+        print(str(len(original_file_lines) - 1) + " services changed")
 
         if len(original_file_lines) == 1: # only the empty string is present
             # the file has not changed

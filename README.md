@@ -7,7 +7,11 @@ For security and quality reasons, this project makes use of Git pre commit hooks
 
 The current setup requires the use of [`pre-commit`](https://pre-commit.com/).
 
-Once this repository has been cloned, run `pre-commit install` in the directory. The first commit after the installation of the hooks requires the [Golang](https://go.dev) compiler to be installed.
+Once this repository has been cloned, do two things:
+- run `pip install .` in the `pre-commit-exe` directory
+- run `pre-commit install` in the main directory
+
+The first commit after the installation of the hooks requires the [Golang](https://go.dev) compiler to be installed.
 
 ### Code scan
 Code scanning is done using CodeQL and [Semgrep](https://semgrep.dev/).
