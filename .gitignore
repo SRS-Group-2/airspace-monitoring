@@ -1,3 +1,5 @@
 secrets.auto.tfvars
 .terraform
 **.env
+pre-commit-exe/build/
+pre-commit-exe/update_images_versions.egg-info/
