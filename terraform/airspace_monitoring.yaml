@@ -104,6 +104,76 @@ paths:
             type: string
         '400':
           description: "web-ui not allowed"
+  /index.js:
+    get:
+      summary: web_ui
+      operationId: web_ui_index_js
+      x-google-backend:
+        address: ${airspace_web_ui}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '400':
+          description: "web-ui not allowed"
+  /airspace.css:
+    get:
+      summary: web_ui
+      operationId: web_ui_airspace_css
+      x-google-backend:
+        address: ${airspace_web_ui}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '400':
+          description: "web-ui not allowed"
+  /hero-bg.png:
+    get:
+      summary: web_ui
+      operationId: web_ui_hero_bg_png
+      x-google-backend:
+        address: ${airspace_web_ui}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '400':
+          description: "web-ui not allowed"
+  /plane.png:
+    get:
+      summary: web_ui
+      operationId: web_ui_plane_png
+      x-google-backend:
+        address: ${airspace_web_ui}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '400':
+          description: "web-ui not allowed"
+  /index.css:
+    get:
+      summary: web_ui
+      operationId: web_ui_index_css
+      x-google-backend:
+        address: ${airspace_web_ui}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '400':
+          description: "web-ui not allowed"
   /endpoints/position/url:
     get:
       summary: aircraft-position-url
