@@ -26,11 +26,14 @@ jobs:
       - run: echo Working on ${{ matrix.service.directory }} directory, for ${{ matrix.service.name }} service
       - name: Check out the repo
         uses: actions/checkout@v3
-      - run: echo us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA $GITHUB_WORKSPACE/${{ matrix.service.directory }}
+      - name: Get last commit that changed things
+        id: last_change
+        run: echo ::set-output name=commit::`git-log -n 1 --pretty=format:%H -- ${{ matrix.service.directory }}`
+      - run: echo us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }} $GITHUB_WORKSPACE/${{ matrix.service.directory }}
       - name: Build image
         run: |-
           docker build \
-            -t us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:$GITHUB_SHA \
+            -t us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }} \
             -t us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:latest \
             $GITHUB_WORKSPACE/${{ matrix.service.directory }}
       # - name: Scan image
@@ -46,13 +49,13 @@ jobs:
             grep '"tag_name":' | \
             sed -E 's/.*"v([^"]+)".*/\1/' \
           ) && docker run --rm -v /var/run/docker.sock:/var/run/docker.sock goodwithtech/dockle:v${VERSION} -f sarif \
-              us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}
+              us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }}
       - name: Scan image for vulnerabilities
         id: scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'image'
-          image-ref: 'us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}'
+          image-ref: 'us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
