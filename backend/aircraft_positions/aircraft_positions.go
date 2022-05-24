@@ -19,7 +19,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const env_topicID = "GOOGLE_PUBSUB_AIRCRAFT_POSITIONS_TOPIC_ID"
 const logName = "AIRCRAFT_POSITIONS_LOG"
@@ -431,10 +430,10 @@ func httpRequestHandler(c *gin.Context) {
 }
 
 func validIcao24(icao24 string) bool {
-	if len(icao24) != 6 && hasSymbol(icao24) {
-		return true
+	if len(icao24) != 6 || hasSymbol(icao24) {
+		return false
 	}
-	return false
+	return true
 }
 
 func hasSymbol(str string) bool {
