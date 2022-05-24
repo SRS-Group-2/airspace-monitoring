@@ -14,11 +14,8 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-const env_authType = "AUTHENTICATION_METHOD"
-const env_credJson = "GOOGLE_APPLICATION_CREDENTIALS"
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
 const logName = "MONTHLY_HISTORY_LOG"
-const env_cred = "GOOGLE_APPLICATION_CREDENTIALS"
 
 const env_port = "PORT"
 const env_ginmode = "GIN_MODE"
@@ -32,7 +29,6 @@ type LogType struct {
 var Log = LogType{}
 
 func main() {
-	var authType = mustGetenv(env_authType)
 	var projectID = mustGetenv(env_projectID)
 
 	ctx := context.Background()
@@ -49,14 +45,7 @@ func main() {
 	Log.Debug.Print("Starting Monthly History Service.")
 	defer Log.Debug.Println("Stopping Monthly History Service.")
 
-	var client *firestore.Client
-	//DB
-	if authType == "ADC" {
-		client = FirestoreInit(projectID)
-	} else {
-		var credJson = mustGetenv(env_credJson)
-		client = FirestoreInitWithCredentials(projectID, []byte(credJson))
-	}
+	client := FirestoreInit(projectID)
 	defer client.Close()
 
 	router := gin.New()

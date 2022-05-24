@@ -60,21 +60,13 @@ resource "kubernetes_deployment" "flink_jobmanager" {
 
         container {
           name  = "jobmanager"
-          image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/states_source:latest"
+          image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/states_source:${var.states_source_tag}"
           args  = ["standalone-job", "--job-classname", "it.unibo.states_source.Main"]
 
           env {
             name  = "GOOGLE_CLOUD_PROJECT_ID"
             value = var.project_id
           }
-          env {
-            name  = "FIRESTORE_AUTHENTICATION_METHOD"
-            value = "ADC"
-          }
-          # env {
-          #   name  = "FIRESTORE_CREDENTIALS"
-          #   value = " ${base64decode(google_service_account_key.flink_key.private_key)} "
-          # }
           env {
             name  = "GOOGLE_PUBSUB_VECTORS_TOPIC_ID"
             value = var.vectors_topic

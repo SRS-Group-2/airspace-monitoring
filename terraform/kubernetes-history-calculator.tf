@@ -30,6 +30,9 @@ locals {
 resource "kubernetes_service_account" "airspace_history_calculator_kube_account" {
   depends_on = [
     kubernetes_namespace.main_namespace,
+    kubernetes_deployment.flink_jobmanager,  # requires the data from these two to work
+    kubernetes_deployment.flink_taskmanager, # requires the data from these two to work
+    #google_project_iam_binding.airspace_daily_history_binding_log
   ]
   metadata {
     name      = "airspace-history-calculator-account"
@@ -91,20 +94,12 @@ resource "kubernetes_deployment" "airspace_history_calculator" {
         }
         container {
           name  = "airspace-history-calculator"
-          image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_history_calculator:latest"
+          image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_history_calculator:${var.airspace_history_calculator_tag}"
 
           env {
             name  = "GOOGLE_CLOUD_PROJECT_ID"
             value = var.project_id
           }
-          env {
-            name  = "AUTHENTICATION_METHOD"
-            value = "ADC"
-          }
-          # env {
-          #   name  = "GOOGLE_APPLICATION_CREDENTIALS"
-          #   value = " ${base64decode(google_service_account_key.airspace_history_calculator_key.private_key)} "
-          # }
           env {
             name  = "GIN_MODE"
             value = "release"

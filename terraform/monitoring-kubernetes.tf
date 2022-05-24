@@ -81,7 +81,7 @@ resource "google_monitoring_dashboard" "kubernetes_dashboard" {
       }
     ]
   },
-  "name": "projects/477074905358/dashboards/71661848-faef-4ff9-b913-cd77c710dd2a"
+  "name": "projects/${data.google_project.project.number}/dashboards/71661848-faef-4ff9-b913-cd77c710dd2a"
 }
 
 EOF

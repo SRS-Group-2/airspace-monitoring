@@ -210,7 +210,7 @@ resource "google_monitoring_dashboard" "cloud_run_dashboard" {
       }
     ]
   },
-  "name": "projects/477074905358/dashboards/ebfa2242-b1c0-4765-a5b0-18d15f7d2dbf"
+  "name": "projects/${data.google_project.project.number}/dashboards/ebfa2242-b1c0-4765-a5b0-18d15f7d2dbf"
 }
 
 EOF

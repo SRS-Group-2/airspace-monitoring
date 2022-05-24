@@ -7,7 +7,11 @@ For security and quality reasons, this project makes use of Git pre commit hooks
 
 The current setup requires the use of [`pre-commit`](https://pre-commit.com/).
 
-Once this repository has been cloned, run `pre-commit install` in the directory. The first commit after the installation of the hooks requires the [Golang](https://go.dev) compiler to be installed.
+Once this repository has been cloned, do two things:
+- run `pip install .` in the `pre-commit-exe` directory
+- run `pre-commit install` in the main directory
+
+The first commit after the installation of the hooks requires the [Golang](https://go.dev) compiler to be installed.
 
 ### Code scan
 Code scanning is done using CodeQL and [Semgrep](https://semgrep.dev/).
@@ -67,6 +71,7 @@ Manual deploy requires `terraform` and `gcloud` installed.
 Pre-deploy operations:
 - create a project on Google Cloud, memorize the id of the project
 - abilitate the following Google APIs (more may be required):
+  - apigateway.googleapis.com
   - artifactregistry.googleapis.com
   - autoscaling.googleapis.com
   - compute.googleapis.com
@@ -83,11 +88,11 @@ Pre-deploy operations:
   - storage-component.googleapis.com
   - storage.googleapis.com
 - create the following service accounts, with the relative permissions:
-  - `aircraft-list` with role "Cloud Datastore Viewer"
-  - `airspace-daily-history` with role "Cloud Datastore Viewer"
-  - `airspace-monthly-history` with role "Cloud Datastore Viewer"
-  - `airspace-history-calculator` with role "Cloud Datastore User"
-  - `flink-sa` with role "Cloud Datastore User" and role "Pub/Sub Publisher"
+  - `aircraft-list` with role "Cloud Datastore Viewer" and role "Log Writer"
+  - `airspace-daily-history` with role "Cloud Datastore Viewer" and role "Log Writer"
+  - `airspace-monthly-history` with role "Cloud Datastore Viewer" and role "Log Writer"
+  - `airspace-history-calculator` with role "Cloud Datastore User" and role "Log Writer"
+  - `flink-sa` with role "Cloud Datastore User", role "Pub/Sub Publisher" and role "Log Writer"
 - push the following Docker images to a Google Cloud Repository, in the same region as the where the system will be deployed:
   - `aircraft_info`
   - `aircraft_list`
@@ -95,9 +100,11 @@ Pre-deploy operations:
   - `airspace_daily_history` 
   - `airspace_monthly_history` 
   - `airspace_history_calculator` 
+  - `websocket_endpoints`
   - `web_ui`
-  - `flink_sa` 
+  - `states_source` 
 - create a Google Storage bucket and write its name as the "bucket" value of the 'backend "gcs"' object into `terraform/main.tf`
+- create the default project in Firestore
 - create inside the `terraform` directory a file `terraform.tfvars` in which the following variables (described in `terraform/variables.tf`) are declared, one per line, with the `var_name = var_value` syntax:
   - `project_id`
   - `region`
@@ -111,9 +118,12 @@ Pre-deploy operations:
   - `opensky_bb`
   - `docker_repo_name`
 
+
 Once the pre-deploy operations are done, execute:
 ```
 gcloud init # to log in into Google Cloud
+gcloud auth application-default login # to set up credentials for terraform
+terraform -chdir=terraform init # to initialize the terraform state, necessary
 terraform -chdir=terraform fmt # to correctly format the terraform files, not strictly necessary
 terraform -chdir=terraform validate # to check the syntax of the Terraform files
 terraform -chdir=terraform plan # to elaborate what the apply command will do
@@ -125,6 +135,11 @@ To configure `kubectl` and explore the cluster state (see https://cloud.google.c
 ```
 gcloud container clusters get-credentials gke-1 --zone "us-central1"
 ```
+
+The account running the terraform commands requires the following roles:
+- IAM Project Admin
+- Service Account Admin
+- Editor
 
 ### How to use Gatling
 Download [gatling](https://gatling.io/open-source/), unzip the bundle in your directory of choice, copy the content of `gatling_simulations` into `simulations` in the unzipped directory, run 

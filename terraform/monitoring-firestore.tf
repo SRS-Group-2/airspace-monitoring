@@ -118,7 +118,7 @@ resource "google_monitoring_dashboard" "firestore_dashboard" {
       }
     ]
   },
-  "name": "projects/477074905358/dashboards/648af953-470d-46c2-b1ff-2d1b9765e41c"
+  "name": "projects/${data.google_project.project.number}/dashboards/648af953-470d-46c2-b1ff-2d1b9765e41c"
 }
 
 EOF

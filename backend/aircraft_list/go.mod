@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/firestore v1.6.1
 	cloud.google.com/go/logging v1.4.2
 	github.com/gin-gonic/gin v1.7.7
-	google.golang.org/api v0.79.0
+	google.golang.org/api v0.80.0
 )
 
 require (
@@ -35,7 +35,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
+	google.golang.org/genproto v0.0.0-20220524023933-508584e28198 // indirect
 	google.golang.org/grpc v1.46.2 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
