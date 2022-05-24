@@ -9,7 +9,7 @@ resource "google_cloud_run_service" "websocket_endpoints" {
   template {
     spec {
       containers {
-        image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/websocket_endpoints:latest"
+        image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/websocket_endpoints:${var.websocket_endpoints_tag}"
         env {
           name  = "WEBSOCKET_ENDPOINT"
           value = google_cloud_run_service.aircraft_positions.status[0].url

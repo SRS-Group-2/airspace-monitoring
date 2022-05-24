@@ -26,7 +26,7 @@ resource "google_cloud_run_service" "aircraft_info" {
   template {
     spec {
       containers {
-        image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/aircraft_info:latest"
+        image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/aircraft_info:${var.aircraft_info_tag}"
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id

@@ -39,7 +39,7 @@ resource "google_cloud_run_service" "airspace_daily_history" {
     spec {
       service_account_name = local.airspace_daily_history_sa_email
       containers {
-        image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_daily_history:latest"
+        image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_daily_history:${var.airspace_daily_history_tag}"
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
           value = var.project_id
