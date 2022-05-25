@@ -1,5 +1,9 @@
 # Web UI service
 resource "google_cloud_run_service" "web_ui" {
+  depends_on = [
+    google_project_service.cloud_run,
+  ]
+
   name     = "web-ui"
   location = var.region
 

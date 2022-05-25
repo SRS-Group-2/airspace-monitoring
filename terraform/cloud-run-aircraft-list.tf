@@ -20,17 +20,11 @@ locals {
   aircraft_list_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.aircraft_list_sa_email}"
 }
 
-# resource "google_service_account_key" "aircraft_list_key" {
-#   service_account_id = local.aircraft_list_sa_name
-#   public_key_type    = "TYPE_X509_PEM_FILE"
-# }
-
 # Aircraft List service
 resource "google_cloud_run_service" "aircraft_list" {
   depends_on = [
     # google_service_account.aircraft_list_sa,
-    # google_project_iam_binding.aircraft_list_binding_log,
-    # google_service_account_key.aircraft_list_key,
+    google_project_service.cloud_run,
   ]
   name     = "aircraft-list"
   location = var.region

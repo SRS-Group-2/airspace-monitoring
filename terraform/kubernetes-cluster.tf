@@ -7,7 +7,12 @@ provider "kubernetes" {
 }
 
 module "gke" {
-  depends_on = [google_compute_subnetwork.kubernetes_subnetwork]
+  depends_on = [
+    google_compute_subnetwork.kubernetes_subnetwork,
+    google_project_service.kubernetes,
+    google_project_service.compute,
+    google_project_service.autoscaling,
+  ]
 
   source                     = "terraform-google-modules/kubernetes-engine/google"
   project_id                 = var.project_id

@@ -20,15 +20,10 @@ locals {
   airspace_monthly_history_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.airspace_monthly_history_sa_email}"
 }
 
-# resource "google_service_account_key" "airspace_monthly_history_key" {
-#   service_account_id = local.airspace_monthly_history_sa_name
-#   public_key_type    = "TYPE_X509_PEM_FILE"
-# }
-
 # Airspace Monthly History service
 resource "google_cloud_run_service" "airspace_monthly_history" {
   depends_on = [
-    # google_service_account_key.airspace_monthly_history_key,
+    google_project_service.cloud_run,
   ]
   name     = "airspace-monthly-history"
   location = var.region
