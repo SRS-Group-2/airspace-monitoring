@@ -7,8 +7,7 @@ For security and quality reasons, this project makes use of Git pre commit hooks
 
 The current setup requires the use of [`pre-commit`](https://pre-commit.com/).
 
-Once this repository has been cloned, do two things:
-- run `pip install .` in the `pre-commit-exe` directory
+Once this repository has been cloned, do:
 - run `pre-commit install` in the main directory
 
 The first commit after the installation of the hooks requires the [Golang](https://go.dev) compiler to be installed.
@@ -67,6 +66,8 @@ A useful tool to locally test workflows is [`act`](https://github.com/nektos/act
 
 ### Terraform
 Manual deploy requires `terraform` and `gcloud` installed.
+
+To update the version of the services images that will be used by Terraform: `./scripts/update-tags.sh`
 
 Pre-deploy operations:
 - create a project on Google Cloud, memorize the id of the project
