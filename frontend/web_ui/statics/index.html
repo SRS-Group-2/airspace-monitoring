@@ -45,6 +45,7 @@
            </div> 
         </div>
         <p class="title">Aircraft Position</p> 
+        <p class="text" id="startedListening"></p>
         <div class="detail-box">
             <div id="position">
            
@@ -62,6 +63,7 @@
                         <td id="updatetime"></td>
                     </tr>
                 </table>
+                <p class="text" id="loading"></p>
            
             </div> 
         </div>
@@ -81,6 +83,7 @@
                             <option value="6h">6h</option>
                             <option value="24h">24h</option>
                         </select>
+                        <p class="text" id="current_error"></p>
                     </div>
                 </div>
                 <div class="child" id="info">
@@ -133,7 +136,7 @@
                             <th>Distance (km)</th>
                             <th>CO2 (t)</th>                     
                         </tr>
-                            <tr id="toDelete">
+                        <tr id="toDelete">
                             <td id="time"></td>
                             <td id="km"></td>
                             <td id="co2"></td>                      
