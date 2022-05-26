@@ -4,5 +4,5 @@ scopeconfig:
 
 fileignoreconfig:
 - filename: terraform/image-versions.auto.tfvars
-  checksum: efd292b4fd5801f7a994e269d48f873c0132eb3aa19eff024a928959b56d07c9
+  checksum: 48406c57d7cfc2eaaeee68fddd1ec010605b21a303a8e4a47a13ace419c0ad11
 version: ""
