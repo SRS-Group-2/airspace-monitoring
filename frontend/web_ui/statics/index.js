@@ -226,7 +226,7 @@ window.onload = _ => {
       set_aircraft_info(v)})
       request_value("/endpoints/position/url", v => {
       var url = v.replace("https://", "wss://") + base_aircraft_route + "/" + flight + "/position"
-      websocket = new WebSocket(base_aircraft_route + "/" + flight + "/position")
+      websocket = new WebSocket(url)
       websocket.onopen = function(event) {
         document.getElementById("loading").innerText="Waiting for next position..."
       }
