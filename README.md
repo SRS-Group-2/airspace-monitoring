@@ -73,7 +73,7 @@ Pre-deploy operations:
 - create a project on Google Cloud, memorize the id of the project
 - login to `gcloud`
 - run the `act-gcp-apis.sh` script to abilitate the necessary Google APIs: `./scripts/act-on-gcp-apis.sh enable <project_id>`
-- create the following service accounts, with the relative permissions:
+- run `./scripts/create-service-accounts.sh <project_id>` to create the following service accounts, with the relative permissions:
   - `aircraft-list` with role "Cloud Datastore Viewer" and role "Log Writer"
   - `airspace-daily-history` with role "Cloud Datastore Viewer" and role "Log Writer"
   - `airspace-monthly-history` with role "Cloud Datastore Viewer" and role "Log Writer"
