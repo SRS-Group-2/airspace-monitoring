@@ -71,7 +71,7 @@ To update the version of the services images that will be used by Terraform: `./
 
 Pre-deploy operations:
 - create a project on Google Cloud, memorize the id of the project
-- login to `gcloud`
+- login to gcloud using `gcloud auth login`
 - run the `act-gcp-apis.sh` script to abilitate the necessary Google APIs: `./scripts/act-on-gcp-apis.sh enable <project_id>`
 - run `./scripts/create-service-accounts.sh <project_id>` to create the following service accounts, with the relative permissions:
   - `aircraft-list` with role "Cloud Datastore Viewer" and role "Log Writer"
