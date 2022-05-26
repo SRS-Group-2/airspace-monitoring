@@ -22,9 +22,7 @@ locals {
 
 # Airspace Monthly History service
 resource "google_cloud_run_service" "airspace_monthly_history" {
-  depends_on = [
-    google_project_service.cloud_run,
-  ]
+
   name     = "airspace-monthly-history"
   location = var.region
 

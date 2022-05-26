@@ -24,7 +24,7 @@ locals {
 resource "google_cloud_run_service" "aircraft_list" {
   depends_on = [
     # google_service_account.aircraft_list_sa,
-    google_project_service.cloud_run,
+
   ]
   name     = "aircraft-list"
   location = var.region
