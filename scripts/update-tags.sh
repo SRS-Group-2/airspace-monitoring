@@ -9,6 +9,7 @@ for dockerfile in `find . -iname Dockerfile -not -path *.devcontainer*`; do
     echo "$service"_tag = \"$hash\" >> ./terraform/image-versions.auto.tfvars
 done
 
-if [[ `whereis terraform` != "terraform:" ]]; then
+terraform -version 2> /dev/null > /dev/null
+if [[ "$?" == "0" ]]; then
     terraform -chdir=terraform fmt
 fi
