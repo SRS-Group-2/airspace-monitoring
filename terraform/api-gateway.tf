@@ -28,6 +28,9 @@ data "template_file" "aircraft_info" {
 
 
 resource "google_api_gateway_api" "api_gw" {
+  depends_on = [
+    google_project_service.api_gateway,
+  ]
   provider     = google-beta
   api_id       = local.api_gateway_container_id
   display_name = "airspace-info"
@@ -35,6 +38,9 @@ resource "google_api_gateway_api" "api_gw" {
 
 
 resource "google_api_gateway_api_config" "api_cfg" {
+  depends_on = [
+    google_project_service.api_gateway,
+  ]
   provider             = google-beta
   api                  = google_api_gateway_api.api_gw.api_id
   api_config_id_prefix = local.api_config_id_prefix
@@ -51,6 +57,10 @@ resource "google_api_gateway_api_config" "api_cfg" {
 }
 
 resource "google_api_gateway_gateway" "gw" {
+  depends_on = [
+    google_project_service.api_gateway,
+    google_api_gateway_api_config.api_cfg,
+  ]
   provider = google-beta
   region   = var.region
 
@@ -58,6 +68,4 @@ resource "google_api_gateway_gateway" "gw" {
 
   gateway_id   = local.gateway_id
   display_name = "The Gateway for airspace-monitoring"
-
-  depends_on = [google_api_gateway_api_config.api_cfg]
 }

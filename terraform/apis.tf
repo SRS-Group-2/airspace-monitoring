@@ -41,3 +41,10 @@ resource "google_project_service" "firestore" {
 
   disable_dependent_services = true
 }
+
+resource "google_project_service" "api_gateway" {
+  project = var.project_id
+  service = "apigateway.googleapis.com"
+
+  disable_dependent_services = true
+}

@@ -15,6 +15,9 @@ resource "google_compute_subnetwork" "kubernetes_subnetwork" {
 }
 
 resource "google_compute_network" "kubernetes_network" {
+  depends_on = [
+    google_project_service.compute,
+  ]
   name                    = var.kube_network
   auto_create_subnetworks = false
 }
