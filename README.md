@@ -64,7 +64,7 @@ A useful tool to locally test workflows is [`act`](https://github.com/nektos/act
 
 `act` shows different behaviours than Github Actions when using matrixes and checks if matrixes are empty and for the values of `${{ github.event.before }}` for new branches.
 
-### Terraform
+## Terraform
 Manual deploy requires `terraform` and `gcloud` installed.
 
 To update the version of the services images that will be used by Terraform: `./scripts/update-tags.sh`
@@ -118,7 +118,7 @@ The account running the terraform commands requires the following roles:
 - Service Account Admin
 - Editor
 
-### How to use Gatling
+## How to use Gatling
 Download [gatling](https://gatling.io/open-source/), unzip the bundle in your directory of choice, copy the content of `gatling_simulations` into `simulations` in the unzipped directory, run 
 ```
 JAVA_OPTS="-Dusers=10 -Dramp=3600 -Dbase_url=<our_base_url>" ./bin/gatling.sh
@@ -128,3 +128,9 @@ Change parameters as needed.
 This requires Java to be installed.
 
 Good tool for mocking apis: https://beeceptor.com/
+
+## OWASP ZAP
+```
+docker pull owasp/zap2docker-stable
+docker run -i owasp/zap2docker-stable zap-baseline.py -t <api_gateway_url>
+```
