@@ -77,7 +77,7 @@ function set_realtime_history(timeframe) {
       document.getElementById("co2").innerText=""
       document.getElementById("current_update").innerText=""
     } else {
-      var json = JSON.parse(v) // strange error here
+      var json = JSON.parse(v)
       const current_distance = document.getElementById("km")
       const current_co2 = document.getElementById("co2")
       document.getElementById("current_update").innerHTML =  get_date_string(json.timestamp)
@@ -204,6 +204,7 @@ function update_aircraft_position(data) {
 }
 
 window.onload = _ => {
+  console.log("Loaded")
   document.getElementById("loading").innerText=""
   var websocket = null
   /* set up flight selector */
