@@ -79,8 +79,7 @@ func main() {
 }
 
 func getList(c *gin.Context) {
-
-	c.String(http.StatusOK, aircraftList.Read())
+	c.JSON(http.StatusOK, aircraftList.Read())
 }
 
 func checkErr(err error) {
