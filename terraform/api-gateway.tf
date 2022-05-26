@@ -64,3 +64,7 @@ resource "google_api_gateway_gateway" "gw" {
   gateway_id   = local.gateway_id
   display_name = "The Gateway for airspace-monitoring"
 }
+
+output "gateway_url" {
+  value = google_api_gateway_gateway.gw.default_hostname
+}
