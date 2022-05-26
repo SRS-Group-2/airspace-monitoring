@@ -32,6 +32,7 @@ resource "google_cloud_run_service" "airspace_daily_history" {
   template {
     spec {
       service_account_name = local.airspace_daily_history_sa_email
+      container_concurrency = 1000
       containers {
         image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_daily_history:${var.airspace_daily_history_tag}"
         env {
