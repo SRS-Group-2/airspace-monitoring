@@ -82,7 +82,7 @@ Pre-deploy operations:
 - push the following Docker images to a Google Cloud Repository, in the same region as the where the system will be deployed, using `./scripts/build-everything.sh <project_id> <region> <docker_repo_name>`, after having set gcloud as the credential helper for docker:
   - `aircraft_info`
   - `aircraft_list`
-  - `aircraft_positions` 
+  - `aircraft_positions`
   - `airspace_daily_history` 
   - `airspace_monthly_history` 
   - `airspace_history_calculator` 
