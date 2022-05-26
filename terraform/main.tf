@@ -13,7 +13,7 @@ terraform {
 
   # where to save states
   backend "gcs" {
-    bucket = "choir-tf-state3"
+    bucket = "test-bucket-trfm"
     prefix = "terraform/state"
   }
 }
@@ -34,4 +34,3 @@ provider "google-beta" {
 # where you get project number
 data "google_project" "project" {
 }
-
