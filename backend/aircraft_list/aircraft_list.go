@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"net/http"
 	"os"
 	"sync"
 
@@ -79,7 +78,8 @@ func main() {
 }
 
 func getList(c *gin.Context) {
-	c.JSON(http.StatusOK, aircraftList.Read())
+	c.Data(200, "application/json; charset=utf-8", []byte(aircraftList.Read() ))
+	// c.String(http.StatusOK, aircraftList.Read())
 }
 
 func checkErr(err error) {
