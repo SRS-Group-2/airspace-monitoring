@@ -5,6 +5,7 @@ go 1.18
 require (
 	cloud.google.com/go/logging v1.4.2
 	cloud.google.com/go/pubsub v1.21.1
+	github.com/gin-contrib/secure v0.0.1
 	github.com/gin-gonic/gin v1.7.7
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0

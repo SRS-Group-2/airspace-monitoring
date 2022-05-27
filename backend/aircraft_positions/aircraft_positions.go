@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/gin-contrib/secure"
 )
 
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
@@ -68,6 +69,15 @@ func main() {
 	router := gin.New()
 
 	router.SetTrustedProxies(nil)
+	router.Use(secure.New(secure.Config{
+		STSSeconds:            315360000,
+		STSIncludeSubdomains:  true,
+		FrameDeny:             true,
+		ContentTypeNosniff:    true,
+		BrowserXssFilter:      true,
+		ContentSecurityPolicy: "default-src 'self'",
+		ReferrerPolicy:        "strict-origin-when-cross-origin",
+	}))
 	router.GET("/airspace/aircraft/:icao24/position", httpRequestHandler)
 
 	router.Run()
