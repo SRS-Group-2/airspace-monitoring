@@ -94,6 +94,12 @@ func main() {
 	router := gin.New()
 
 	router.SetTrustedProxies(nil)
+
+	router.Use(func() gin.HandlerFunc {
+        return func(c *gin.Context) {
+            c.Writer.Header().Set("Cache-Control", "public, max-age=604800, immutable") // info present on public db, unchanged
+        }
+    }())
 	
 	router.Use(secure.New(secure.Config{
 		STSSeconds:            315360000,

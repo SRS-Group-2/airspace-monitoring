@@ -52,6 +52,12 @@ func main() {
 	router := gin.New()
 	router.SetTrustedProxies(nil)
 
+	router.Use(func() gin.HandlerFunc {
+        return func(c *gin.Context) {
+            c.Writer.Header().Set("Cache-Control", "public, max-age=300")
+        }
+    }())
+
 	router.Use(secure.New(secure.Config{
 		STSSeconds:            315360000,
 		STSIncludeSubdomains:  true,

@@ -14,6 +14,12 @@ func main() {
 	router := gin.New()
 	router.SetTrustedProxies(nil)
 
+	router.Use(func() gin.HandlerFunc {
+        return func(c *gin.Context) {
+            c.Writer.Header().Set("Cache-Control", "public, max-age=604800, immutable")
+        }
+    }())
+
 	router.Use(secure.New(secure.Config{
 		// AllowedHosts:          []string{"example.com", "ssl.example.com"},
 		// SSLRedirect:           true,

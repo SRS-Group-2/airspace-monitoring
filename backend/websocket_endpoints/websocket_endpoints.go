@@ -21,6 +21,12 @@ func main() {
 	router.SetTrustedProxies(nil)
 	router.GET("/endpoints/position/url", getWebsocketEndpoint)
 
+	router.Use(func() gin.HandlerFunc {
+        return func(c *gin.Context) {
+            c.Writer.Header().Set("Cache-Control", "public, max-age=604800, immutable")
+        }
+    }())
+
 	router.Use(secure.New(secure.Config{
 		STSSeconds:            315360000,
 		STSIncludeSubdomains:  true,
