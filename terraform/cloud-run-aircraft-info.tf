@@ -33,7 +33,7 @@ resource "google_cloud_run_service" "aircraft_info" {
   template {
     spec {
       service_account_name  = local.aircraft_info_sa_email
-      container_concurrency = 1000
+      container_concurrency = 100
       containers {
         image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/aircraft_info:${var.aircraft_info_tag}"
         env {

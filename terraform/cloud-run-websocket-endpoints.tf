@@ -8,7 +8,7 @@ resource "google_cloud_run_service" "websocket_endpoints" {
 
   template {
     spec {
-      container_concurrency = 1000
+      container_concurrency = 100
       containers {
         image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/websocket_endpoints:${var.websocket_endpoints_tag}"
         env {
