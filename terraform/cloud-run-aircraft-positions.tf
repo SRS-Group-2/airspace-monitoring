@@ -23,7 +23,7 @@ resource "google_project_iam_binding" "aircraft_positions_binding_log" {
 }
 
 locals {
-  aircraft_positions_sa_name = google_service_account.aircraft_positions_sa.name
+  aircraft_positions_sa_name  = google_service_account.aircraft_positions_sa.name
   aircraft_positions_sa_email = google_service_account.aircraft_positions_sa.email
   # aircraft_positions_sa_email = "aircraft-positions@${var.project_id}.iam.gserviceaccount.com"
   # aircraft_positions_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.aircraft_positions_sa_email}"

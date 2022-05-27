@@ -47,7 +47,7 @@ resource "google_cloud_run_service" "airspace_daily_history" {
 
     metadata {
       annotations = {
-        "autoscaling.knative.dev/maxScale" = "2"
+        "autoscaling.knative.dev/maxScale" = "10"
         "autoscaling.knative.dev/minScale" = "0"
       }
     }
