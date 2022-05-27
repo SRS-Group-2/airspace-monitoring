@@ -1,31 +1,30 @@
-resource "google_service_account" "aircraft_info_sa" {
-  account_id   = "aircraft-info"
-  display_name = "A service account for the Aircraft-info service"
-}
+# resource "google_service_account" "aircraft_info_sa" {
+#   account_id   = "aircraft-info"
+#   display_name = "A service account for the Aircraft-info service"
+# }
 
-resource "google_project_iam_binding" "aircraft_info_binding_log" {
-  project = var.project_id
-  role    = "roles/logging.logWriter"
+# resource "google_project_iam_binding" "aircraft_info_binding_log" {
+#   project = var.project_id
+#   role    = "roles/logging.logWriter"
 
-  members = [
-    "serviceAccount:${google_service_account.aircraft_info_sa.email}",
-  ]
-}
+#   members = [
+#     "serviceAccount:${google_service_account.aircraft_info_sa.email}",
+#   ]
+# }
 
 locals {
-  aircraft_info_sa_name = google_service_account.aircraft_info_sa.name
-  aircraft_info_sa_email = google_service_account.aircraft_info_sa.email
-  # aircraft_info_sa_email = "aircraft-info@${var.project_id}.iam.gserviceaccount.com"
-  # aircraft_info_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.aircraft_info_sa_email}"
+  # aircraft_info_sa_name = google_service_account.aircraft_info_sa.name
+  # aircraft_info_sa_email = google_service_account.aircraft_info_sa.email
+  aircraft_info_sa_email = "aircraft-info@${var.project_id}.iam.gserviceaccount.com"
+  aircraft_info_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.aircraft_info_sa_email}"
 }
 
 # Aircraft Info service
 resource "google_cloud_run_service" "aircraft_info" {
-  depends_on = [
-    google_service_account.aircraft_info_sa,
-    google_project_iam_binding.aircraft_info_binding_log,
-
-  ]
+  # depends_on = [
+    # google_service_account.aircraft_info_sa,
+    # google_project_iam_binding.aircraft_info_binding_log,
+  # ]
 
   name     = "aircraft-info"
   location = var.region

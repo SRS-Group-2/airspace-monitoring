@@ -1,40 +1,40 @@
-resource "google_service_account" "aircraft_positions_sa" {
-  account_id   = "aircraft-positions"
-  display_name = "A service account for the Aircraft Positions service"
-}
+# resource "google_service_account" "aircraft_positions_sa" {
+#   account_id   = "aircraft-positions"
+#   display_name = "A service account for the Aircraft Positions service"
+# }
 
-# bind the service account to the necessary roles
-resource "google_project_iam_binding" "aircraft_positions_binding_pubsub" {
-  project = var.project_id
-  role    = "roles/pubsub.editor"
+# # bind the service account to the necessary roles
+# resource "google_project_iam_binding" "aircraft_positions_binding_pubsub" {
+#   project = var.project_id
+#   role    = "roles/pubsub.editor"
 
-  members = [
-    "serviceAccount:${google_service_account.aircraft_positions_sa.email}",
-  ]
-}
+#   members = [
+#     "serviceAccount:${google_service_account.aircraft_positions_sa.email}",
+#   ]
+# }
 
-resource "google_project_iam_binding" "aircraft_positions_binding_log" {
-  project = var.project_id
-  role    = "roles/logging.logWriter"
+# resource "google_project_iam_binding" "aircraft_positions_binding_log" {
+#   project = var.project_id
+#   role    = "roles/logging.logWriter"
 
-  members = [
-    "serviceAccount:${google_service_account.aircraft_positions_sa.email}",
-  ]
-}
+#   members = [
+#     "serviceAccount:${google_service_account.aircraft_positions_sa.email}",
+#   ]
+# }
 
 locals {
-  aircraft_positions_sa_name = google_service_account.aircraft_positions_sa.name
-  aircraft_positions_sa_email = google_service_account.aircraft_positions_sa.email
-  # aircraft_positions_sa_email = "aircraft-positions@${var.project_id}.iam.gserviceaccount.com"
-  # aircraft_positions_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.aircraft_positions_sa_email}"
+  # aircraft_positions_sa_name = google_service_account.aircraft_positions_sa.name
+  # aircraft_positions_sa_email = google_service_account.aircraft_positions_sa.email
+  aircraft_positions_sa_email = "aircraft-positions@${var.project_id}.iam.gserviceaccount.com"
+  aircraft_positions_sa_name  = "projects/${var.project_id}/serviceAccounts/${local.aircraft_positions_sa_email}"
 }
 
 # Aircraft Daily History service
 resource "google_cloud_run_service" "aircraft_positions" {
-  depends_on = [
-    google_project_iam_binding.aircraft_positions_binding_log,
-    google_project_iam_binding.aircraft_positions_binding_pubsub,
-  ]
+  # depends_on = [
+  #   google_project_iam_binding.aircraft_positions_binding_log,
+  #   google_project_iam_binding.aircraft_positions_binding_pubsub,
+  # ]
   name     = "aircraft-positions"
   location = var.region
 
