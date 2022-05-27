@@ -23,7 +23,7 @@ func main() {
 		FrameDeny:             true,
 		ContentTypeNosniff:    true,
 		BrowserXssFilter:      true,
-		ContentSecurityPolicy: "default-src 'self' 'unsafe-inline'",
+		ContentSecurityPolicy: "default-src 'self' 'unsafe-inline' wss:",
 		// IENoOpen:              true,
 		ReferrerPolicy:        "strict-origin-when-cross-origin",
 		// SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
