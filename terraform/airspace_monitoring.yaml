@@ -104,6 +104,20 @@ paths:
             type: string
         '400':
           description: "web-ui not allowed"
+  /favicon.ico:
+    get:
+      summary: web_ui
+      operationId: web_ui
+      x-google-backend:
+        address: ${airspace_web_ui}
+        path_translation: APPEND_PATH_TO_ADDRESS
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+        '400':
+          description: "web-ui not allowed"
   /index.js:
     get:
       summary: web_ui
