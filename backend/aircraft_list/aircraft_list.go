@@ -9,6 +9,7 @@ import (
 
 	"cloud.google.com/go/logging"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/secure"
 )
 
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
@@ -71,6 +72,16 @@ func main() {
 
 	router := gin.New()
 
+	router.Use(secure.New(secure.Config{
+		STSSeconds:            315360000,
+		STSIncludeSubdomains:  true,
+		FrameDeny:             true,
+		ContentTypeNosniff:    true,
+		BrowserXssFilter:      true,
+		ContentSecurityPolicy: "default-src 'self'",
+		ReferrerPolicy:        "strict-origin-when-cross-origin",
+	}))
+
 	router.SetTrustedProxies(nil)
 	router.GET("/airspace/aircraft/list", getList)
 
@@ -78,7 +89,7 @@ func main() {
 }
 
 func getList(c *gin.Context) {
-	c.Data(200, "application/json; charset=utf-8", []byte(aircraftList.Read() ))
+	c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(aircraftList.Read() ))
 	// c.String(http.StatusOK, aircraftList.Read())
 }
 

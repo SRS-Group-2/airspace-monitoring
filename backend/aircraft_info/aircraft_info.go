@@ -9,6 +9,7 @@ import (
 
 	"cloud.google.com/go/logging"
 	"github.com/bvinc/go-sqlite-lite/sqlite3"
+	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
 )
 
@@ -93,6 +94,16 @@ func main() {
 	router := gin.New()
 
 	router.SetTrustedProxies(nil)
+	
+	router.Use(secure.New(secure.Config{
+		STSSeconds:            315360000,
+		STSIncludeSubdomains:  true,
+		FrameDeny:             true,
+		ContentTypeNosniff:    true,
+		BrowserXssFilter:      true,
+		ContentSecurityPolicy: "default-src 'self'",
+		ReferrerPolicy:        "strict-origin-when-cross-origin",
+	}))
 
 	router.GET("/airspace/aircraft/:icao24/info", func(c *gin.Context) {
 		var icao24 = c.Param("icao24")

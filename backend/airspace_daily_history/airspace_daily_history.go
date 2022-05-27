@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/logging"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/secure"
 )
 
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
@@ -79,19 +80,32 @@ func main() {
 	router := gin.New()
 	router.SetTrustedProxies(nil)
 
+	router.Use(secure.New(secure.Config{
+		STSSeconds:            315360000,
+		STSIncludeSubdomains:  true,
+		FrameDeny:             true,
+		ContentTypeNosniff:    true,
+		BrowserXssFilter:      true,
+		ContentSecurityPolicy: "default-src 'self'",
+		ReferrerPolicy:        "strict-origin-when-cross-origin",
+	}))
+
 	// Interval: 1h, 6h, 24h
 	router.GET("/airspace/history/realtime/:interval", func(c *gin.Context) {
 		interval := c.Param("interval")
 
 		switch interval {
 		case "24h":
-			c.String(http.StatusOK, oneDayState.Read())
+			c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(oneDayState.Read() ))
+			// c.String(http.StatusOK, oneDayState.Read())
 		case "6h":
-			c.String(http.StatusOK, sixHoursState.Read())
+			c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(sixHoursState.Read() ))
+			// c.String(http.StatusOK, sixHoursState.Read())
 		case "1h":
 			fallthrough
 		default:
-			c.String(http.StatusOK, oneHourState.Read())
+			c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(oneHourState.Read() ))
+			// c.String(http.StatusOK, oneHourState.Read())
 		}
 	})
 

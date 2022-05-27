@@ -23,7 +23,7 @@ func main() {
 		FrameDeny:             true,
 		ContentTypeNosniff:    true,
 		BrowserXssFilter:      true,
-		ContentSecurityPolicy: "default-src 'self' 'unsafe-inline'", // https://stackoverflow.com/questions/71136656/corp-blocking-an-obviously-same-origin-request-with-csp-sandbox-set
+		ContentSecurityPolicy: "default-src 'self' 'unsafe-inline'",
 		// IENoOpen:              true,
 		ReferrerPolicy:        "strict-origin-when-cross-origin",
 		// SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},

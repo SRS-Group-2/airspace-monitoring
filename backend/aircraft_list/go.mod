@@ -5,6 +5,7 @@ go 1.18
 require (
 	cloud.google.com/go/firestore v1.6.1
 	cloud.google.com/go/logging v1.4.2
+	github.com/gin-contrib/secure v0.0.1
 	github.com/gin-gonic/gin v1.7.7
 	google.golang.org/api v0.80.0
 )
