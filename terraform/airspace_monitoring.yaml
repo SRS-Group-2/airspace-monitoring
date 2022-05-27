@@ -107,7 +107,7 @@ paths:
   /favicon.ico:
     get:
       summary: web_ui
-      operationId: web_ui
+      operationId: web_ui_favicon
       x-google-backend:
         address: ${airspace_web_ui}
         path_translation: APPEND_PATH_TO_ADDRESS
