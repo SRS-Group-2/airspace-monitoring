@@ -22,8 +22,8 @@ locals {
 # Aircraft Info service
 resource "google_cloud_run_service" "aircraft_info" {
   # depends_on = [
-    # google_service_account.aircraft_info_sa,
-    # google_project_iam_binding.aircraft_info_binding_log,
+  # google_service_account.aircraft_info_sa,
+  # google_project_iam_binding.aircraft_info_binding_log,
   # ]
 
   name     = "aircraft-info"
