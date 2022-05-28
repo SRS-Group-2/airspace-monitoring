@@ -35,7 +35,7 @@ jobs:
   semgrep:
     runs-on: ubuntu-latest
     container:
-      image: returntocorp/semgrep
+      image: returntocorp/semgrep:9b5e2e73194668b62c98dfa053c0af87613c7598
     steps:
       - uses: actions/checkout@v3
       - run: semgrep scan --sarif --output=semgrep.sarif
@@ -85,45 +85,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: ".${{ matrix.pom }}/target/spotbugsSarif.json"
-
-  # findsecbugs:
-  #   runs-on: ubuntu-latest
-  #   needs: identify_maven
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       pom: ${{ fromJson(needs.identify_maven.outputs.directories) }}
-  #   steps:
-  #   # we use OpenSky API, so we need to compile the dependency to package our files
-  #   - run: git clone https://github.com/openskynetwork/opensky-api.git
-  #   - run: mvn -q -f ./opensky-api/java/pom.xml install
-  #   # compile jar to allow for Scala Lang analysis
-  #   - uses: actions/checkout@v3
-  #   - run: mvn -q -f ".${{ matrix.pom }}/pom.xml" package
-  #   # get Maven project info
-  #   - id: get_artifact_id
-  #     uses: Mudlet/xmlstarlet-action@7deec762169d540692f9247c9fb641fa37d39e2e
-  #     with:
-  #       args: sel -t -v "/_:project/_:artifactId" states_source/pom.xml
-  #   - id: get_version
-  #     uses: Mudlet/xmlstarlet-action@7deec762169d540692f9247c9fb641fa37d39e2e
-  #     with:
-  #       args: sel -t -v "/_:project/_:version" states_source/pom.xml
-  #   - id: get_final_name
-  #     continue-on-error: true
-  #     uses: Mudlet/xmlstarlet-action@7deec762169d540692f9247c9fb641fa37d39e2e
-  #     with:
-  #       args: sel -t -v "//_:build/_:finalName" states_source/pom.xml
-  #   # code scan
-  #   - run: wget https://github.com/find-sec-bugs/find-sec-bugs/releases/download/version-${FINDSECBUGS_VERSION}/findsecbugs-cli-${FINDSECBUGS_VERSION}.zip
-  #   - run: unzip findsecbugs-cli-${FINDSECBUGS_VERSION}
-  #   - run: chmod u+x ./findsecbugs.sh
-  #   - name: Run FindSecBugs checks
-  #     run: |
-  #       ARTIFACT_ID=${{ steps.get_artifact_id.outputs.xmlstarlet_result }}
-  #       VERSION=${{ steps.get_version.outputs.xmlstarlet_result }}
-  #       ./findsecbugs.sh -sarif -output "./out.sarif" $GITHUB_WORKSPACE${{ matrix.pom }}/target/${ARTIFACT_ID}-${VERSION}.jar
-  #   - name: Upload SARIF file
-  #     uses: github/codeql-action/upload-sarif@v2
-  #     with:
-  #       sarif_file: out.sarif
