@@ -65,6 +65,7 @@ A useful tool to locally test workflows is [`act`](https://github.com/nektos/act
 `act` shows different behaviours than Github Actions when using matrixes and checks if matrixes are empty and for the values of `${{ github.event.before }}` for new branches.
 
 ## Terraform
+### Manual deploy
 Manual deploy requires `terraform` and `gcloud` installed.
 
 To update the version of the services images that will be used by Terraform: `./scripts/update-tags.sh`
@@ -74,7 +75,9 @@ Pre-deploy operations:
 - login to gcloud using `gcloud auth login`
 - run the `act-gcp-apis.sh` script to abilitate the necessary Google APIs: `./scripts/act-on-gcp-apis.sh enable <project_id>`
 - run `./scripts/create-service-accounts.sh <project_id>` to create the following service accounts, with the relative permissions:
+  - `aircraft_info` with role "Log Writer"
   - `aircraft-list` with role "Cloud Datastore Viewer" and role "Log Writer"
+  - `aircraft_positions` with role "Pub/Sub Editor" and role "Log Writer"
   - `airspace-daily-history` with role "Cloud Datastore Viewer" and role "Log Writer"
   - `airspace-monthly-history` with role "Cloud Datastore Viewer" and role "Log Writer"
   - `airspace-history-calculator` with role "Cloud Datastore User" and role "Log Writer"
@@ -125,6 +128,38 @@ To clean up the project:
 terraform -chdir=terraform destroy # to destroy every change done by the apply command to the cloud
 ./scripts/delete-service-accounts.sh
 ./scripts/delete-all-images.sh <project_id> <docker_repo_region> <docker_repo_name>
+./scripts/act-on-gcp-apis.sh disable <project_id>
+```
+
+### Continuous deployment
+Initial operations:
+- create a project on Google Cloud, memorize the id of the project
+- login to gcloud using `gcloud auth login`
+- run the `act-gcp-apis.sh` script to abilitate the necessary Google APIs: `./scripts/act-on-gcp-apis.sh enable <project_id>`
+- create a Google Storage bucket and write its name as the "bucket" value of the 'backend "gcs"' object into `terraform/main.tf`
+- create a Google Cloud Docker repository (through Artifact Registry), memorize the region and its name
+- run `./scripts/cd-set-up.sh <project_id>` to set up the service account to be used by the GitHub workflow
+- run `./scripts/create-service-accounts.sh <project_id>` to create the necessary service accounts
+- create the default project in Firestore with the `airspace` collection
+- create the following secrets on GitHub:
+  - `PROJECT`, with value equal to the project id
+  - `REGION`, with value equal to the region where the system will be deployed
+  - `DOCKER_REPO`, with value equal to the name of the docker repo created
+  - `DOCKER_REPO_REGION`, with value equal to the region in which the docker repo has been deployed
+  - `WORKLOAD_IDP`, with value equal to the `name` field of the ouput of the `gcloud iam workload-identity-pools providers list --location=global --workload-identity-pool=github-pool` command
+  - `SERVICE_ACCOUNT`, with value equal to `terraform@<project_id>.iam.gserviceaccount.com`
+
+Then simply push your commits to the `main` branch.
+
+To clean up the system:
+```
+terraform -chdir=terraform destroy # to destroy every change done by the apply command to the cloud
+./scripts/delete-service-accounts.sh
+./scripts/delete-all-images.sh <project_id> <docker_repo_region> <docker_repo_name>
+```
+Delete the state bucket and the Docker repository.
+```
+./scripts/cd-destroy.sh <project_id>
 ./scripts/act-on-gcp-apis.sh disable <project_id>
 ```
 
