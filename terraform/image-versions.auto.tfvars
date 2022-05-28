@@ -1,7 +1,7 @@
 aircraft_list_tag               = "f4287789d566b1c59e7afd1a8ea7efe7ade163bb"
 airspace_daily_history_tag      = "f4287789d566b1c59e7afd1a8ea7efe7ade163bb"
 websocket_endpoints_tag         = "f4287789d566b1c59e7afd1a8ea7efe7ade163bb"
-airspace_history_calculator_tag = "a818eb0e51a6eadf9fccb20890b36164f160872d"
+airspace_history_calculator_tag = "37155fd661b0fa8e46e6db3304e7aa3626e4e1ec"
 airspace_monthly_history_tag    = "f4287789d566b1c59e7afd1a8ea7efe7ade163bb"
 aircraft_positions_tag          = "dffa07f49ac1a369e9d03c7e95d0fe8e64fa6a19"
 aircraft_info_tag               = "f4287789d566b1c59e7afd1a8ea7efe7ade163bb"

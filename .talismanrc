@@ -3,6 +3,6 @@ scopeconfig:
   - scope: node
 
 fileignoreconfig:
-- filename: .github/workflows/code_analysis.yaml
-  checksum: fd1602bb0ce44c03a001d92705baff25da834014cdad0ff8a824bd89479df36a
+- filename: terraform/image-versions.auto.tfvars
+  checksum: af34f6ae942af3422f7e9292b172d2afe4090324a4bc4054d044d51f230b624c
 version: ""
