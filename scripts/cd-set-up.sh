@@ -17,6 +17,9 @@ gcloud iam workload-identity-pools create "github-pool" \
   --location="global" \
   --display-name="GitHub pool"
 
+POOL_NAME=`gcloud iam workload-identity-pools describe github-pool --location=global | grep name`
+POOL_NAME=${POOL_NAME#*: }
+
 gcloud iam workload-identity-pools providers create-oidc "github-provider" \
   --project="$1" \
   --location="global" \
@@ -28,4 +31,4 @@ gcloud iam workload-identity-pools providers create-oidc "github-provider" \
 gcloud iam service-accounts add-iam-policy-binding "terraform@$1.iam.gserviceaccount.com" \
   --project="$1" \
   --role="roles/iam.workloadIdentityUser" \
-  --member="principalSet://iam.googleapis.com/projects/$1/locations/global/workloadIdentityPools/github-pool/attribute.repository/SRS-Group-2/airspace-monitoring"
+  --member="principalSet://iam.googleapis.com/${POOL_NAME}/attribute.repository/SRS-Group-2/airspace-monitoring"
