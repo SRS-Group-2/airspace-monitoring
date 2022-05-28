@@ -11,6 +11,9 @@ gcloud iam service-accounts create terraform --project $1
 gcloud projects add-iam-policy-binding $1 \
     --member="serviceAccount:terraform@$1.iam.gserviceaccount.com" \
     --role="roles/editor"
+gcloud projects add-iam-policy-binding $1 \
+    --member="serviceAccount:terraform@$1.iam.gserviceaccount.com" \
+    --role="roles/storage.objectAdmin"   
 
 gcloud iam workload-identity-pools create "github-pool" \
   --project="$1" \
