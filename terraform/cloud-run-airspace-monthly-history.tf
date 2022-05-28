@@ -29,7 +29,7 @@ resource "google_cloud_run_service" "airspace_monthly_history" {
   template {
     spec {
       service_account_name  = local.airspace_monthly_history_sa_email
-      container_concurrency = 1000
+      container_concurrency = 100
       containers {
         image = "${var.docker_repo_region}-docker.pkg.dev/${var.project_id}/${var.docker_repo_name}/airspace_monthly_history:${var.airspace_monthly_history_tag}"
         env {
@@ -45,7 +45,7 @@ resource "google_cloud_run_service" "airspace_monthly_history" {
 
     metadata {
       annotations = {
-        "autoscaling.knative.dev/maxScale" = "2"
+        "autoscaling.knative.dev/maxScale" = "10"
         "autoscaling.knative.dev/minScale" = "0"
       }
     }

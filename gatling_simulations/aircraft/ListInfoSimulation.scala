@@ -1,6 +1,7 @@
 package aircraft
 
 import scala.concurrent.duration._
+import scala.util.Random
 
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
@@ -18,22 +19,24 @@ class ListInfoSimulation extends Simulation {
     .acceptEncodingHeader("gzip, deflate")
     .userAgentHeader("Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0")
 
-  val scn = scenario("ListInfoSimulation")
-    .during(RAMP) {
-      exec(
-        http("Aircraft list request")
-          .get("/airspace/aircraft/list")
-          .check(jsonPath("$.list").saveAs("icao24"))
-      )
-      .pause(5)
-      .exec(
-        http("Aircraft info request")
-          .get("/airspace/aircraft/#{icao24(0)}/info")
-      )
-      .pause(5)
-    }
+  val rand = scala.util.Random
+  val scn = scenario("ListInfoScenario")
+    .exec(
+      http("Aircraft list request")
+        .get("/airspace/aircraft/list")
+        .check(jmesPath("icao24").transform(string => string.split("\",\"")).saveAs("icaoList"))
+    )
+    .pause(1,5)
+    .exec(
+      http("Aircraft info request")
+        .get(s"/airspace/aircraft/#{icaoList.random()}/info")
+    )
 
   setUp(
-    scn.inject(atOnceUsers(N_USERS))
+    scn.inject(
+      atOnceUsers(10),
+      rampUsers(50).during(10),
+      rampUsers(50).during(10),
+      constantUsersPerSec(100).during(10))
   ).protocols(httpProtocol)
 }
