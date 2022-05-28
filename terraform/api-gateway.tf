@@ -28,7 +28,6 @@ data "template_file" "aircraft_info" {
 
 
 resource "google_api_gateway_api" "api_gw" {
-
   provider     = google-beta
   api_id       = local.api_gateway_container_id
   display_name = "airspace-info"
@@ -36,7 +35,6 @@ resource "google_api_gateway_api" "api_gw" {
 
 
 resource "google_api_gateway_api_config" "api_cfg" {
-
   provider             = google-beta
   api                  = google_api_gateway_api.api_gw.api_id
   api_config_id_prefix = local.api_config_id_prefix
@@ -48,7 +46,9 @@ resource "google_api_gateway_api_config" "api_cfg" {
       #aircraft_info.yaml
       contents = base64encode(data.template_file.aircraft_info.rendered)
     }
-
+  }
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
