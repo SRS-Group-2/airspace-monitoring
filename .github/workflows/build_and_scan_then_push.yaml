@@ -9,6 +9,12 @@ on:
       push:
         required: true
         type: string
+      DOCKER_REPO:
+        required: true
+        type: string
+      DOCKER_REPO_REGION:
+        required: true
+        type: string
     secrets:
       PROJECT:
         required: true
@@ -29,18 +35,18 @@ jobs:
       - name: Get last commit that changed things
         id: last_change
         run: echo ::set-output name=commit::`git log -n 1 --pretty=format:%H -- ${{ matrix.service.directory }}`
-      - run: echo us-central1-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/docker-repo/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }} $GITHUB_WORKSPACE/${{ matrix.service.directory }}
+      - run: echo ${{ inputs.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.TEST_PROJECT_ID }}/${{ inputs.DOCKER_REPO }}/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }} $GITHUB_WORKSPACE/${{ matrix.service.directory }}
       - name: Build image
         run: |-
           docker build \
-            -t us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }} \
-            -t us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:latest \
+            -t ${{ inputs.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.PROJECT }}/${{ inputs.DOCKER_REPO }}/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }} \
+            -t ${{ inputs.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.PROJECT }}/${{ inputs.DOCKER_REPO }}/${{ matrix.service.name }}:latest \
             $GITHUB_WORKSPACE/${{ matrix.service.directory }}
       # - name: Scan image
       #   id: scan
       #   uses: azure/container-scan@v0
       #   with:
-      #     image-name: us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:${{ github.sha }}
+      #     image-name: ${{ inputs.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.PROJECT }}/${{ inputs.DOCKER_REPO }}/${{ matrix.service.name }}:${{ github.sha }}
       - name: Scan image for good practices
         id: scan_dockle
         run: |
@@ -49,13 +55,13 @@ jobs:
             grep '"tag_name":' | \
             sed -E 's/.*"v([^"]+)".*/\1/' \
           ) && docker run --rm -v /var/run/docker.sock:/var/run/docker.sock goodwithtech/dockle:v${VERSION} -f sarif \
-              us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }}
+              ${{ inputs.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.PROJECT }}/${{ inputs.DOCKER_REPO }}/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }}
       - name: Scan image for vulnerabilities
         id: scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'image'
-          image-ref: 'us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }}'
+          image-ref: '${{ inputs.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.PROJECT }}/${{ inputs.DOCKER_REPO }}/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -76,9 +82,9 @@ jobs:
         if: ${{ inputs.push == 'true' }}
         id: 'docker_cloud_setup'
         run: |
-          gcloud auth configure-docker us-central1-docker.pkg.dev
+          gcloud auth configure-docker ${{ inputs.DOCKER_REPO_REGION }}-docker.pkg.dev
       # Push image to Google Container Registry
       - name: Push
         if: ${{ inputs.push == 'true' }}
         run: |-
-          docker push us-central1-docker.pkg.dev/${{ secrets.PROJECT }}/docker-repo/${{ matrix.service.name }} --all-tags
+          docker push ${{ inputs.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.PROJECT }}/${{ inputs.DOCKER_REPO }}/${{ matrix.service.name }} --all-tags

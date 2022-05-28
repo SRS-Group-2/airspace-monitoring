@@ -93,6 +93,9 @@ Pre-deploy operations:
 - create the default project in Firestore with the `airspace` collection
 - create inside the `terraform` directory a file `secrets.auto.tfvars` in which the following variables (described in `terraform/variables.tf`) are declared, one per line, with the `var_name = var_value` syntax:
   - `project_id`
+  - `docker_repo_name`
+  - `docker_repo_region`
+  - `region`
 - change the variables declared in `terraform/variables.auto.tfvars` as necessary
 
 

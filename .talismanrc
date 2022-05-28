@@ -3,6 +3,6 @@ scopeconfig:
   - scope: node
 
 fileignoreconfig:
-- filename: terraform/image-versions.auto.tfvars
-  checksum: c1fb63582395d8e37fb4f80051a296391bf06187f55918a683e1d360786ac86a
+- filename: .github/workflows/build_and_scan_then_push.yaml
+  checksum: 366a8af200cf9c5cf91971e71345d6aab3a14aad7dff001f114cf1c449c10cd6
 version: ""

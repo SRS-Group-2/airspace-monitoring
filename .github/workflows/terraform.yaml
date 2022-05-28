@@ -1,6 +1,16 @@
 name: 'Terraform CI'
 on:
   workflow_call:
+    inputs:
+      REGION:
+        required: true
+        type: string
+      DOCKER_REPO:
+        required: true
+        type: string
+      DOCKER_REPO_REGION:
+        required: true
+        type: string
     secrets:
       PROJECT:
         required: true
@@ -36,7 +46,10 @@ jobs:
     - name: Terraform Plan
       run: |
         terraform -chdir=terraform plan \
-          -var 'project_id=${{ secrets.PROJECT }}'
+          -var 'project_id=${{ secrets.PROJECT }}' \
+          -var 'region=${{ inputs.REGION }}' \
+          -var 'docker_repo=${{ inputs.DOCKER_REPO }}' \
+          -var 'docker_repo_region=${{ inputs.DOCKER_REPO_REGION }}'
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
     # On push to main, build or change infrastructure according to Terraform configuration files
@@ -45,6 +58,9 @@ jobs:
       if: github.event_name == 'push'
       run: |
         terraform -chdir=terraform apply -auto-approve \
-          -var 'project_id=${{ secrets.PROJECT }}'
+          -var 'project_id=${{ secrets.PROJECT }}' \
+          -var 'region=${{ inputs.REGION }}' \
+          -var 'docker_repo=${{ inputs.DOCKER_REPO }}' \
+          -var 'docker_repo_region=${{ inputs.DOCKER_REPO_REGION }}'
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
