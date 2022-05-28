@@ -108,18 +108,25 @@ terraform -chdir=terraform fmt # to correctly format the terraform files, not st
 terraform -chdir=terraform validate # to check the syntax of the Terraform files
 terraform -chdir=terraform plan # to elaborate what the apply command will do
 terraform -chdir=terraform apply # to deploy the system
-terraform -chdir=terraform destroy # to destroy every change done by the apply command to the cloud
 ```
 
 To configure `kubectl` and explore the cluster state (see https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#apt_1):
 ```
-gcloud container clusters get-credentials gke-1 --zone "us-central1"
+gcloud container clusters get-credentials <cluster_name> --zone <cluster_zone>
 ```
 
 The account running the terraform commands requires the following roles:
 - IAM Project Admin
 - Service Account Admin
 - Editor
+
+To clean up the project:
+```
+terraform -chdir=terraform destroy # to destroy every change done by the apply command to the cloud
+./scripts/delete-service-accounts.sh
+./scripts/delete-all-images.sh <project_id> <docker_repo_region> <docker_repo_name>
+./scripts/act-on-gcp-apis.sh disable <project_id>
+```
 
 ## How to use Gatling
 Download [gatling](https://gatling.io/open-source/), unzip the bundle in your directory of choice, copy the content of `gatling_simulations` into `simulations` in the unzipped directory, run 
