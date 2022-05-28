@@ -16,6 +16,7 @@ module "gke" {
   project_id                 = var.project_id
   name                       = var.kube_cluster
   region                     = var.region
+  zones                      = ["${var.region}-c"]
   network                    = var.kube_network
   subnetwork                 = var.kube_subnetwork
   ip_range_pods              = var.kube_pods_range
@@ -31,6 +32,7 @@ module "gke" {
     {
       name               = "micro-node-pool"
       machine_type       = "e2-micro"
+      node_locations     = "${var.region}-c"
       min_count          = 1
       max_count          = 3
       local_ssd_count    = 0
@@ -45,6 +47,7 @@ module "gke" {
     {
       name               = "small-node-pool"
       machine_type       = "e2-small"
+      node_locations     = "${var.region}-c"
       min_count          = 1
       max_count          = 2
       local_ssd_count    = 0
@@ -59,6 +62,7 @@ module "gke" {
     {
       name               = "medium-node-pool"
       machine_type       = "e2-medium"
+      node_locations     = "${var.region}-c"
       min_count          = 1
       max_count          = 1
       local_ssd_count    = 0
