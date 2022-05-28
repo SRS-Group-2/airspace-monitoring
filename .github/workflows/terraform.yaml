@@ -30,11 +30,14 @@ jobs:
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: 1.1.9
+    - uses: 'google-github-actions/auth@v0'
+      id: 'auth'
+      if: ${{ inputs.push == 'true' }}
+      with:
+        credentials_json: '${{ secrets.GCP_CREDENTIALS }}' 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       run: terraform -chdir=terraform init
-      env:
-        GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
       run: terraform -chdir=terraform fmt -check
@@ -46,17 +49,13 @@ jobs:
           -var 'region=${{ inputs.REGION }}' \
           -var 'docker_repo=${{ inputs.DOCKER_REPO }}' \
           -var 'docker_repo_region=${{ inputs.DOCKER_REPO_REGION }}'
-      env:
-        GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
     # On push to main, build or change infrastructure according to Terraform configuration files
     # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
-    - name: Terraform Apply
-      if: github.event_name == 'push'
-      run: |
-        terraform -chdir=terraform apply -auto-approve \
-          -var 'project_id=${{ secrets.PROJECT }}' \
-          -var 'region=${{ inputs.REGION }}' \
-          -var 'docker_repo=${{ inputs.DOCKER_REPO }}' \
-          -var 'docker_repo_region=${{ inputs.DOCKER_REPO_REGION }}'
-      env:
-        GOOGLE_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
+    # - name: Terraform Apply
+    #   if: github.event_name == 'push'
+    #   run: |
+    #     terraform -chdir=terraform apply -auto-approve \
+    #       -var 'project_id=${{ secrets.PROJECT }}' \
+    #       -var 'region=${{ inputs.REGION }}' \
+    #       -var 'docker_repo=${{ inputs.DOCKER_REPO }}' \
+    #       -var 'docker_repo_region=${{ inputs.DOCKER_REPO_REGION }}'
