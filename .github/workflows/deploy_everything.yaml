@@ -32,4 +32,5 @@ jobs:
       REGION: ${{ secrets.REGION }}
       DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
       DOCKER_REPO_REGION: ${{ secrets.DOCKER_REPO_REGION }}
-      TERRAFORM_GCP_CREDENTIALS: ${{ secrets.TERRAFORM_GCP_CREDENTIALS }}
+      WORKLOAD_IDP: ${{ secrets.WORKLOAD_IDP }}
+      SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
