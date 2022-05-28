@@ -32,3 +32,6 @@ gcloud iam service-accounts add-iam-policy-binding "terraform@$1.iam.gserviceacc
   --project="$1" \
   --role="roles/iam.workloadIdentityUser" \
   --member="principalSet://iam.googleapis.com/${POOL_NAME}/attribute.repository/SRS-Group-2/airspace-monitoring"
+
+# WORKLOAD_IDP = gcloud iam workload-identity-pools providers list --location=global --workload-identity-pool=github-pool
+# 
