@@ -116,7 +116,7 @@ func mustGetenv(k string) string {
 
 func backgroundUpdateState(projectId string, documentID string, state *AircraftList) {
 	Log.Debug.Println("Starting background update thread (listen to db changes).")
-	Log.Debug.Println("Stopping background update thread.")
+	defer Log.Debug.Println("Stopping background update thread.")
 
 	client := FirestoreInit(projectId)
 	defer client.Close()
