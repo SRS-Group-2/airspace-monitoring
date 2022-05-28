@@ -9,8 +9,8 @@ import (
 	"sync"
 
 	"cloud.google.com/go/logging"
-	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/secure"
+	"github.com/gin-gonic/gin"
 )
 
 const env_projectID = "GOOGLE_CLOUD_PROJECT_ID"
@@ -21,27 +21,27 @@ const env_ginmode = "GIN_MODE"
 
 type AircraftList struct {
 	sync.RWMutex
-	val string
+	val []byte
 }
 
-func (l *AircraftList) Read() string {
+func (l *AircraftList) Read() []byte {
 	l.RLock()
 	defer l.RUnlock()
 	return l.val
 }
 
-func (l *AircraftList) Write(newVal string) {
+func (l *AircraftList) Write(newVal []byte) {
 	l.Lock()
 	defer l.Unlock()
 	l.val = newVal
 }
 
 var aircraftList = AircraftList{
-	val: `
+	val: []byte(`
 {
 	"timestamp":0,
 	"list":[]
-}`,
+}`),
 }
 
 type LogType struct {
@@ -74,10 +74,10 @@ func main() {
 	router := gin.New()
 
 	router.Use(func() gin.HandlerFunc {
-        return func(c *gin.Context) {
-            c.Writer.Header().Set("Cache-Control", "public, max-age=120")
-        }
-    }())
+		return func(c *gin.Context) {
+			c.Writer.Header().Set("Cache-Control", "public, max-age=120")
+		}
+	}())
 
 	router.Use(secure.New(secure.Config{
 		STSSeconds:            315360000,
@@ -96,8 +96,7 @@ func main() {
 }
 
 func getList(c *gin.Context) {
-	c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(aircraftList.Read() ))
-	// c.String(http.StatusOK, aircraftList.Read())
+	c.Data(http.StatusOK, "application/json; charset=utf-8", aircraftList.Read())
 }
 
 func checkErr(err error) {
@@ -138,6 +137,7 @@ func backgroundUpdateState(projectId string, documentID string, state *AircraftL
 		jsonData, err := json.Marshal(snap.Data())
 		checkErr(err)
 
-		state.Write(string(jsonData))
+		jsonString := []byte(jsonData)
+		state.Write(jsonString)
 	}
 }
