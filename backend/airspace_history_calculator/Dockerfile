@@ -28,6 +28,3 @@ COPY --from=build /app.exe /app.exe
 USER nonroot:nonroot
 
 ENTRYPOINT ["/app.exe"]
-
-## docker build . --tag airspace_history_calculator
-## docker run --env-file ./env.env airspace_history_calculator
