@@ -45,7 +45,7 @@ jobs:
             p/secrets
             p/ci
             p/javascript
-            p/go
+            p/golang
             p/owasp-top-ten
             p/clientside-js
             p/terraform
