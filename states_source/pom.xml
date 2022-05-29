@@ -107,6 +107,19 @@ under the License.
     		<artifactId>flink-connector-gcp-pubsub</artifactId>
     		<version>1.16-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+  			<groupId>org.apache.flink</groupId>
+  			<artifactId>flink-test-utils_${scala.binary.version}</artifactId>
+  			<version>${flink.version}</version>
+  			<scope>test</scope>
+		</dependency> 
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-streaming-java_2.11</artifactId>
+			<version>1.9.0</version>
+			<scope>test</scope>
+			<classifier>tests</classifier>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/io.grpc/grpc-all -->
 		<dependency>
    			<groupId>io.grpc</groupId>
@@ -159,6 +172,18 @@ under the License.
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.36</version>
+		</dependency>		
+		<!-- https://mvnrepository.com/artifact/org.scalatest/scalatest -->
+		<dependency>
+			<groupId>org.scalatest</groupId>
+			<artifactId>scalatest_2.12</artifactId>
+			<version>3.1.2</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.flink/flink-shaded-guava -->
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-shaded-guava</artifactId>
+			<version>30.1.1-jre-14.0</version>
 		</dependency>
 
 
