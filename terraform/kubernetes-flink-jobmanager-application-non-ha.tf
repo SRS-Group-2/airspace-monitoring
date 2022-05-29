@@ -71,7 +71,6 @@ resource "kubernetes_deployment" "flink_jobmanager" {
             name  = "GOOGLE_PUBSUB_VECTORS_TOPIC_ID"
             value = var.vectors_topic
           }
-
           env {
             name  = "COORDINATES"
             value = var.opensky_bb

@@ -64,6 +64,14 @@ A useful tool to locally test workflows is [`act`](https://github.com/nektos/act
 
 `act` shows different behaviours than Github Actions when using matrixes and checks if matrixes are empty and for the values of `${{ github.event.before }}` for new branches.
 
+### Execute Kubernetes backend locally
+- Create a `.env` file in this directory, with values for the following envs:
+  - GOOGLE_CLOUD_PROJECT_ID
+  - GOOGLE_PUBSUB_VECTORS_TOPIC_ID
+  - COORDINATES
+- Put in this directory the `calculator_key.json` file, with the json credentials for the Airspace History Calculator, and the `flink_key.json` file, with the json credentals for the Flink job
+- run `docker-compose up` 
+
 ## Terraform
 ### Manual deploy
 Manual deploy requires `terraform` and `gcloud` installed.
