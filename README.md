@@ -104,6 +104,7 @@ Pre-deploy operations:
 - create the default project in Firestore with the `airspace` collection
 - create inside the `terraform` directory a file `secrets.auto.tfvars` in which the following variables (described in `terraform/variables.tf`) are declared, one per line, with the `var_name = var_value` syntax:
   - `project_id`
+  - `docker_repo_project_id`
   - `docker_repo_name`
   - `docker_repo_region`
   - `region`
@@ -145,13 +146,14 @@ Initial operations:
 - login to gcloud using `gcloud auth login`
 - run the `act-gcp-apis.sh` script to abilitate the necessary Google APIs: `./scripts/act-on-gcp-apis.sh enable <project_id>`
 - create a Google Storage bucket and write its name as the "bucket" value of the 'backend "gcs"' object into `terraform/main.tf`
-- create a Google Cloud Docker repository (through Artifact Registry), memorize the region and its name
+- create a Google Cloud Docker repository (through Artifact Registry), memorize the project in which it is created, the region and its name
 - run `./scripts/cd-set-up.sh <project_id>` to set up the service account to be used by the GitHub workflow
 - run `./scripts/create-service-accounts.sh <project_id>` to create the necessary service accounts
 - create the default project in Firestore with the `airspace` collection
 - create the following secrets on GitHub:
   - `PROJECT`, with value equal to the project id
   - `REGION`, with value equal to the region where the system will be deployed
+  - `DOCKER_REPO_PROJECT`, with value equal to the project id of the Docker repo
   - `DOCKER_REPO`, with value equal to the name of the docker repo created
   - `DOCKER_REPO_REGION`, with value equal to the region in which the docker repo has been deployed
   - `WORKLOAD_IDP`, with value equal to the `name` field of the ouput of the `gcloud iam workload-identity-pools providers list --location=global --workload-identity-pool=github-pool` command

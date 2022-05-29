@@ -10,6 +10,11 @@ variable "region" {
 }
 
 # docker
+variable "docker_repo_project_id" {
+  type        = string
+  description = "The project of the Google Docker repository in which the images are stored"
+}
+
 variable "docker_repo_name" {
   type        = string
   description = "The name of the Google Docker repository in which the images are stored"
