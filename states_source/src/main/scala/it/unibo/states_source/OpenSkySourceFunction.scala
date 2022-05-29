@@ -43,11 +43,11 @@ class OpenSkySourceFunction(private val coordinates: Option[(Double, Double, Dou
   override def run(ctx: SourceContext[StateVector]): Unit = {
     val api = new OpenSkyApi()
     while (running) {
-      val os = coordinates match {
-        case Some((a, b, c, d)) => api.getStates(0, null, new OpenSkyApi.BoundingBox(a, b, c, d))
-        case None => api.getStates(0, null)
-      }
       try {
+        val os = coordinates match {
+          case Some((a, b, c, d)) => api.getStates(0, null, new OpenSkyApi.BoundingBox(a, b, c, d))
+          case None => api.getStates(0, null)
+        }
         toSend=os.getStates()
       } 
       catch {
