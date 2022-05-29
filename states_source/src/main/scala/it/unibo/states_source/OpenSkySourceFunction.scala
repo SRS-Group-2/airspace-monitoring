@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.net.SocketTimeoutException
 import java.util.Collection
+import java.io.IOException
 
 class OpenSkySourceFunction(private val coordinates: Option[(Double, Double, Double, Double)]) extends SourceFunction[StateVector] {
   val PERIOD_S = 15L
@@ -52,6 +53,7 @@ class OpenSkySourceFunction(private val coordinates: Option[(Double, Double, Dou
       } 
       catch {
         case socket:SocketTimeoutException => LOG.error("Socket timeout occurred")
+        case io:IOException => LOG.error(io.getMessage())
       }
       if(toSend!=null){
         toSend.asScala.foreach{

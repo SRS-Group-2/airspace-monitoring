@@ -3,6 +3,6 @@ scopeconfig:
   - scope: node
 
 fileignoreconfig:
-- filename: .github/workflows/code_analysis.yaml
-  checksum: e6a4a20bc082ddd6c64d3b372f998581f2bb5167527af36fc948a0fcf0f0f2fc
+- filename: .github/workflows/build_and_scan_then_push.yaml
+  checksum: 0542b2ad91330738aed70f6bdcc0de40a78bd0b4d073669b866d517e34e418cd
 version: ""
