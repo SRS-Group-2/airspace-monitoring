@@ -21,6 +21,6 @@ jobs:
       services: ${{ needs.identify_changed_services.outputs.directories }}
       push: 'false'
     secrets:
-      DOCKER_REPO_PROJECT: ${{ secrets.DOCKER_REPO_PROJECT }}
+      DOCKER_REPO_PROJECT: ${{ secrets.PROJECT_ID }}
       DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
       DOCKER_REPO_REGION: ${{ secrets.DOCKER_REPO_REGION }}
