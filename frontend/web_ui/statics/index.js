@@ -80,7 +80,7 @@ function set_realtime_history(timeframe) {
       var json = JSON.parse(v)
       const current_distance = document.getElementById("km")
       const current_co2 = document.getElementById("co2")
-      document.getElementById("current_update").innerHTML =  get_date_string(json.timestamp)
+      document.getElementById("current_update").innerText =  get_date_string(json.timestamp)
       current_distance.innerText = json.distanceKm
       current_co2.innerText = json.CO2t
     }
@@ -90,16 +90,16 @@ function set_realtime_history(timeframe) {
 function show_daily_history(history) {
   var json = JSON.parse(history)
   table = document.getElementById("historic_distance")
-  table.innerHTML=""
+  table.innerText=""
   table= document.createElement("table")
   table.setAttribute('id','historical-data')
   var h_row = document.createElement("tr")
   var h_time = document.createElement("th")
-  h_time.innerHTML = "Time"
+  h_time.innerText = "Time"
   var h_distance = document.createElement("th")
-  h_distance.innerHTML = "Distance (km)"
+  h_distance.innerText = "Distance (km)"
   var h_co2 = document.createElement("th")
-  h_co2.innerHTML = "CO2 (t)"
+  h_co2.innerText = "CO2 (t)"
   h_row.append(h_time, h_distance, h_co2)
   var rowDel = document.createElement("tr")
   rowDel.setAttribute("id","toDelete")
@@ -112,24 +112,24 @@ function show_daily_history(history) {
   if(Object.entries(json.history).length===0) {
     const error_paragraph = document.createElement("p")
     error_paragraph.id = "form_error"
-    error_paragraph.innerHTML = "No data available in this interval"
+    error_paragraph.innerText = "No data available in this interval"
     error_paragraph.setAttribute("class","text")
     document.getElementById("historic_data_form").append(error_paragraph)
   } else {
     Object.entries(json.history).forEach(element => {
-      document.getElementById("toDelete").innerHTML=""
+      document.getElementById("toDelete").innerText=""
       var time = document.createElement("td")
       var row = document.createElement("tr")
       if(json.resolution=="day") {
-        time.innerHTML= get_onlydate_string(element[1]["startTime"])
+        time.innerText= get_onlydate_string(element[1]["startTime"])
       }
       else if (json.resolution=="hour") {
-        time.innerHTML = get_date_string(element[1]["startTime"])
+        time.innerText = get_date_string(element[1]["startTime"])
       }
       var distance = document.createElement("td")
-      distance.innerHTML = element[1]["distanceKm"]
+      distance.innerText = element[1]["distanceKm"]
       var co2 = document.createElement("td")
-      co2.innerHTML = element[1]["CO2t"]
+      co2.innerText = element[1]["CO2t"]
       row.append(time, distance, co2)
       table.append(row)
     })
@@ -158,17 +158,17 @@ function set_selectable_italian_flights() {
   }
   request_value(base_aircraft_route + "/list", vs => {
     var json = JSON.parse(vs)
-    document.getElementById("flights_list_update").innerHTML = "Aircraft list updated at " + get_date_string(json.timestamp)
-    flight_selector.innerHTML = ""
+    document.getElementById("flights_list_update").innerText = "Aircraft list updated at " + get_date_string(json.timestamp)
+    flight_selector.innerText = ""
     var emptyOption = document.createElement("option")
     emptyOption.value = " "
-    emptyOption.innerHTML = " "
+    emptyOption.innerText = " "
     flight_selector.append(emptyOption)
     json["icao24"].map(v => {
       var opt = document.createElement("option")
       opt.setAttribute("id",v)
       opt.value = v
-      opt.innerHTML = v
+      opt.innerText = v
       flight_selector.append(opt)
     })
     if(flight.length==6) {
@@ -289,7 +289,7 @@ window.onload = _ => {
     } else {
       const error_paragraph = document.createElement("p")
       error_paragraph.id = "form_error"
-      error_paragraph.innerHTML = "Missing fields"
+      error_paragraph.innerText = "Missing fields"
       error_paragraph.setAttribute("class","text")
       document.getElementById("historic_data_form").append(error_paragraph)
     }
