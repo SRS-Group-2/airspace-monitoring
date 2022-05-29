@@ -35,7 +35,7 @@ jobs:
   semgrep:
     runs-on: ubuntu-latest
     container:
-      image: returntocorp/semgrep:9b5e2e73194668b62c98dfa053c0af87613c7598
+      image: returntocorp/semgrep
     steps:
       - uses: actions/checkout@v3
       - run: semgrep scan --sarif --output=semgrep.sarif
