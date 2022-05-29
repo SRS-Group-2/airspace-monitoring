@@ -16,8 +16,11 @@ on:
         required: true
       DOCKER_REPO_REGION:
         required: true
-      GCP_CREDENTIALS:
+      WORKLOAD_IDP:
         required: false
+      SERVICE_ACCOUNT:
+        required: false
+
 jobs:
   build_scan_push:
     name: Build and scan a Docker image, then push it
@@ -70,7 +73,8 @@ jobs:
         id: 'auth'
         if: ${{ inputs.push == 'true' }}
         with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDP }} 
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
       - name: 'Set up Cloud SDK'
         if: ${{ inputs.push == 'true' }}
         id: 'cloud_setup'

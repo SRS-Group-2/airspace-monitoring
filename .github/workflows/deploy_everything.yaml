@@ -20,7 +20,8 @@ jobs:
       PROJECT: ${{ secrets.PROJECT_ID }}
       DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
       DOCKER_REPO_REGION: ${{ secrets.DOCKER_REPO_REGION }}
-      GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+      WORKLOAD_IDP: ${{ secrets.WORKLOAD_IDP }}
+      SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
 
   deploy:
     name: Deploy service on Google Cloud
