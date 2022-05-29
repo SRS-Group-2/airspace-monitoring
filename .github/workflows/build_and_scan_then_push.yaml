@@ -40,7 +40,7 @@ jobs:
         id: last_change
         env:
           DIRECTORY: ${{ matrix.service.directory }}
-        run: echo ::set-output name=commit::`git log -n 1 --pretty=format:%H -- "${DIRECTORY}"`
+        run: echo ::set-output name=commit::`git log -n 1 --pretty=format:%H -- "$DIRECTORY"`
       # - run: echo ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }} $GITHUB_WORKSPACE/${{ matrix.service.directory }}
       - name: Build image
         env:
@@ -48,9 +48,9 @@ jobs:
           NAME: ${{ matrix.service.name }}
         run: |-
           docker build \
-            -t ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/${NAME}:latest \
-            -t ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/${NAME}:${{ steps.last_change.outputs.commit }} \
-            $GITHUB_WORKSPACE/${DIRECTORY}
+            -t ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/$NAME:latest \
+            -t ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/$NAME:${{ steps.last_change.outputs.commit }} \
+            $GITHUB_WORKSPACE/$DIRECTORY
       - name: Scan image for good practices
         id: scan_dockle
         env:
@@ -61,7 +61,7 @@ jobs:
             grep '"tag_name":' | \
             sed -E 's/.*"v([^"]+)".*/\1/' \
           ) && docker run --rm -v /var/run/docker.sock:/var/run/docker.sock goodwithtech/dockle:v${VERSION} -f sarif \
-              ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/${NAME}:${{ steps.last_change.outputs.commit }}
+              ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/$NAME:${{ steps.last_change.outputs.commit }}
       - name: Scan image for vulnerabilities
         id: scan
         env:
@@ -69,7 +69,7 @@ jobs:
         uses: aquasecurity/trivy-action@4b9b6fb4ef28b31450391a93ade098bb00de584e
         with:
           scan-type: 'image'
-          image-ref: '${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/${NAME}:${{ steps.last_change.outputs.commit }}'
+          image-ref: '${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/$NAME:${{ steps.last_change.outputs.commit }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -98,4 +98,4 @@ jobs:
         env:
           NAME: ${{ matrix.service.name }}
         run: |-
-          docker push ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/${NAME} --all-tags
+          docker push ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/$NAME --all-tags
