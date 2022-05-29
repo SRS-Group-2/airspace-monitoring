@@ -75,13 +75,19 @@ jobs:
       - uses: actions/checkout@v3
       - name: Check if Spotbugs plugin is configured in Maven project
         id: plugin_presence
-        run: echo ::set-output name=presence::`cat ".${{ matrix.pom }}/pom.xml" | grep spotbugs-maven-plugin`
+        env:
+          POM_DIR: ${{ matrix.pom }}
+        run: echo ::set-output name=presence::`cat ".${POM_DIR}/pom.xml" | grep spotbugs-maven-plugin`
       - name: Run Spotbugs plugin
         id: code_check
+        env:
+          POM_DIR: ${{ matrix.pom }}
         if: ${{ steps.plugin_presence.outputs.presence != '' }}
-        run: mvn -q -f ".${{ matrix.pom }}/pom.xml" compile spotbugs:spotbugs '-DsarifOutput=true'
+        run: mvn -q -f ".${POM_DIR}/pom.xml" compile spotbugs:spotbugs '-DsarifOutput=true'
       - name: Upload SARIF file
+        env:
+          POM_DIR: ${{ matrix.pom }}
         if: ${{ steps.plugin_presence.outputs.presence != '' }}
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: ".${{ matrix.pom }}/target/spotbugsSarif.json"
+          sarif_file: ".${POM_DIR}/target/spotbugsSarif.json"
