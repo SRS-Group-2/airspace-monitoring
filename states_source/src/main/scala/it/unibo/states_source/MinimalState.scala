@@ -45,4 +45,13 @@ class MinimalState(val icao: String, val latitude: Double, val longitude: Double
     return d.toInt
   }
 
+
+  override def equals (other : Any) : Boolean = {
+    if(this.toString==other.toString) {
+      return true
+    }
+
+    return false
+  }
+
 }

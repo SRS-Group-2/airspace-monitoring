@@ -10,10 +10,13 @@ import org.opensky.model.StateVector
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.net.SocketTimeoutException
+import java.util.Collection
 
 class OpenSkySourceFunction(private val coordinates: Option[(Double, Double, Double, Double)]) extends SourceFunction[StateVector] {
   val PERIOD_S = 15L
   val PERIOD_MS = PERIOD_S * 1000
+  var toSend : Collection[StateVector] = null
 
   val LOG : Logger = LoggerFactory.getLogger(classOf[OpenSkySourceFunction])
 
@@ -44,10 +47,18 @@ class OpenSkySourceFunction(private val coordinates: Option[(Double, Double, Dou
         case Some((a, b, c, d)) => api.getStates(0, null, new OpenSkyApi.BoundingBox(a, b, c, d))
         case None => api.getStates(0, null)
       }
-      os.getStates().asScala.foreach {
-        ctx.collect(_)
+      try {
+        toSend=os.getStates()
+      } 
+      catch {
+        case socket:SocketTimeoutException => LOG.error("Socket timeout occurred")
       }
-      LOG.info("Read data from OpenSky and sent")
+      if(toSend!=null){
+        toSend.asScala.foreach{
+          ctx.collect(_)
+        }
+        LOG.info("Read data from OpenSky and sent")       
+      }      
       Thread.sleep(PERIOD_MS)
     }
   }

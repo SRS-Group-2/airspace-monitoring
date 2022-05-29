@@ -190,7 +190,28 @@ under the License.
 	</dependencies>
 
 	<build>
+		<testSourceDirectory>${project.basedir}/src/test</testSourceDirectory>
 		<plugins>
+			<!-- enable scalatest -->
+			<plugin>
+			<groupId>org.scalatest</groupId>
+			<artifactId>scalatest-maven-plugin</artifactId>
+			<version>1.0</version>
+			<configuration>
+				<argLine>--add-opens java.base/java.lang=ALL-UNNAMED</argLine>
+				<reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+				<junitxml>.</junitxml>
+				<filereports>WDF TestSuite.txt</filereports>
+			</configuration>
+			<executions>
+				<execution>
+				<id>test</id>
+				<goals>
+					<goal>test</goal>
+				</goals>
+				</execution>
+			</executions>
+			</plugin>
 			<!-- We use the maven-shade plugin to create a fat jar that contains all necessary dependencies. -->
 			<!-- Change the value of <mainClass>...</mainClass> if your program entry point changes. -->
 			<plugin>
