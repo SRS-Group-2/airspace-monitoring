@@ -22,6 +22,7 @@ class FinalAggregator extends AggregateFunction[(Int,Int,Long),Array[Int],(Int,I
   override def getResult(acc:Array[Int])= {
     var myDate  = Date.from(Instant.now())
     myDate = roundDate(myDate)
+    latestTimestamp=myDate
     val formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm")
     val timestamp = formatter.format(myDate)
   
