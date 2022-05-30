@@ -4,5 +4,5 @@ scopeconfig:
 
 fileignoreconfig:
 - filename: .github/workflows/build_and_scan_then_push.yaml
-  checksum: de4a89259a0073a15c6f050fb6161697227192d95d2900692da611c91fa3936a
+  checksum: 0b976ac10cbcf0a6065def2ae9d74f2509a1a94fd191a0c1a2c01b6335b7919c
 version: ""

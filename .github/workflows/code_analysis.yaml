@@ -35,7 +35,7 @@ jobs:
   semgrep:
     runs-on: ubuntu-latest
     container:
-      image: returntocorp/semgrep:9b5e2e73194668b62c98dfa053c0af87613c7598
+      image: returntocorp/semgrep
     steps:
       - uses: actions/checkout@v3
       - run: semgrep scan --sarif --output=semgrep.sarif
@@ -75,11 +75,15 @@ jobs:
       - uses: actions/checkout@v3
       - name: Check if Spotbugs plugin is configured in Maven project
         id: plugin_presence
-        run: echo ::set-output name=presence::`cat ".${{ matrix.pom }}/pom.xml" | grep spotbugs-maven-plugin`
+        env:
+          POM_DIR: ${{ matrix.pom }}
+        run: echo ::set-output name=presence::`cat ".$POM_DIR/pom.xml" | grep spotbugs-maven-plugin`
       - name: Run Spotbugs plugin
         id: code_check
+        env:
+          POM_DIR: ${{ matrix.pom }}
         if: ${{ steps.plugin_presence.outputs.presence != '' }}
-        run: mvn -q -f ".${{ matrix.pom }}/pom.xml" compile spotbugs:spotbugs '-DsarifOutput=true'
+        run: mvn -q -f ".$POM_DIR/pom.xml" compile spotbugs:spotbugs '-DsarifOutput=true'
       - name: Upload SARIF file
         if: ${{ steps.plugin_presence.outputs.presence != '' }}
         uses: github/codeql-action/upload-sarif@v2

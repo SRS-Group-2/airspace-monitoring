@@ -7,6 +7,7 @@ import io.gatling.http.Predef._
 
 class ListPositionSimulation extends Simulation {
   val BASE_URL = System.getProperty("base_url")
+  val WS_URL = "wss://aircraft-positions-onwhlgspyq-ew.a.run.app"
   val N_USERS = Integer.getInteger("users", 20)
   val RAMP = java.lang.Long.getLong("ramp", 0)
   val WS_CONNECTION_TIME = 100
@@ -14,6 +15,7 @@ class ListPositionSimulation extends Simulation {
 
   val httpProtocol = http
     .baseUrl(BASE_URL)
+    .wsBaseUrl(WS_URL)
     .acceptHeader("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
     .doNotTrackHeader("1")
     .acceptLanguageHeader("en-US,en;q=0.5")
@@ -24,23 +26,23 @@ class ListPositionSimulation extends Simulation {
     .exec(
       http("Aircraft list request")
         .get("/airspace/aircraft/list")
-        .check(jsonPath("$.list").saveAs("icao24"))
+         .check(jmesPath("icao24").transform(string => string.drop(1).drop(1).split("\",\"")).saveAs("icaoList"))
     )
     .exec(
-      http("Position endpoint url request")
+      http("Position endpoint url request for #{icaoList(0)}")
         .get("/endpoints/position/url")
-        .check(bodyString.saveAs("url"))
     )
     .exec(
-      ws("Connect WS").connect("#{url}/airspace/aircraft/#{icao24(0)}/position").await(WS_CONNECTION_TIME)()
+      ws("Connect WS").connect("/airspace/aircraft/#{icaoList(0)}/position")
     )
     .pause(EXPLORE_API_USER_TIME)
     .exec(
       ws("Close WS").close
     )
-    .pause(5)
 
   setUp(
-    scn.inject(atOnceUsers(N_USERS))
+    scn.inject(
+      atOnceUsers(3))
   ).protocols(httpProtocol)
 }
+
