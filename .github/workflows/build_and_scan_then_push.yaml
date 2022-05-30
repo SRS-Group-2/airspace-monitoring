@@ -64,12 +64,10 @@ jobs:
               ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/$NAME:${{ steps.last_change.outputs.commit }}
       - name: Scan image for vulnerabilities
         id: scan
-        env:
-          NAME: ${{ matrix.service.name }}
         uses: aquasecurity/trivy-action@4b9b6fb4ef28b31450391a93ade098bb00de584e
         with:
           scan-type: 'image'
-          image-ref: '${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/$NAME:${{ steps.last_change.outputs.commit }}'
+          image-ref: '${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/${{ matrix.service.name }}:${{ steps.last_change.outputs.commit }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
