@@ -6,7 +6,7 @@ on:
       - 'test_deploy'
 jobs:
   identify_changed_services:
-    uses: ./.github/workflows/identify_services.yaml
+    uses: ./.github/workflows/identify_changed_services.yaml
 
   build_scan_push:
     name: Build and scan container
