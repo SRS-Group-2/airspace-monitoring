@@ -1,4 +1,4 @@
-name: Build and scan the container images of the changed services
+name: Build and scan the container images of the services
 on: 
   pull_request:
     branches:
@@ -9,16 +9,16 @@ on:
       - 'develop'
       - 'test_develop'
 jobs:
-  identify_changed_services:
+  identify_services:
     uses: ./.github/workflows/identify_services.yaml
 
   build_scan:
     name: Build and scan container
-    needs: identify_changed_services
-    if: ${{ needs.identify_changed_services.outputs.directories != '[]' && needs.identify_changed_services.outputs.directories != '' }}
+    needs: identify_services
+    if: ${{ needs.identify_services.outputs.directories != '[]' && needs.identify_services.outputs.directories != '' }}
     uses: ./.github/workflows/build_and_scan_then_push.yaml
     with:
-      services: ${{ needs.identify_changed_services.outputs.directories }}
+      services: ${{ needs.identify_services.outputs.directories }}
       push: 'false'
     secrets:
       DOCKER_REPO_PROJECT: ${{ secrets.PROJECT_ID }}
