@@ -5,16 +5,16 @@ on:
       - 'main'
       - 'test_deploy'
 jobs:
-  identify_changed_services:
-    uses: ./.github/workflows/identify_changed_services.yaml
+  identify_services:
+    uses: ./.github/workflows/identify_services.yaml
 
   build_scan_push:
     name: Build and scan container
-    needs: identify_changed_services
-    if: ${{ needs.identify_changed_services.outputs.directories != '[]' && needs.identify_changed_services.outputs.directories != '' }}
+    needs: identify_services
+    if: ${{ needs.identify_services.outputs.directories != '[]' && needs.identify_services.outputs.directories != '' }}
     uses: ./.github/workflows/build_and_scan_then_push.yaml
     with:
-      services: ${{ needs.identify_changed_services.outputs.directories }}
+      services: ${{ needs.identify_services.outputs.directories }}
       push: 'true'
     secrets:
       DOCKER_REPO_PROJECT: ${{ secrets.PROJECT_ID }}
