@@ -51,7 +51,7 @@ jobs:
             service=${line%_tag*}
             tag=${line##* }
             IS=false
-            echo ### Looking for ${service}, with .${tag}.
+            echo --- Looking for ${service}, with .${tag}.
             gcloud artifacts docker tags list ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.DOCKER_REPO }}/${service} 2> /dev/null | grep ${service} |
               while read -r info; do
               echo tag .${info%% *}. is present
