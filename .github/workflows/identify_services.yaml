@@ -1,0 +1,29 @@
+name: Identify services
+on:
+  workflow_call:
+    outputs:
+      directories: 
+        description: The array of directories containing services (Dockerfiles)
+        value: ${{ jobs.identify_services.outputs.directories }}
+jobs:
+  identify_services:
+    name: Identify the services that were updated
+    runs-on: ubuntu-latest
+    outputs:
+      directories: ${{ steps.check_files.outputs.dirs }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Check which directories contain a Dockerfile
+        id: check_files
+        run: |
+          OBJECTS=""
+          for dockerfile in `find . -iname Dockerfile -not -path *.devcontainer*`; do
+              directory=${dockerfile%/*}
+              service=${directory##*/}
+              OBJECTS=`echo $OBJECTS,{\"directory\": \"${directory}\", \"name\": \"${service}\"}`
+          done
+          OBJECTS=${OBJECTS#*,}
+          echo ::set-output name=dirs::[$OBJECTS]

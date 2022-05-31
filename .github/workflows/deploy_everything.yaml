@@ -1,0 +1,81 @@
+name: Deploy the services defined by Terraform
+on: 
+  push:
+    branches:
+      - 'main'
+      - 'test_deploy'
+jobs:
+  identify_services:
+    uses: ./.github/workflows/identify_services.yaml
+
+  build_scan_push:
+    name: Build and scan container
+    needs: identify_services
+    if: ${{ needs.identify_services.outputs.directories != '[]' && needs.identify_services.outputs.directories != '' }}
+    uses: ./.github/workflows/build_and_scan_then_push.yaml
+    with:
+      services: ${{ needs.identify_services.outputs.directories }}
+      push: 'true'
+    secrets:
+      DOCKER_REPO_PROJECT: ${{ secrets.PROJECT_ID }}
+      DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
+      DOCKER_REPO_REGION: ${{ secrets.DOCKER_REPO_REGION }}
+      WORKLOAD_IDP: ${{ secrets.WORKLOAD_IDP }}
+      SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
+
+  check_image_presence:
+    name: Check the presence of the required Docker images on the registry
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    needs: build_scan_push
+    if: always()
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - uses: 'google-github-actions/auth@v0'
+        id: 'auth'
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDP }} 
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+      - name: 'Set up Cloud SDK'
+        id: 'cloud_setup'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      - name: Extract required images
+        id: images
+        run: |
+          EXIT_VALUE=0
+          while read line; do
+            line=${line//\"}
+            service=${line%_tag*}
+            tag=${line##* }
+            IS=false
+            echo --- Looking for ${service}, with .${tag}.
+            IS=$(gcloud artifacts docker tags list ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.DOCKER_REPO }}/${service} 2> /dev/null | grep ${service} |
+              while read -r info; do
+              if [[ "${info%% *}" == "${tag}" ]]; then
+                echo true
+              fi
+            done)
+            if [[ "$IS" != "true" ]]; then
+              echo ${service}:${tag} not present
+              EXIT_VALUE=1
+            fi
+          done < terraform/image-versions.auto.tfvars
+          exit $EXIT_VALUE
+
+  # deploy:
+  #   name: Deploy service on Google Cloud
+  #   needs: check_image_presence
+  #   if: always()
+  #   uses: ./.github/workflows/terraform.yaml
+  #   secrets: 
+  #     PROJECT: ${{ secrets.PROJECT_ID }}
+  #     REGION: ${{ secrets.REGION }}
+  #     DOCKER_REPO_PROJECT: ${{ secrets.PROJECT_ID }}
+  #     DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
+  #     DOCKER_REPO_REGION: ${{ secrets.DOCKER_REPO_REGION }}
+  #     WORKLOAD_IDP: ${{ secrets.WORKLOAD_IDP }}
+  #     SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
+  #     TERRAFORM_STATE_BUCKET: ${{ secrets.TERRAFORM_STATE_BUCKET }}
