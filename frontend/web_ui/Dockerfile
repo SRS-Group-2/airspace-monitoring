@@ -28,4 +28,4 @@ ENV GIN_MODE release
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/app.exe"]
+ENTRYPOINT [ "/app.exe" ]

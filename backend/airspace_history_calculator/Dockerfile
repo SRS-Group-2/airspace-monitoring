@@ -27,4 +27,4 @@ COPY --from=build /app.exe /app.exe
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/app.exe"]
+ENTRYPOINT [ "/app.exe" ]

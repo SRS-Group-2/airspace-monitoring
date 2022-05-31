@@ -29,7 +29,4 @@ ENV GIN_MODE release
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/app.exe"]
-
-## docker build . --tag aircraft_info
-## docker run --publish 8080:8080  aircraft_info
+ENTRYPOINT [ "/app.exe" ]
