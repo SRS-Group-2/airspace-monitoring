@@ -50,7 +50,7 @@ jobs:
           echo ${tag}
           echo ::set-output name=commit::`echo $tag`
       - name: Checkout
-        run: git checkout ${{ steps.find_commit.output.commit }}
+        run: git checkout ${{ steps.find_commit.outputs.commit }}
       - name: Build image
         env:
           DIRECTORY: ${{ matrix.service.directory }}
@@ -58,7 +58,7 @@ jobs:
         run: |-
           docker build \
             -t ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/$NAME:latest \
-            -t ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/$NAME:${{ steps.find_commit.output.commit }} \
+            -t ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/$NAME:${{ steps.find_commit.outputs.commit }} \
             $GITHUB_WORKSPACE/$DIRECTORY
       - name: Scan image for good practices
         id: scan_dockle
@@ -70,13 +70,13 @@ jobs:
             grep '"tag_name":' | \
             sed -E 's/.*"v([^"]+)".*/\1/' \
           ) && docker run --rm -v /var/run/docker.sock:/var/run/docker.sock goodwithtech/dockle:v${VERSION} -f sarif \
-              ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/$NAME:${{ steps.find_commit.output.commit }}
+              ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/$NAME:${{ steps.find_commit.outputs.commit }}
       - name: Scan image for vulnerabilities
         id: scan
         uses: aquasecurity/trivy-action@4b9b6fb4ef28b31450391a93ade098bb00de584e
         with:
           scan-type: 'image'
-          image-ref: '${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/${{ matrix.service.name }}:${{ steps.find_commit.output.commit }}'
+          image-ref: '${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.DOCKER_REPO_PROJECT }}/${{ secrets.DOCKER_REPO }}/${{ matrix.service.name }}:${{ steps.find_commit.outputs.commit }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
