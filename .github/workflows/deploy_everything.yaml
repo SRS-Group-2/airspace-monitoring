@@ -36,3 +36,4 @@ jobs:
       DOCKER_REPO_REGION: ${{ secrets.DOCKER_REPO_REGION }}
       WORKLOAD_IDP: ${{ secrets.WORKLOAD_IDP }}
       SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
+      TERRAFORM_STATE_BUCKET: ${{ secrets.TERRAFORM_STATE_BUCKET }}

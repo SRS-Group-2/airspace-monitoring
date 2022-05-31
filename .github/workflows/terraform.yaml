@@ -12,6 +12,8 @@ on:
         required: true
       DOCKER_REPO_REGION:
         required: true
+      TERRAFORM_STATE_BUCKET:
+        required: true
       WORKLOAD_IDP:
         required: true
       SERVICE_ACCOUNT:
@@ -42,6 +44,17 @@ jobs:
       with:
         workload_identity_provider: ${{ secrets.WORKLOAD_IDP }} 
         service_account: ${{ secrets.SERVICE_ACCOUNT }}
+    - name: Generate Terraform backend information
+      id: state_generation
+      run: |
+        cat > terraform/main-state.tf << EOF
+        terraform {
+          backend "gcs" {
+            bucket = "${{ secrets.TERRAFORM_STATE_BUCKET }}"
+            prefix = "terraform/state"
+          }
+        }
+        EOF
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       run: terraform -chdir=terraform init

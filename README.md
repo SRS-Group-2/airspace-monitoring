@@ -100,7 +100,16 @@ Pre-deploy operations:
   - `websocket_endpoints`
   - `web_ui`
   - `states_source` 
-- create a Google Storage bucket and write its name as the "bucket" value of the 'backend "gcs"' object into `terraform/main.tf`
+- create a Google Storage bucket and write its name as the "bucket" value of the 'backend "gcs"' object into `terraform/main-state.tf`. The `terraform/main-state.tf` file content must be:
+  ```
+  terraform {
+    # where to save states
+    backend "gcs" {
+      bucket = "<bucket_name>"
+      prefix = "terraform/state"
+    }
+  }
+  ```
 - create the default project in Firestore with the `airspace` collection
 - create inside the `terraform` directory a file `secrets.auto.tfvars` in which the following variables (described in `terraform/variables.tf`) are declared, one per line, with the `var_name = var_value` syntax:
   - `project_id`
@@ -158,6 +167,7 @@ Initial operations:
   - `DOCKER_REPO_REGION`, with value equal to the region in which the docker repo has been deployed
   - `WORKLOAD_IDP`, with value equal to the `name` field of the ouput of the `gcloud iam workload-identity-pools providers list --location=global --workload-identity-pool=github-pool  --project <project_id>` command
   - `SERVICE_ACCOUNT`, with value equal to `terraform@<project_id>.iam.gserviceaccount.com`
+  - `TERRAFORM_STATE_BUCKET`, with value equal to the name of the Google Storage Bucket
 
 Then simply push your commits to the `main` branch.
 
