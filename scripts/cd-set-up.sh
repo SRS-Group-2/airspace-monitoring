@@ -23,7 +23,7 @@ gcloud iam workload-identity-pools create "github-pool" \
   --location="global" \
   --display-name="GitHub pool"
 
-POOL_NAME=`gcloud iam workload-identity-pools describe github-pool --location=global | grep name`
+POOL_NAME=`gcloud iam workload-identity-pools describe github-pool --location=global --project $1 | grep name`
 POOL_NAME=${POOL_NAME#*: }
 
 gcloud iam workload-identity-pools providers create-oidc "github-provider" \

@@ -144,7 +144,7 @@ terraform -chdir=terraform destroy # to destroy every change done by the apply c
 Initial operations:
 - create a project on Google Cloud, memorize the id of the project
 - login to gcloud using `gcloud auth login`
-- run the `act-gcp-apis.sh` script to abilitate the necessary Google APIs: `./scripts/act-on-gcp-apis.sh enable <project_id>`
+- run the `act-on-gcp-apis.sh` script to abilitate the necessary Google APIs: `./scripts/act-on-gcp-apis.sh enable <project_id>`
 - create a Google Storage bucket and write its name as the "bucket" value of the 'backend "gcs"' object into `terraform/main.tf`
 - create a Google Cloud Docker repository (through Artifact Registry), memorize the project in which it is created, the region and its name
 - run `./scripts/cd-set-up.sh <project_id>` to set up the service account to be used by the GitHub workflow
