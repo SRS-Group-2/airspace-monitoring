@@ -55,6 +55,7 @@ jobs:
               fi
             done
             if [[ "$IS" == "false" ]]; then
+              echo ${service}:${tag} not present
               EXIT_VALUE=1
             fi
           done < terraform/image-versions.auto.tfvars
