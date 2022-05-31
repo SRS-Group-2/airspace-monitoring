@@ -131,7 +131,6 @@ func main() {
 	checkAndInitDoc(client, "1h-history")
 	checkAndInitDoc(client, "5m-history")
 
-
 	saveStateToDb(client)
 
 	//decrease states values, update 1h, 1d, values, cleanup db.
@@ -491,19 +490,19 @@ func cronjobHandler1day(client *firestore.Client) {
 func cleanupDb(client *firestore.Client) {
 
 	// Start deleting documents older than 25h ago in 24h-history/5m-bucket
-	threshold5min := time.Now().UTC().AddDate(0, 0, -1).Add(-time.Hour)
+	threshold5min := time.Now().UTC().AddDate(0, 0, -1).Add(-time.Hour).Format("2006-01-02-15-04")
 	deleteOlderThanFrom(client, threshold5min, "24h-history/5m-bucket")
 
 	// Start deleting documents older than 31d ago in 30d-history/1h-bucket
-	thresholdHours := time.Now().UTC().AddDate(0, 0, -31)
+	thresholdHours := time.Now().UTC().AddDate(0, 0, -31).Format("2006-01-02-15")
 	deleteOlderThanFrom(client, thresholdHours, "30d-history/1h-bucket")
 
 	// Start deleting documents older than 32d ago in 30dh-history/1d-bucket
-	thresholdDays := time.Now().UTC().AddDate(0, 0, -32)
+	thresholdDays := time.Now().UTC().AddDate(0, 0, -32).Format("2006-01-02")
 	deleteOlderThanFrom(client, thresholdDays, "30d-history/1d-bucket")
 }
 
-func deleteOlderThanFrom(client *firestore.Client, threshold time.Time, collectionPath string) {
+func deleteOlderThanFrom(client *firestore.Client, threshold string, collectionPath string) {
 	Log.Debug.Println("Starting history database cleanup of old values.")
 
 	ctx := context.Background()
