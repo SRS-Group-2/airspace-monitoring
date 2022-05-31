@@ -54,7 +54,7 @@ jobs:
         terraform -chdir=terraform plan \
           -var 'project_id=${{ secrets.PROJECT }}' \
           -var 'region=${{ secrets.REGION }}' \
-          -var 'docker_repo=${{ secrets.DOCKER_REPO }}' \
+          -var 'docker_repo_name=${{ secrets.DOCKER_REPO }}' \
           -var 'docker_repo_region=${{ secrets.DOCKER_REPO_REGION }}' \
           -var 'docker_repo_project_id=${{ secrets.PROJECT }}'
     # On push to main, build or change infrastructure according to Terraform configuration files
@@ -65,6 +65,6 @@ jobs:
         terraform -chdir=terraform apply -auto-approve \
           -var 'project_id=${{ secrets.PROJECT }}' \
           -var 'region=${{ secrets.REGION }}' \
-          -var 'docker_repo=${{ secrets.DOCKER_REPO }}' \
+          -var 'docker_repo_name=${{ secrets.DOCKER_REPO }}' \
           -var 'docker_repo_region=${{ secrets.DOCKER_REPO_REGION }}' \
           -var 'docker_repo_project_id=${{ secrets.PROJECT }}'
