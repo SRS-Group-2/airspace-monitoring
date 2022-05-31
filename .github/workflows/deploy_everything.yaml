@@ -68,6 +68,7 @@ jobs:
   deploy:
     name: Deploy service on Google Cloud
     needs: check_image_presence
+    if: always()
     uses: ./.github/workflows/terraform.yaml
     secrets: 
       PROJECT: ${{ secrets.PROJECT_ID }}
