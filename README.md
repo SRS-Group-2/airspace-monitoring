@@ -158,6 +158,7 @@ Initial operations:
   - `DOCKER_REPO_REGION`, with value equal to the region in which the docker repo has been deployed
   - `WORKLOAD_IDP`, with value equal to the `name` field of the ouput of the `gcloud iam workload-identity-pools providers list --location=global --workload-identity-pool=github-pool  --project <project_id>` command
   - `SERVICE_ACCOUNT`, with value equal to `terraform@<project_id>.iam.gserviceaccount.com`
+  - `TERRAFORM_STATE_BUCKET`, with value equal to the name of the Google Storage Bucket
 
 Then simply push your commits to the `main` branch.
 

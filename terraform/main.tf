@@ -10,12 +10,6 @@ terraform {
       version = "2.11.0"
     }
   }
-
-  # where to save states
-  backend "gcs" {
-    bucket = "test-bucket-trfm"
-    prefix = "terraform/state"
-  }
 }
 
 # define cloud provider
