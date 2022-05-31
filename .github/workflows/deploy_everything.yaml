@@ -29,7 +29,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
-    # needs: build_scan_push
+    needs: build_scan_push
     if: always()
     steps:
       - name: Check out the repo
