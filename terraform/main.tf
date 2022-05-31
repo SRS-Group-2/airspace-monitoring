@@ -13,7 +13,7 @@ terraform {
 
   # where to save states
   backend "gcs" {
-    bucket = "test-bucket-trfm"
+    bucket = "airspace-monitoring-bucket"
     prefix = "terraform/state"
   }
 }
