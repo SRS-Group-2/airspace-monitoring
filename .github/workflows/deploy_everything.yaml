@@ -5,13 +5,13 @@ on:
       - 'main'
       - 'test_deploy'
 jobs:
-  identify_changed_services:
-    uses: ./.github/workflows/identify_changed_services.yaml
+  identify_services:
+    uses: ./.github/workflows/identify_services.yaml
 
   build_scan_push:
     name: Build and scan container
-    needs: identify_changed_services
-    if: ${{ needs.identify_changed_services.outputs.directories != '[]' && needs.identify_changed_services.outputs.directories != '' }}
+    needs: identify_services
+    if: ${{ needs.identify_services.outputs.directories != '[]' && needs.identify_services.outputs.directories != '' }}
     uses: ./.github/workflows/build_and_scan_then_push.yaml
     with:
       services: ${{ needs.identify_services.outputs.directories }}
@@ -26,6 +26,9 @@ jobs:
   check_image_presence:
     name: Check the presence of the required Docker images on the registry
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     needs: build_scan_push
     if: always()
     steps:

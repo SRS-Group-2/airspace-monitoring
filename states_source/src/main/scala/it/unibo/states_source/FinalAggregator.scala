@@ -7,29 +7,29 @@ import java.time.Instant
 
 
 
-class FinalAggregator extends AggregateFunction[(Int,Int,Long),Array[Int],(Int,Int,String)] {
+class FinalAggregator extends AggregateFunction[(Double,Double,Long),Array[Double],(Int,Int,String)] {
+
+  override def createAccumulator() = Array[Double](0,0)
 
   var latestTimestamp : Date = null
 
-  override def createAccumulator() = Array[Int](0,0)
-
-  override def add(input : (Int,Int,Long), acc : Array[Int]) =  {
+  override def add(input : (Double,Double,Long), acc : Array[Double]) = {
     acc(0)=acc(0)+input._1
     acc(1)=acc(1)+input._2
     acc
   }
 
-  override def getResult(acc:Array[Int])= {
+  override def getResult(acc:Array[Double])= {
     var myDate  = Date.from(Instant.now())
     myDate = roundDate(myDate)
     latestTimestamp=myDate
     val formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm")
     val timestamp = formatter.format(myDate)
   
-    (acc(0),acc(1),timestamp)
+    (acc(0).toInt,acc(1).toInt,timestamp)
   }
 
-  override def merge(a: Array[Int], b :Array[Int])= Array[Int](a(0)+b(0),a(1)+b(1))
+  override def merge(a: Array[Double], b :Array[Double])= Array[Double](a(0)+b(0),a(1)+b(1))
 
   def roundDate(myDate : Date) : Date = {
   if(latestTimestamp!=null) {
