@@ -58,7 +58,7 @@ jobs:
                 echo true
               fi
             done)
-            if [[ "$IS" == "false" ]]; then
+            if [[ "$IS" != "true" ]]; then
               echo ${service}:${tag} not present
               EXIT_VALUE=1
             fi
