@@ -23,6 +23,43 @@ jobs:
       WORKLOAD_IDP: ${{ secrets.WORKLOAD_IDP }}
       SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
 
+  check_image_presence:
+    name: Check the presence of the required Docker images on the registry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - uses: 'google-github-actions/auth@v0'
+        id: 'auth'
+        if: ${{ inputs.push == 'true' }}
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDP }} 
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+      - name: 'Set up Cloud SDK'
+        if: ${{ inputs.push == 'true' }}
+        id: 'cloud_setup'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      - name: Extract required images
+        id: images
+        run: |
+          EXIT_VALUE=0
+          while read line; do
+            line=${line//\"}
+            service=${line%_tag*}
+            tag=${line##* }
+            IS=false
+            gcloud artifacts docker tags list ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.DOCKER_REPO }}/${service} 2> /dev/null | grep ${service} |
+              while read -r info; do
+              if [[ "${info%% *}" == "${tag}" ]]; then
+                IS=true
+              fi
+            done
+            if [[ "$IS" == "false" ]]; then
+              EXIT_VALUE=1
+            fi
+          done < terraform/image-versions.auto.tfvars
+          exit $EXIT_VALUE
+
   deploy:
     name: Deploy service on Google Cloud
     needs: build_scan_push
