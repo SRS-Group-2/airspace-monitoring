@@ -26,6 +26,9 @@ jobs:
   check_image_presence:
     name: Check the presence of the required Docker images on the registry
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     needs: build_scan_push
     if: always()
     steps:
