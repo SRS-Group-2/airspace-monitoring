@@ -47,7 +47,8 @@ jobs:
           line=${line//\"}
           service=${line%_tag*}
           tag=${line##* }
-          echo ::set-output name=commit::${tag}
+          echo ${tag}
+          echo ::set-output name=commit::`echo $tag`
       - name: Checkout
         run: git checkout ${{ steps.find_commit.output.commit }}
       - name: Build image
