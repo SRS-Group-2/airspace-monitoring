@@ -27,7 +27,4 @@ ENV GIN_MODE release
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/app.exe"]
-
-## docker build . --tag airspace_daily_history
-## docker run --publish 8080:8080 --env-file ./env.env airspace_daily_history
+ENTRYPOINT [ "/app.exe" ]
