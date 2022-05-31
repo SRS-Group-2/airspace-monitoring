@@ -65,8 +65,7 @@ jobs:
 
   deploy:
     name: Deploy service on Google Cloud
-    needs: build_scan_push
-    if: ${{ always() }}
+    needs: check_image_presence
     uses: ./.github/workflows/terraform.yaml
     secrets: 
       PROJECT: ${{ secrets.PROJECT_ID }}
