@@ -1,0 +1,44 @@
+hey.exe -c 100 -z 60s https://airspace-monitoring-5xotb2mk.ew.gateway.dev/airspace/history/realtime/6h
+
+Summary:
+  Total:        60.0209 secs
+  Slowest:      5.0153 secs
+  Fastest:      0.0113 secs
+  Average:      0.0233 secs
+  Requests/sec: 4298.1166
+
+  Total data:   1164849 bytes
+  Size/request: 4 bytes
+
+Response time histogram:
+  0.011 [1]     |
+  0.512 [257876]        |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  1.012 [82]    |
+  1.513 [0]     |
+  2.013 [0]     |
+  2.513 [0]     |
+  3.014 [0]     |
+  3.514 [0]     |
+  4.014 [4]     |
+  4.515 [8]     |
+  5.015 [6]     |
+
+
+Latency distribution:
+  10% in 0.0185 secs
+  25% in 0.0195 secs
+  50% in 0.0205 secs
+  75% in 0.0217 secs
+  90% in 0.0263 secs
+  95% in 0.0313 secs
+  99% in 0.0965 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:   0.0001 secs, 0.0113 secs, 5.0153 secs
+  DNS-lookup:   0.0000 secs, 0.0000 secs, 0.0048 secs
+  req write:    0.0000 secs, 0.0000 secs, 0.0007 secs
+  resp wait:    0.0232 secs, 0.0113 secs, 4.8414 secs
+  resp read:    0.0000 secs, 0.0000 secs, 0.0011 secs
+
+Status code distribution:
+  [200] 257977 responses
