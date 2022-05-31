@@ -30,7 +30,7 @@ class DistanceCo2Test extends FlatSpec with Matchers {
 
   // values are collected in  a static variable
   CollectDistanceCo2Sink.km=0
-  CollectDistanceCo2Sink.co2=0
+  CollectDistanceCo2Sink.co2=(-1)
   val testSource = new TestDistanceCo2Source()
   val source = env.addSource(testSource)
   // create a stream of custom elements and apply transformations
@@ -53,7 +53,7 @@ class DistanceCo2Test extends FlatSpec with Matchers {
   env.execute()
 
   CollectDistanceCo2Sink.km should equal (302)
-  CollectDistanceCo2Sink.co2 should equal (112)
+  CollectDistanceCo2Sink.co2 should equal (0)
   }
 }
 
@@ -69,7 +69,7 @@ class CollectDistanceCo2Sink extends SinkFunction[(Int,Int,String)] {
 object CollectDistanceCo2Sink {
 // must be static
   var km: Int = 0
-  var co2: Int = 0
+  var co2: Int = (-1)
 }
 
 

@@ -45,7 +45,7 @@ class FiveMinutesFirebaseSink[IN] extends RichSinkFunction[(Int,Int,String)] (){
       .document("5m-history")
       
     val data : Map[String, Any]  = new HashMap[String,Any]()
-    data.put("CO2t",(res._1/1000).toInt)
+    data.put("CO2t",res._1)
     data.put("distanceKm",res._2)
     data.put("startTime",res._3)
     val result1 : ApiFuture[WriteResult] = docRef1.set(data)
