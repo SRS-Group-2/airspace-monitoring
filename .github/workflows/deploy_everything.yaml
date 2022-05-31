@@ -65,17 +65,17 @@ jobs:
           done < terraform/image-versions.auto.tfvars
           exit $EXIT_VALUE
 
-  deploy:
-    name: Deploy service on Google Cloud
-    needs: check_image_presence
-    if: always()
-    uses: ./.github/workflows/terraform.yaml
-    secrets: 
-      PROJECT: ${{ secrets.PROJECT_ID }}
-      REGION: ${{ secrets.REGION }}
-      DOCKER_REPO_PROJECT: ${{ secrets.PROJECT_ID }}
-      DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
-      DOCKER_REPO_REGION: ${{ secrets.DOCKER_REPO_REGION }}
-      WORKLOAD_IDP: ${{ secrets.WORKLOAD_IDP }}
-      SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
-      TERRAFORM_STATE_BUCKET: ${{ secrets.TERRAFORM_STATE_BUCKET }}
+  # deploy:
+  #   name: Deploy service on Google Cloud
+  #   needs: check_image_presence
+  #   if: always()
+  #   uses: ./.github/workflows/terraform.yaml
+  #   secrets: 
+  #     PROJECT: ${{ secrets.PROJECT_ID }}
+  #     REGION: ${{ secrets.REGION }}
+  #     DOCKER_REPO_PROJECT: ${{ secrets.PROJECT_ID }}
+  #     DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
+  #     DOCKER_REPO_REGION: ${{ secrets.DOCKER_REPO_REGION }}
+  #     WORKLOAD_IDP: ${{ secrets.WORKLOAD_IDP }}
+  #     SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
+  #     TERRAFORM_STATE_BUCKET: ${{ secrets.TERRAFORM_STATE_BUCKET }}
