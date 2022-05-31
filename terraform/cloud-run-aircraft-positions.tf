@@ -61,7 +61,7 @@ resource "google_cloud_run_service" "aircraft_positions" {
 
     metadata {
       annotations = {
-        "autoscaling.knative.dev/maxScale" = "10"
+        "autoscaling.knative.dev/maxScale" = "15"
         "autoscaling.knative.dev/minScale" = "0"
       }
     }
