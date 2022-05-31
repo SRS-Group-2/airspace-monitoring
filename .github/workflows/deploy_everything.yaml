@@ -14,8 +14,8 @@ jobs:
     if: ${{ needs.identify_changed_services.outputs.directories != '[]' && needs.identify_changed_services.outputs.directories != '' }}
     uses: ./.github/workflows/build_and_scan_then_push.yaml
     with:
-      services: ${{ needs.identify_changed_services.outputs.directories }}
-      push: 'true'
+      services: ${{ needs.identify_services.outputs.directories }}
+      push: 'false' # 'true'
     secrets:
       DOCKER_REPO_PROJECT: ${{ secrets.PROJECT_ID }}
       DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
@@ -48,8 +48,10 @@ jobs:
             service=${line%_tag*}
             tag=${line##* }
             IS=false
+            echo ### Looking for ${service}
             gcloud artifacts docker tags list ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.DOCKER_REPO }}/${service} 2> /dev/null | grep ${service} |
               while read -r info; do
+              echo tag ${info%% *} is present
               if [[ "${info%% *}" == "${tag}" ]]; then
                 IS=true
               fi
