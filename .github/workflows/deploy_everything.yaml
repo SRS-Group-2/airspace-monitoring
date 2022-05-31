@@ -51,12 +51,13 @@ jobs:
             service=${line%_tag*}
             tag=${line##* }
             IS=false
-            gcloud artifacts docker tags list ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.DOCKER_REPO }}/${service} 2> /dev/null | grep ${service} |
+            echo --- Looking for ${service}, with .${tag}.
+            IS=$(gcloud artifacts docker tags list ${{ secrets.DOCKER_REPO_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.DOCKER_REPO }}/${service} 2> /dev/null | grep ${service} |
               while read -r info; do
               if [[ "${info%% *}" == "${tag}" ]]; then
-                IS=true
+                echo true
               fi
-            done
+            done)
             if [[ "$IS" == "false" ]]; then
               echo ${service}:${tag} not present
               EXIT_VALUE=1
