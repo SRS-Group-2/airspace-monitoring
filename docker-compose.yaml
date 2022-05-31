@@ -1,0 +1,47 @@
+services:
+  jobmanager:
+    build: ./states_source
+    ports:
+      - "8081:8081"
+    expose:
+      - 5555
+    command: standalone-job --job-classname it.unibo.states_source.Main
+    volumes:
+      - ./:/usr/local/flink
+    env_file:
+      - .env # GOOGLE_CLOUD_PROJECT_ID, GOOGLE_PUBSUB_VECTORS_TOPIC_ID, COORDINATES
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        parallelism.default: 1       
+      - GOOGLE_APPLICATION_CREDENTIALS=/usr/local/flink/flink_key.json # requires flink_key.json in directory
+
+  taskmanager:
+    build: ./states_source
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    scale: 1
+    volumes:
+      - ./:/usr/local/flink
+    env_file:
+      - .env # GOOGLE_CLOUD_PROJECT_ID, GOOGLE_PUBSUB_VECTORS_TOPIC_ID, COORDINATES
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        parallelism.default: 1
+      - GOOGLE_APPLICATION_CREDENTIALS=/usr/local/flink/flink_key.json # requires flink_key.json in directory
+
+  calculator:
+    build: ./backend/airspace_history_calculator
+    depends_on:
+      - taskmanager
+    volumes:
+      - ./:/home
+    env_file:
+      - .env # GOOGLE_CLOUD_PROJECT_ID
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/home/calculator_key.json # requires calculator_key.json in directory

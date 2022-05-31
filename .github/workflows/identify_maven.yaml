@@ -1,0 +1,29 @@
+name: Identify Maven services
+on:
+  workflow_call:
+    outputs:
+      directories: 
+        description: The array of directories containing pom.xml files
+        value: ${{ jobs.identify_java_scala.outputs.directories }}
+jobs:
+  identify_java_scala:
+    name: Identify Maven services
+    runs-on: ubuntu-latest
+    outputs:
+      directories: ${{ steps.check_dirs.outputs.java_scala_dirs }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Find directories with pom.xml files
+        id: check_dirs
+        run: |
+          OBJECTS=""
+          for DIR in `find . -name pom.xml`; do
+          DIR=${DIR%/*}
+            OBJECTS=${OBJECTS},\"${DIR#*.}\"
+          done
+          OBJECTS=${OBJECTS#*,}
+          echo $OBJECTS
+          echo ::set-output name=java_scala_dirs::[$OBJECTS]

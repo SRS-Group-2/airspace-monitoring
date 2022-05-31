@@ -1,0 +1,26 @@
+name: Build and scan the container images of the services
+on: 
+  pull_request:
+    branches:
+      - 'main'
+      - 'test_deploy'
+  push:
+    branches:
+      - 'develop'
+      - 'test_develop'
+jobs:
+  identify_services:
+    uses: ./.github/workflows/identify_services.yaml
+
+  build_scan:
+    name: Build and scan container
+    needs: identify_services
+    if: ${{ needs.identify_services.outputs.directories != '[]' && needs.identify_services.outputs.directories != '' }}
+    uses: ./.github/workflows/build_and_scan_then_push.yaml
+    with:
+      services: ${{ needs.identify_services.outputs.directories }}
+      push: 'false'
+    secrets:
+      DOCKER_REPO_PROJECT: ${{ secrets.PROJECT_ID }}
+      DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
+      DOCKER_REPO_REGION: ${{ secrets.DOCKER_REPO_REGION }}

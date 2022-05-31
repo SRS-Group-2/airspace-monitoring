@@ -1,0 +1,36 @@
+name: Tests
+on: 
+  pull_request:
+    branches:
+      - 'main'
+      - 'test_deploy'
+  push:
+    branches:
+      - 'develop'
+      - 'test_develop'
+      - 'main'
+      - 'test_deploy'
+
+jobs:
+  identify_maven:
+    uses: ./.github/workflows/identify_maven.yaml
+
+  maven_tests:
+    runs-on: ubuntu-latest
+    needs: identify_maven
+    if: ${{ needs.identify_maven.outputs.directories != '[]' && needs.identify_maven.outputs.directories != '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        pom:  ${{ fromJson(needs.identify_maven.outputs.directories) }}
+    steps:
+      # we use OpenSky API, so we need to compile the dependency to package our files
+      - name: Clone OpenSky API repo
+        run: git clone https://github.com/openskynetwork/opensky-api.git
+      - name: Install OpenSky API
+        run: mvn -q -f ./opensky-api/java/pom.xml install  -DskipTests -Dmaven.javadoc.skip=true
+      - uses: actions/checkout@v3
+      - id: tests
+        env:
+          POM_FILE: ${{ matrix.pom }}
+        run: mvn -q -f ".$POM_FILE/pom.xml" clean compile test

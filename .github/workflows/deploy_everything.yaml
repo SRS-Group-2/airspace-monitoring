@@ -1,0 +1,38 @@
+name: Deploy the services defined by Terraform
+on: 
+  push:
+    branches:
+      - 'main'
+      - 'test_deploy'
+jobs:
+  identify_changed_services:
+    uses: ./.github/workflows/identify_changed_services.yaml
+
+  build_scan_push:
+    name: Build and scan container
+    needs: identify_changed_services
+    if: ${{ needs.identify_changed_services.outputs.directories != '[]' && needs.identify_changed_services.outputs.directories != '' }}
+    uses: ./.github/workflows/build_and_scan_then_push.yaml
+    with:
+      services: ${{ needs.identify_changed_services.outputs.directories }}
+      push: 'true'
+    secrets:
+      DOCKER_REPO_PROJECT: ${{ secrets.PROJECT_ID }}
+      DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
+      DOCKER_REPO_REGION: ${{ secrets.DOCKER_REPO_REGION }}
+      WORKLOAD_IDP: ${{ secrets.WORKLOAD_IDP }}
+      SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
+
+  deploy:
+    name: Deploy service on Google Cloud
+    needs: build_scan_push
+    if: ${{ always() }}
+    uses: ./.github/workflows/terraform.yaml
+    secrets: 
+      PROJECT: ${{ secrets.PROJECT_ID }}
+      REGION: ${{ secrets.REGION }}
+      DOCKER_REPO_PROJECT: ${{ secrets.PROJECT_ID }}
+      DOCKER_REPO: ${{ secrets.DOCKER_REPO }}
+      DOCKER_REPO_REGION: ${{ secrets.DOCKER_REPO_REGION }}
+      WORKLOAD_IDP: ${{ secrets.WORKLOAD_IDP }}
+      SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
