@@ -19,7 +19,7 @@ gcloud projects add-iam-policy-binding $1 \
     --role="roles/artifactregistry.writer" 
 gcloud projects add-iam-policy-binding $1 \
     --member="serviceAccount:terraform@$1.iam.gserviceaccount.com" \
-    --role="roles/resourcemanager.projectIamAdmin" 
+    --role="roles/iam.securityAdmin" 
 
 gcloud iam workload-identity-pools create "github-pool" \
   --project="$1" \
