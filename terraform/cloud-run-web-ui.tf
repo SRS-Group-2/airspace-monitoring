@@ -14,7 +14,7 @@ resource "google_cloud_run_service" "web_ui" {
     metadata {
       annotations = {
         "autoscaling.knative.dev/maxScale" = "15"
-        "autoscaling.knative.dev/minScale" = "0"
+        "autoscaling.knative.dev/minScale" = "1"
       }
     }
   }

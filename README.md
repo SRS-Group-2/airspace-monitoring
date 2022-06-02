@@ -1,6 +1,10 @@
 # airspace-monitoring
 Exam project for SRS course
 
+# Architecture
+![Untitled-2022-06-02-1315 excalidraw](https://user-images.githubusercontent.com/26797547/171623455-8a643bc4-978a-41b4-b5e5-e0a3b687fc20.png)
+
+
 ## Development environment setup
 ### Pre commit hooks
 For security and quality reasons, this project makes use of Git pre commit hooks to avoid committing secrets and low quality code files.
