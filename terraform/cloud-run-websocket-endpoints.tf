@@ -21,7 +21,7 @@ resource "google_cloud_run_service" "websocket_endpoints" {
     metadata {
       annotations = {
         "autoscaling.knative.dev/maxScale" = "15"
-        "autoscaling.knative.dev/minScale" = "0"
+        "autoscaling.knative.dev/minScale" = "1"
       }
     }
   }

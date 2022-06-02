@@ -44,7 +44,7 @@ resource "google_cloud_run_service" "aircraft_info" {
     metadata {
       annotations = {
         "autoscaling.knative.dev/maxScale" = "15"
-        "autoscaling.knative.dev/minScale" = "0"
+        "autoscaling.knative.dev/minScale" = "1"
       }
     }
   }
