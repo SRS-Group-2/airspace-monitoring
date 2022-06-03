@@ -1,4 +1,5 @@
 name: Build and scan the container images of the services
+permissions: read-all
 on: 
   pull_request:
     branches:

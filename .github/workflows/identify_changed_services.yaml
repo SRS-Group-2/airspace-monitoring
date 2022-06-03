@@ -1,4 +1,5 @@
 name: Identify changed services
+permissions: read-all
 on:
   workflow_call:
     outputs:

@@ -1,4 +1,5 @@
 name: Identify services
+permissions: read-all
 on:
   workflow_call:
     outputs:
