@@ -1,5 +1,4 @@
 name: 'Terraform CI'
-permissions: read-all
 on:
   workflow_call:
     secrets:

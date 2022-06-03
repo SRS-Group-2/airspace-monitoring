@@ -1,5 +1,4 @@
 name: Deploy the services defined by Terraform
-permissions: read-all
 on: 
   push:
     branches:

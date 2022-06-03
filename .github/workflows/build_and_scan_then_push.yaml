@@ -1,5 +1,4 @@
 name: Build and scan container image (then push)
-permissions: read-all
 on:
   workflow_call:
     inputs:
