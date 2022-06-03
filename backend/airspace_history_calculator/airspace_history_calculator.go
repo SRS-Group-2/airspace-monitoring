@@ -474,8 +474,8 @@ func cronjobHandler1day(client *firestore.Client) {
 	documentID := time.Now().UTC().AddDate(0, 0, -1).Format("2006-01-02")
 
 	_, err := client.Collection("airspace").Doc("30d-history").Collection("1d-bucket").Doc(documentID).Set(ctx, map[string]interface{}{
-		"CO2t":       oneHourState.ReadCO2(),
-		"distanceKm": oneHourState.ReadDistance(),
+		"CO2t":       oneDayState.ReadCO2(),
+		"distanceKm": oneDayState.ReadDistance(),
 		"startTime":  documentID,
 	})
 
