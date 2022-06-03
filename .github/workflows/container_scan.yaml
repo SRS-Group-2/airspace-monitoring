@@ -1,7 +1,19 @@
 name: Build and scan the container images of the services
 permissions:
+  actions: read
+  checks: read
   contents: read
+  deployments: read
   id-token: write
+  issues: read
+  discussions: read
+  packages: read
+  pages: read
+  pull-requests: read
+  repository-projects: read
+  security-events: read
+  statuses: read
+
 on: 
   pull_request:
     branches:
