@@ -96,11 +96,11 @@ func main() {
 	router.SetTrustedProxies(nil)
 
 	router.Use(func() gin.HandlerFunc {
-        return func(c *gin.Context) {
-            c.Writer.Header().Set("Cache-Control", "public, max-age=604800, immutable") // info present on public db, unchanged
-        }
-    }())
-	
+		return func(c *gin.Context) {
+			c.Writer.Header().Set("Cache-Control", "public, max-age=604800, immutable") // info present on public db, unchanged
+		}
+	}())
+
 	router.Use(secure.New(secure.Config{
 		STSSeconds:            315360000,
 		STSIncludeSubdomains:  true,
@@ -114,7 +114,7 @@ func main() {
 	router.GET("/airspace/aircraft/:icao24/info", func(c *gin.Context) {
 		var icao24 = c.Param("icao24")
 
-		if len(icao24) != 6 && hasSymbol(icao24) {
+		if len(icao24) != 6 || hasSymbol(icao24) {
 			c.String(http.StatusNotAcceptable, "Invalid icao24")
 			return
 		}
