@@ -1,4 +1,4 @@
-aircraft_info_tag               = "dd7d141359ac03dbfb7498d2d38d541b782d6cd7"
+aircraft_info_tag               = "f4d6e462ba541ff544843637ac34728bc06dc9e1"
 aircraft_list_tag               = "dd7d141359ac03dbfb7498d2d38d541b782d6cd7"
 aircraft_positions_tag          = "dd7d141359ac03dbfb7498d2d38d541b782d6cd7"
 airspace_daily_history_tag      = "dd7d141359ac03dbfb7498d2d38d541b782d6cd7"
