@@ -159,7 +159,7 @@ under the License.
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-codec-http</artifactId>
-			<version>4.1.77.Final</version>
+			<version>4.1.86.Final</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
 		<dependency>
