@@ -1,5 +1,6 @@
 # airspace-monitoring
 Exam project for SRS course
+Project Slides presentation: https://docs.google.com/presentation/d/1TLnjqDA82R5XErX99MPeRsYnhIUxCcl-T7XKucU2L_I/edit?usp=sharing
 
 # Architecture
 ![Untitled-2022-06-02-1315 excalidraw](https://user-images.githubusercontent.com/26797547/171623455-8a643bc4-978a-41b4-b5e5-e0a3b687fc20.png)
